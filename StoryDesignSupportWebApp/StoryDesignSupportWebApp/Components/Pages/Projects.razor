@@ -1,0 +1,92 @@
+﻿@page "/projects"
+
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using StoryDesignSupportWebApp.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Projects</PageTitle>
+
+<h3>My Projects</h3>
+
+@if (_projects == null) {
+    <p>Loading...</p>
+} else if (!_projects.Any()) {
+    <p>No projects found.</p>
+} else {
+    <ul>
+        @foreach (var p in _projects) {
+            <li>
+                @p.Name
+                <button @onclick="() => Edit(p.Id)">Edit</button>
+                <button @onclick="() => Delete(p.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+<h4>Add New Project</h4>
+<input @bind="newProjectName" placeholder="Project name" />
+<button @onclick="AddProject">Add</button>
+
+@code {
+    private List<Project>? _projects;
+    private string newProjectName = "";
+
+    private string? userId;
+
+    protected override async Task OnInitializedAsync() {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var appUser = await UserManager.GetUserAsync(user);
+
+        userId = appUser.Id;
+
+        _projects = await Db.Projects
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
+    private async Task AddProject() {
+        if (string.IsNullOrWhiteSpace(newProjectName)) return;
+
+        var project = new Project() {
+            Name = newProjectName,
+            UserId = userId!
+        };
+
+        Db.Projects.Add(project);
+        await Db.SaveChangesAsync();
+
+        _projects!.Add(project);
+        newProjectName = "";
+    }
+
+    private void Edit(int id) {
+        // 編集ページへリンク
+        // すでに作った /projects/edit/{id} を想定
+        Nav.NavigateTo($"/projects/edit/{id}");
+    }
+
+    private async Task Delete(int id) {
+        var target = await Db.Projects
+            .Where(x => x.Id == id && x.UserId == userId)
+            .FirstOrDefaultAsync();
+
+        if (target != null) {
+            Db.Projects.Remove(target);
+            await Db.SaveChangesAsync();
+            _projects!.Remove(target);
+        }
+    }
+}

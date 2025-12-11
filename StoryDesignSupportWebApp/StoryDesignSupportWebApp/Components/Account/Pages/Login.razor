@@ -90,7 +90,7 @@
         // This doesn't count login failures towards account lockout
         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
 
-        ReturnUrl = "/counter";  //ここで強制的にページ移動
+        ReturnUrl = "/projects";  //ここで強制的にページ移動
 
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)

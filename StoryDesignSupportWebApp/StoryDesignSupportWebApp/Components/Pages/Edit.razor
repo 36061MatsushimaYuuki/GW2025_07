@@ -1,0 +1,51 @@
+﻿@page "/projects/edit/{id:int}"
+
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using StoryDesignSupportWebApp.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext Db
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Project Edit</h3>
+
+@if (_project == null) {
+    <p>Loading...</p>
+} else {
+    <input @bind="_project.Name" />
+    <button @onclick="Save">Save</button>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Project? _project;
+
+    protected override async Task OnInitializedAsync() {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var appUser = await UserManager.GetUserAsync(user);
+        var userId = appUser.Id;
+
+        _project = await Db.Projects
+            .Where(x => x.Id == id && x.UserId == userId)
+            .FirstOrDefaultAsync();
+
+        if (_project == null) {
+            // 権限なし or プロジェクト存在しない
+            Nav.NavigateTo("/projects");
+        }
+    }
+
+    private async Task Save() {
+        await Db.SaveChangesAsync();
+        Nav.NavigateTo("/projects"); // 保存後に一覧へ戻す
+    }
+}
