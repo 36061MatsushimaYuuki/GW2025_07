@@ -664,8 +664,8 @@
                     </div>
 
                     <div class="project-dates">
-                        <div>作成: @p.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</div>
-                        <div>更新: @(p.UpdatedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm") ?? "未更新")</div>
+                        <div>作成日: @p.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</div>
+                        <div>更新日: @(p.UpdatedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm") ?? "未更新")</div>
                     </div>
                 </div>
             }
