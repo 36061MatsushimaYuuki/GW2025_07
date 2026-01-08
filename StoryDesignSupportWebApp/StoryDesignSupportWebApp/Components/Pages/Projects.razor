@@ -31,49 +31,70 @@
 
     .search-filter-row {
         display: flex;
-        gap: 15px;
+        gap: 10px;
         margin-bottom: 0;
-        flex-wrap: wrap;
+        align-items: stretch;
     }
+
+    .filter-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+        flex-shrink: 0;
+    }
+
+        .filter-button:hover {
+            background: #5a6268;
+        }
+
+        .filter-button.active {
+            background: #007bff;
+        }
+
+            .filter-button.active:hover {
+                background: #0056b3;
+            }
 
     .search-box {
         flex: 1;
-        min-width: 250px;
+        min-width: 150px;
     }
 
         .search-box input {
             width: 100%;
-            padding: 10px 15px;
+            height: 44px;
+            padding: 0 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-        }
-
-    .filter-box {
-        min-width: 200px;
-    }
-
-        .filter-box select {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            background: white;
+            box-sizing: border-box;
         }
 
     .add-button {
         background: #007bff;
         color: white;
         border: none;
-        padding: 10px 20px;
+        padding: 0;
+        width: 44px;
+        height: 44px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 24px;
         display: flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
         transition: background 0.3s;
+        flex-shrink: 0;
     }
 
         .add-button:hover {
@@ -95,6 +116,160 @@
 
         .modal-overlay.show {
             display: flex;
+        }
+
+    .filter-modal-content {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        max-width: 450px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .filter-section {
+        margin-bottom: 20px;
+    }
+
+        .filter-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-section h4 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .filter-section h4 .expand-icon {
+                font-size: 12px;
+                transition: transform 0.3s;
+            }
+
+            .filter-section h4 .expand-icon.expanded {
+                transform: rotate(180deg);
+            }
+
+    .sort-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .sort-select {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+    }
+
+    .sort-order-btn {
+        padding: 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s, border-color 0.2s;
+        white-space: nowrap;
+    }
+
+        .sort-order-btn:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+        }
+
+        .sort-order-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+    .genre-section-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+        .genre-section-content.expanded {
+            max-height: 250px;
+        }
+
+    .genre-filter-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+    }
+
+    .genre-filter-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .genre-filter-option input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .genre-filter-option label {
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+            font-weight: normal;
+        }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+        .filter-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+    .clear-filter-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+        .clear-filter-btn:hover {
+            background: #5a6268;
+        }
+
+    .apply-filter-btn {
+        background: #007bff;
+        color: white;
+    }
+
+        .apply-filter-btn:hover {
+            background: #0056b3;
         }
 
     .modal-content {
@@ -431,6 +606,12 @@
         <h3 style="margin-top: 0;">プロジェクト一覧</h3>
 
         <div class="search-filter-row">
+            <button class="filter-button @(HasActiveFilters ? "active" : "")" 
+                    @onclick="OpenFilterModal" 
+                    title="ソート・フィルター">
+                ☰
+            </button>
+
             <div class="search-box">
                 <input type="text"
                        @bind="searchText"
@@ -438,18 +619,8 @@
                        placeholder="プロジェクトを検索..." />
             </div>
 
-            <div class="filter-box">
-                <select @bind="selectedGenreFilter">
-                    <option value="">すべてのジャンル</option>
-                    @foreach (var genre in GetAllGenres()) {
-                        <option value="@genre">@genre</option>
-                    }
-                </select>
-            </div>
-
-            <button class="add-button" @onclick="OpenAddModal">
-                <span style="font-size: 20px;">+</span>
-                <span>新規プロジェクト</span>
+            <button class="add-button" @onclick="OpenAddModal" title="新規プロジェクト">
+                +
             </button>
         </div>
     </div>
@@ -460,7 +631,7 @@
         </div>
     } else if (!FilteredProjects.Any()) {
         <div class="no-projects">
-            @if (!string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(selectedGenreFilter)) {
+            @if (!string.IsNullOrWhiteSpace(searchText) || HasActiveFilters) {
                 <p>検索条件に一致するプロジェクトが見つかりません。</p>
             } else {
                 <p>プロジェクトがありません。新しいプロジェクトを作成してください。</p>
@@ -500,6 +671,63 @@
             }
         </div>
     }
+</div>
+
+<!-- ソート・フィルターモーダル -->
+<div class="modal-overlay @(showFilterModal ? "show" : "")" @onclick="CloseFilterModalOnOverlay">
+    <div class="filter-modal-content" @onclick:stopPropagation="true">
+        <div class="modal-header">
+            <h3>ソート・フィルター</h3>
+            <button class="modal-close" @onclick="CloseFilterModal">&times;</button>
+        </div>
+
+        <div class="filter-section">
+            <h4>並び順</h4>
+            <div class="sort-controls">
+                <select class="sort-select" @bind="sortField">
+                    <option value="created">作成日</option>
+                    <option value="updated">更新日</option>
+                </select>
+                <button class="sort-order-btn @(sortOrder == "desc" ? "active" : "")" 
+                        @onclick="@(() => sortOrder = "desc")">
+                    新しい順
+                </button>
+                <button class="sort-order-btn @(sortOrder == "asc" ? "active" : "")" 
+                        @onclick="@(() => sortOrder = "asc")">
+                    古い順
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <h4 @onclick="ToggleGenreSection">
+                <span class="expand-icon @(genreSectionExpanded ? "expanded" : "")">▼</span>
+                ジャンル
+            </h4>
+            <div class="genre-section-content @(genreSectionExpanded ? "expanded" : "")">
+                @if (GetAllGenres().Any()) {
+                    <div class="genre-filter-list">
+                        @foreach (var genre in GetAllGenres()) {
+                            <div class="genre-filter-option">
+                                <input type="checkbox" 
+                                       id="genre-@genre" 
+                                       checked="@selectedGenreFilters.Contains(genre)"
+                                       @onchange="@(() => ToggleGenreFilter(genre))" />
+                                <label for="genre-@genre">@genre</label>
+                            </div>
+                        }
+                    </div>
+                } else {
+                    <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">ジャンルがありません</p>
+                }
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button class="clear-filter-btn" @onclick="ClearFilters">クリア</button>
+            <button class="apply-filter-btn" @onclick="ApplyFilters">適用</button>
+        </div>
+    </div>
 </div>
 
 <!-- 新規追加/編集モーダル -->
@@ -581,8 +809,16 @@
 @code {
     private List<Project>? _projects;
     private string searchText = "";
-    private string selectedGenreFilter = "";
     private string? userId;
+
+    // ソート・フィルター関連
+    private bool showFilterModal = false;
+    private string sortField = "created";
+    private string sortOrder = "desc";
+    private HashSet<string> selectedGenreFilters = new();
+    private bool genreSectionExpanded = false;
+    
+    private bool HasActiveFilters => !(sortField == "created" && sortOrder == "desc") || selectedGenreFilters.Any();
 
     // モーダル関連
     private bool showModal = false;
@@ -600,15 +836,28 @@
 
             var filtered = _projects.AsEnumerable();
 
+            // 検索フィルター
             if (!string.IsNullOrWhiteSpace(searchText)) {
                 filtered = filtered.Where(p =>
                     p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                     (p.Overview != null && p.Overview.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
             }
 
-            if (!string.IsNullOrWhiteSpace(selectedGenreFilter)) {
+            // ジャンルフィルター
+            if (selectedGenreFilters.Any()) {
                 filtered = filtered.Where(p =>
-                    p.Genre != null && p.Genre.Contains(selectedGenreFilter));
+                    p.Genre != null && p.Genre.Any(g => selectedGenreFilters.Contains(g)));
+            }
+
+            // ソート適用
+            if (sortField == "created") {
+                filtered = sortOrder == "desc" 
+                    ? filtered.OrderByDescending(p => p.CreatedAt)
+                    : filtered.OrderBy(p => p.CreatedAt);
+            } else {
+                filtered = sortOrder == "desc"
+                    ? filtered.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+                    : filtered.OrderBy(p => p.UpdatedAt ?? p.CreatedAt);
             }
 
             return filtered;
@@ -634,10 +883,45 @@
 
         _projects = await Db.Projects
             .Where(x => x.UserId == userId)
-            .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
     }
 
+    // ソート・フィルターモーダル
+    private void OpenFilterModal() {
+        showFilterModal = true;
+    }
+
+    private void CloseFilterModal() {
+        showFilterModal = false;
+    }
+
+    private void CloseFilterModalOnOverlay(MouseEventArgs e) {
+        CloseFilterModal();
+    }
+
+    private void ToggleGenreFilter(string genre) {
+        if (selectedGenreFilters.Contains(genre)) {
+            selectedGenreFilters.Remove(genre);
+        } else {
+            selectedGenreFilters.Add(genre);
+        }
+    }
+
+    private void ToggleGenreSection() {
+        genreSectionExpanded = !genreSectionExpanded;
+    }
+
+    private void ClearFilters() {
+        sortField = "created";
+        sortOrder = "desc";
+        selectedGenreFilters.Clear();
+    }
+
+    private void ApplyFilters() {
+        CloseFilterModal();
+    }
+
+    // プロジェクト編集モーダル
     private void OpenAddModal() {
         isEditMode = false;
         editingProjectId = null;
