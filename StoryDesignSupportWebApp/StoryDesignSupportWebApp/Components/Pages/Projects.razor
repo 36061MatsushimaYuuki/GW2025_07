@@ -469,6 +469,19 @@
             background: #5a6268;
         }
 
+    .projects-count {
+        background: white;
+        margin-left: 2px;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #666;
+    }
+
+        .projects-count strong {
+            color: #007bff;
+            font-size: 16px;
+        }
+
     .projects-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -689,6 +702,16 @@
             }
         </div>
     } else {
+        @if (_projects != null && _projects.Any()) {
+            <div class="projects-count">
+                @if (!string.IsNullOrWhiteSpace(searchText) || HasActiveFilters) {
+                    <span>検索結果: <strong>@FilteredProjects.Count()</strong>件 / 総件数: @_projects.Count 件</span>
+                } else {
+                    <span>総件数: <strong>@_projects.Count</strong>件</span>
+                }
+            </div>
+        }
+
         <div class="projects-grid">
             @foreach (var p in FilteredProjects) {
                 <div class="project-card" @onclick="() => NavigateToEdit(p.Id)">
@@ -760,11 +783,11 @@
                     <div class="genre-filter-list">
                         @foreach (var genre in GetAllGenres()) {
                             <div class="genre-filter-option">
-                                <input type="checkbox" 
-                                       id="genre-@genre" 
+                                <input type="checkbox"
+                                       id="genre-@genre"
                                        checked="@selectedGenreFilters.Contains(genre)"
                                        @onchange="@(() => ToggleGenreFilter(genre))" />
-                                <label for="genre-@genre">@genre</label>
+                                <label for="genre-@genre">@genre (@GetGenreCount(genre))</label>
                             </div>
                         }
                     </div>
@@ -986,6 +1009,12 @@
 
     private void ToggleGenreSection() {
         genreSectionExpanded = !genreSectionExpanded;
+    }
+
+    private int GetGenreCount(string genre) {
+        if (_projects == null) return 0;
+
+        return _projects.Count(p => p.Genre != null && p.Genre.Contains(genre));
     }
 
     private void ClearFilters() {
