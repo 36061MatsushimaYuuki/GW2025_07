@@ -270,12 +270,12 @@
         }
 
     .apply-filter-btn {
-        background: #007bff;
+        background: #30b84f;
         color: white;
     }
 
         .apply-filter-btn:hover {
-            background: #0056b3;
+            background: #269e41;
         }
 
     .modal-content {
@@ -293,6 +293,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-top: -10px;
         margin-bottom: 20px;
         padding-bottom: 15px;
         border-bottom: 2px solid #eee;
@@ -300,6 +301,7 @@
 
         .modal-header h3 {
             margin: 0;
+            margin-left: -18px;
             color: #333;
         }
 
@@ -315,6 +317,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-right: -18px;
     }
 
         .modal-close:hover {
@@ -330,6 +333,10 @@
             margin-bottom: 8px;
             font-weight: bold;
             color: #333;
+        }
+
+        .required {
+            color: red;
         }
 
         .form-group input[type="text"],
@@ -452,12 +459,12 @@
         }
 
     .save-btn {
-        background: #28a745;
+        background: #30b84f;
         color: white;
     }
 
         .save-btn:hover {
-            background: #218838;
+            background: #269e41;
         }
 
     .cancel-btn {
@@ -576,6 +583,7 @@
 
     .delete-modal-project-name {
         font-weight: bold;
+        font-size: 18px;
         color: #dc3545;
         margin: 10px 0;
     }
@@ -704,7 +712,7 @@
     } else {
         @if (_projects != null && _projects.Any()) {
             <div class="projects-count">
-                @if (!string.IsNullOrWhiteSpace(searchText) || HasActiveFilters) {
+                @if (HasSearchOrGenreFilter) {
                     <span>検索結果: <strong>@FilteredProjects.Count()</strong>件 / 総件数: @_projects.Count 件</span>
                 } else {
                     <span>総件数: <strong>@_projects.Count</strong>件</span>
@@ -824,7 +832,7 @@
         }
 
         <div class="form-group">
-            <label>プロジェクト名 *</label>
+            <label>プロジェクト名 <span class="required">*</span></label>
             <input type="text"
                    @bind="modalProjectName"
                    @bind:event="oninput"
@@ -915,6 +923,8 @@
     
     private bool HasActiveFilters => !(sortField == "created" && sortOrder == "desc") || selectedGenreFilters.Any();
 
+    private bool HasSearchOrGenreFilter => !string.IsNullOrWhiteSpace(searchText) || selectedGenreFilters.Any();
+
     // モーダル関連
     private bool showModal = false;
     private bool isEditMode = false;
@@ -982,6 +992,7 @@
         userId = appUser?.Id;
 
         _projects = await Db.Projects
+            .AsNoTracking()
             .Where(x => x.UserId == userId)
             .ToListAsync();
     }

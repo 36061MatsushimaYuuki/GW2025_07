@@ -15,13 +15,15 @@
         [MaxLength(100)]
         public string Name { get; set; } = "";
 
-        public string[]? Genre { get; set; }
-
         [MaxLength(200)]
         public string Overview { get; set; } = "";
 
+        public string[]? Genre { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+
+        public ProjectData? ProjectDataObject { get; set; } = new();
 
         public Project() {
 

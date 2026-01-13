@@ -244,6 +244,10 @@ namespace StoryDesignSupportWebApp.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ProjectDataObject")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(0);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 

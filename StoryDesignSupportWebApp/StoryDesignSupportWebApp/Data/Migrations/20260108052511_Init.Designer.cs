@@ -12,7 +12,7 @@ using StoryDesignSupportWebApp.Data;
 namespace StoryDesignSupportWebApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260106025709_Init")]
+    [Migration("20260108052511_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -246,6 +246,10 @@ namespace StoryDesignSupportWebApp.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ProjectDataObject")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(0);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");

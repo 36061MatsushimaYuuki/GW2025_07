@@ -7,18 +7,555 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using StoryDesignSupportWebApp.Data
+@using StoryDesignSupportWebApp.Data.EditData
 @inject UserManager<ApplicationUser> UserManager
-@inject ApplicationDbContext Db
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
 
-<h3>Project Edit</h3>
+<PageTitle>Project Edit</PageTitle>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    .edit-container {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* サイドバー（PC用） */
+    .sidebar {
+        width: 300px;
+        background-color: #f5f5f5;
+        border-right: 1px solid #ddd;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .sidebar-header {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+        background-color: #fff;
+        cursor: pointer;
+        color: #0066cc;
+    }
+
+        .sidebar-header:hover {
+            background-color: #f0f0f0;
+        }
+
+    .category-view, .chapter-view {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .category-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .category-item:hover {
+            background-color: #e8e8e8;
+        }
+
+        .category-item.active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+    .chapter-item {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .chapter-header {
+        padding: 12px 20px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+    }
+
+        .chapter-header:hover {
+            background-color: #f0f0f0;
+        }
+
+    .chapter-title {
+        flex: 1;
+    }
+
+    .toggle-icon {
+        margin-right: 10px;
+        font-size: 12px;
+    }
+
+    .add-section-btn {
+        background: none;
+        border: none;
+        color: #0066cc;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 0 8px;
+    }
+
+        .add-section-btn:hover {
+            color: #0052a3;
+        }
+
+    .sections-list {
+        background-color: #fafafa;
+    }
+
+    .section-item {
+        padding: 10px 20px 10px 40px;
+        cursor: pointer;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+        .section-item:hover {
+            background-color: #e8e8e8;
+        }
+
+        .section-item.active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+    .add-chapter-btn {
+        padding: 15px 20px;
+        background-color: #fff;
+        border: none;
+        border-top: 1px solid #ddd;
+        cursor: pointer;
+        color: #0066cc;
+        text-align: left;
+    }
+
+        .add-chapter-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+    .empty-message {
+        padding: 20px;
+        text-align: center;
+        color: #999;
+    }
+
+    /* 編集エリア */
+    .editor-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .editor-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #ddd;
+        background-color: #fff;
+    }
+
+    .editor-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .section-title-input {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .editor-toolbar {
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .toolbar-btn {
+        padding: 6px 12px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+        .toolbar-btn:hover {
+            background-color: #e8e8e8;
+        }
+
+        .toolbar-btn.active {
+            background-color: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+    .toolbar-separator {
+        width: 1px;
+        height: 20px;
+        background-color: #ccc;
+        margin: 0 5px;
+    }
+
+    .color-picker-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+    .color-picker {
+        width: 30px;
+        height: 24px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .editor-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .content-editable {
+        min-height: 400px;
+        padding: 15px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-family: inherit;
+        line-height: 1.6;
+        outline: none;
+        background-color: white;
+    }
+
+        .content-editable:focus {
+            border-color: none;
+        }
+
+    /* モバイルビュー */
+    .mobile-view {
+        display: none;
+    }
+
+    .mobile-list {
+        height: 100vh;
+        overflow-y: auto;
+        background-color: #f5f5f5;
+    }
+
+    .mobile-header {
+        padding: 15px;
+        background-color: #0066cc;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .mobile-editor {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+    }
+
+    .mobile-editor-header {
+        padding: 15px;
+        background-color: #0066cc;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .back-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .mobile-editor-title {
+        flex: 1;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    /* レスポンシブ */
+    @@media (max-width: 768px) {
+        .desktop-view {
+            display: none !important;
+        }
+
+        .mobile-view {
+            display: block;
+            width: 100%;
+        }
+
+        .toolbar-btn {
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .editor-toolbar {
+            padding: 8px;
+            gap: 3px;
+        }
+
+        .content-editable {
+            min-height: 300px;
+        }
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
 
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <input @bind="_project.Name" />
-    <button @onclick="Save">Save</button>
+    <!-- デスクトップビュー -->
+    <div class="edit-container desktop-view">
+        <!-- サイドバー -->
+        <!-- サイドバー -->
+        <div class="sidebar">
+            @if (_showCategoryView) {
+                <div class="sidebar-header" @onclick="() => _showCategoryView = false">
+                    &lt; カテゴリ選択に戻る
+                </div>
+                <div class="chapter-view">
+                    @if (_project.ProjectDataObject?.Scenario?.chapters == null || _project.ProjectDataObject.Scenario.chapters.Length == 0) {
+                        <div class="empty-message">章がありません</div>
+                    } else {
+                        @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
+                            var chapterIndex = i;
+                            var chapter = _project.ProjectDataObject.Scenario.chapters[i];
+                            <div class="chapter-item">
+                                <div class="chapter-header">
+                                    <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)">
+                                        @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
+                                    </span>
+                                    <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
+                                        @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
+                                    </span>
+                                    <button class="add-section-btn" @onclick="() => AddSection(chapterIndex)">+</button>
+                                </div>
+                                @if (_expandedChapters.Contains(chapterIndex)) {
+                                    <div class="sections-list">
+                                        @if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                                            <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
+                                        } else {
+                                            @for (int j = 0; j < chapter.Sections.Length; j++) {
+                                                var sectionIndex = j;
+                                                var section = chapter.Sections[j];
+                                                <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
+                                                     @onclick="() => SelectSection(chapterIndex, sectionIndex)">
+                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    <button class="add-chapter-btn" @onclick="AddChapter">+ 章を追加</button>
+                </div>
+            } else {
+                <div class="sidebar-header" @onclick="BackToProjectList">
+                    &lt; 一覧に戻る
+                </div>
+                <div class="category-view">
+                    <div class="category-item @(_currentCategory == "writing" ? "active" : "")" @onclick='() => SelectCategory("writing")'>
+                        執筆
+                    </div>
+                    <div class="category-item" @onclick='() => SelectCategory("structure")'>
+                        構成
+                    </div>
+                    <div class="category-item" @onclick='() => SelectCategory("materials")'>
+                        資料
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- 編集エリア -->
+        <div class="editor-area">
+            @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
+                    _project.ProjectDataObject?.Scenario?.chapters != null &&
+                    _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
+                    _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
+                    _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+
+                var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+
+                <div class="editor-header">
+                    <div class="editor-title">
+                        @(
+                                        string.IsNullOrEmpty(
+                                        _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                        )
+                                        ? $"Chapter {_selectedChapter + 1}"
+                                        : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                        )
+                    </div>
+                    <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" />
+                </div>
+
+                <div class="editor-toolbar">
+                    <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' title="太字"><b>B</b></button>
+                    <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体"><i>I</i></button>
+                    <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' title="下線"><u>U</u></button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
+                    <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
+                    <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
+                    <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" @onclick="ZoomOut" title="縮小">A-</button>
+                    <button class="toolbar-btn" @onclick="ZoomReset" title="リセット">A</button>
+                    <button class="toolbar-btn" @onclick="ZoomIn" title="拡大">A+</button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" @onclick="ClearFormat" title="書式をクリア">✕ リセット</button>
+                </div>
+
+                <div class="editor-content">
+                    <div @key="@($"{_selectedChapter}-{_selectedSection}")"
+                         id="content-editable"
+                         class="content-editable"
+                         contenteditable="true"
+                         @oninput="OnContentInput"
+                         @onkeydown="OnKeyDown">
+                    </div>
+                </div>
+            } else {
+                <div class="editor-content">
+                    <div class="empty-message" style="margin-top: 50px;">
+                        左のサイドバーから編集する話を選択してください
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- モバイルビュー -->
+    <div class="mobile-view">
+        @if (_mobileShowEditor) {
+            @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
+                _project.ProjectDataObject?.Scenario?.chapters != null &&
+                _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
+                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
+                _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+
+                var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+
+                <div class="mobile-editor">
+                    <div class="mobile-editor-header">
+                        <button class="back-btn" @onclick="BackToList">&lt;</button>
+                        <div class="mobile-editor-title">
+                            @(
+                                            string.IsNullOrEmpty(
+                                            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                            )
+                                            ? $"Chapter {_selectedChapter + 1}"
+                                            : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                            )
+                        </div>
+                    </div>
+
+                    <div style="padding: 10px; border-bottom: 1px solid #ddd;">
+                        <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" />
+                    </div>
+
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")'><b>B</b></button>
+                        <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")'><i>I</i></button>
+                        <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")'><u>U</u></button>
+                        <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
+                        <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
+                        <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
+                        <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                        <button class="toolbar-btn" @onclick="ZoomOut" style="font-size: 11px;">A-</button>
+                        <button class="toolbar-btn" @onclick="ZoomReset" style="font-size: 11px;">A</button>
+                        <button class="toolbar-btn" @onclick="ZoomIn" style="font-size: 11px;">A+</button>
+                        <button class="toolbar-btn" @onclick="ClearFormat" style="font-size: 11px;">✕</button>
+                    </div>
+
+                    <div style="flex: 1; overflow-y: auto; padding: 10px;">
+                        <div id="content-editable-mobile"
+                             class="content-editable"
+                             contenteditable="true"
+                             @oninput="OnContentInput"
+                             @onkeydown="OnKeyDown">
+                        </div>
+                    </div>
+                </div>
+            }
+        } else {
+            <div class="mobile-list">
+                <div class="mobile-header">執筆</div>
+                @if (_project.ProjectDataObject?.Scenario?.chapters == null || _project.ProjectDataObject.Scenario.chapters.Length == 0) {
+                    <div class="empty-message">章がありません</div>
+                } else {
+                    @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
+                        var chapterIndex = i;
+                        var chapter = _project.ProjectDataObject.Scenario.chapters[i];
+                        <div class="chapter-item">
+                            <div class="chapter-header">
+                                <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)">
+                                    @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
+                                </span>
+                                <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
+                                    @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
+                                </span>
+                                <button class="add-section-btn" @onclick="() => AddSection(chapterIndex)">+</button>
+                            </div>
+                            @if (_expandedChapters.Contains(chapterIndex)) {
+                                <div class="sections-list">
+                                    @if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                                        <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
+                                    } else {
+                                        @for (int j = 0; j < chapter.Sections.Length; j++) {
+                                            var sectionIndex = j;
+                                            var section = chapter.Sections[j];
+                                            <div class="section-item" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                                @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                <button class="add-chapter-btn" @onclick="AddChapter">+ 章を追加</button>
+            </div>
+        }
+    </div>
 }
 
 @code {
@@ -26,6 +563,22 @@
     public int id { get; set; }
 
     private Project? _project;
+    private bool _showCategoryView = true;
+    private string _currentCategory = "writing";
+    private HashSet<int> _expandedChapters = new HashSet<int>();
+    private int _selectedChapter = -1;
+    private int _selectedSection = -1;
+    private bool _mobileShowEditor = false;
+    private static Dictionary<string, Edit> _instances = new Dictionary<string, Edit>();
+    private string _instanceId = Guid.NewGuid().ToString();
+    private Dictionary<string, bool> _formatStates = new Dictionary<string, bool>
+    {
+        { "bold", false },
+        { "italic", false },
+        { "underline", false }
+    };
+    private System.Threading.Timer? _autoSaveTimer;
+    private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -34,18 +587,499 @@
         var appUser = await UserManager.GetUserAsync(user);
         var userId = appUser.Id;
 
-        _project = await Db.Projects
+        _project = await DbFactory
+            .CreateDbContext()
+            .Projects
             .Where(x => x.Id == id && x.UserId == userId)
             .FirstOrDefaultAsync();
 
         if (_project == null) {
-            // 権限なし or プロジェクト存在しない
             Nav.NavigateTo("/projects");
         }
     }
 
-    private async Task Save() {
-        await Db.SaveChangesAsync();
-        Nav.NavigateTo("/projects"); // 保存後に一覧へ戻す
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        _instances[_instanceId] = this;
+    }
+
+    public void Dispose() {
+        _autoSaveTimer?.Dispose();
+        _saveSemaphore?.Dispose();
+        _instances.Remove(_instanceId);
+    }
+
+    private int _lastRenderedChapter = -1;
+    private int _lastRenderedSection = -1;
+    private double _zoomLevel = 1.0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+            window.addEventListener('formatStateChanged', function(e) {{
+                DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'UpdateFormatStates', '{_instanceId}', e.detail);
+            }});
+        ");
+        }
+
+        // セクションが変更された場合のみコンテンツを設定
+        bool sectionChanged = (_selectedChapter != _lastRenderedChapter || _selectedSection != _lastRenderedSection);
+
+        if (sectionChanged &&
+            _selectedChapter >= 0 && _selectedSection >= 0 &&
+            _project?.ProjectDataObject?.Scenario?.chapters != null &&
+            _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
+            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
+            _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+
+            var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+            var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+
+            // コンテンツを設定
+            await JSRuntime.InvokeVoidAsync("setEditableContent", elementId, section.Text ?? "");
+
+            // ズームレベルを適用
+            await JSRuntime.InvokeVoidAsync("setZoomLevel", elementId, _zoomLevel);
+
+            _lastRenderedChapter = _selectedChapter;
+            _lastRenderedSection = _selectedSection;
+        }
+    }
+
+    [JSInvokable("UpdateFormatStates")]
+    public static void UpdateFormatStates(string instanceId, Dictionary<string, bool> states) {
+        if (!_instances.TryGetValue(instanceId, out var instance) || instance == null) {
+            return;
+        }
+
+        instance.InvokeAsync(() => {
+            if (states.ContainsKey("bold")) {
+                instance._formatStates["bold"] = states["bold"];
+            }
+            if (states.ContainsKey("italic")) {
+                instance._formatStates["italic"] = states["italic"];
+            }
+            if (states.ContainsKey("underline")) {
+                instance._formatStates["underline"] = states["underline"];
+            }
+            instance.StateHasChanged();
+        });
+    }
+
+    private void SelectCategory(string category) {
+        _currentCategory = category;
+        if (category == "writing") {
+            _showCategoryView = true;
+        }
+    }
+
+    private void ToggleChapter(int chapterIndex) {
+        if (_expandedChapters.Contains(chapterIndex)) {
+            _expandedChapters.Remove(chapterIndex);
+        } else {
+            _expandedChapters.Add(chapterIndex);
+        }
+    }
+
+    private async void SelectSection(int chapterIndex, int sectionIndex) {
+        // 現在のセクションを保存
+        if (_selectedChapter >= 0 && _selectedSection >= 0) {
+            await SaveContent();
+            await AutoSave();
+        }
+
+        _selectedChapter = chapterIndex;
+        _selectedSection = sectionIndex;
+        ResetFormatStates();
+
+        // 強制的に再レンダリング
+        _lastRenderedChapter = -1;
+        _lastRenderedSection = -1;
+
+        StateHasChanged();
+    }
+
+    private async void SelectSectionMobile(int chapterIndex, int sectionIndex) {
+        // 現在のセクションを保存
+        if (_selectedChapter >= 0 && _selectedSection >= 0) {
+            await SaveContent();
+            await AutoSave();
+        }
+
+        _selectedChapter = chapterIndex;
+        _selectedSection = sectionIndex;
+        _mobileShowEditor = true;
+        ResetFormatStates();
+
+        // 強制的に再レンダリング
+        _lastRenderedChapter = -1;
+        _lastRenderedSection = -1;
+
+        StateHasChanged();
+    }
+
+    private async void BackToList() {
+        // 保存してからリストに戻る
+        await SaveContent();
+        await AutoSave();
+        _mobileShowEditor = false;
+        _selectedChapter = -1;
+        _selectedSection = -1;
+        _lastRenderedChapter = -1;
+        _lastRenderedSection = -1;
+        StateHasChanged();
+    }
+
+    private async Task AddChapter() {
+        if (_project?.ProjectDataObject?.Scenario == null) return;
+
+        var chapterCount = _project.ProjectDataObject.Scenario.chapters?.Length ?? 0;
+        var newChapter = new Chapter {
+            Title = $"第{chapterCount + 1}章"
+        };
+
+        if (_project.ProjectDataObject.Scenario.chapters == null) {
+            _project.ProjectDataObject.Scenario.chapters = new[] { newChapter };
+        } else {
+            var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
+            chapterList.Add(newChapter);
+            _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
+        }
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+    }
+
+    private async Task AddSection(int chapterIndex) {
+        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
+        if (chapterIndex < 0 || chapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+
+        var chapter = _project.ProjectDataObject.Scenario.chapters[chapterIndex];
+        var sectionCount = chapter.Sections?.Length ?? 0;
+
+        var newSection = new Section {
+            Title = $"第{sectionCount + 1}話",
+            Text = ""
+        };
+
+        if (chapter.Sections == null) {
+            chapter.Sections = new[] { newSection };
+        } else {
+            var sectionList = chapter.Sections.ToList();
+            sectionList.Add(newSection);
+            chapter.Sections = sectionList.ToArray();
+        }
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+    }
+
+    private async Task ToggleFormat(string format) {
+        _formatStates[format] = !_formatStates[format];
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+        await JSRuntime.InvokeVoidAsync("toggleFormat", elementId, format, _formatStates[format]);
+    }
+
+    private async Task ApplyFormat(string format) {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+        await JSRuntime.InvokeVoidAsync("applyBlockFormat", elementId, format);
+    }
+
+    private async Task ClearFormat() {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+        await JSRuntime.InvokeVoidAsync("clearFormat", elementId);
+        ResetFormatStates();
+    }
+
+    private void ResetFormatStates() {
+        _formatStates["bold"] = false;
+        _formatStates["italic"] = false;
+        _formatStates["underline"] = false;
+    }
+
+    private async Task ZoomIn() {
+        _zoomLevel = Math.Min(_zoomLevel + 0.1, 2.0);
+        await ApplyZoom();
+    }
+
+    private async Task ZoomOut() {
+        _zoomLevel = Math.Max(_zoomLevel - 0.1, 0.5);
+        await ApplyZoom();
+    }
+
+    private async Task ZoomReset() {
+        _zoomLevel = 1.0;
+        await ApplyZoom();
+    }
+
+    private async Task ApplyZoom() {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+        await JSRuntime.InvokeVoidAsync("setZoomLevel", elementId, _zoomLevel);
+    }
+
+    private async Task OnContentInput() {
+        await SaveContent();
+        ScheduleAutoSave();
+    }
+
+    private async Task OnKeyDown() {
+        // キーボード入力時の処理
+    }
+
+    private async Task BackToProjectList() {
+        if (_selectedChapter >= 0 && _selectedSection >= 0) {
+            await SaveContent();
+        }
+
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();   // ← ここで確定
+
+        _selectedChapter = -1;
+        _selectedSection = -1;
+        _lastRenderedChapter = -1;
+        _lastRenderedSection = -1;
+
+        Nav.NavigateTo("/projects");
+    }
+
+    private async Task SaveContent() {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+        var content = await JSRuntime.InvokeAsync<string>("getEditableContent", elementId);
+
+        if (_selectedChapter >= 0 && _selectedSection >= 0 &&
+            _project?.ProjectDataObject?.Scenario?.chapters != null &&
+            _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
+            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
+            _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+
+            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text = content;
+        }
+    }
+
+    private void ScheduleAutoSave() {
+        _autoSaveTimer?.Dispose();
+        _autoSaveTimer = new System.Threading.Timer(async _ => {
+            await InvokeAsync(async () => {
+                await AutoSave();
+            });
+        }, null, 1000, Timeout.Infinite);
+    }
+
+    private async Task AutoSave() {
+        // 既に保存処理が実行中なら待機
+        if (!await _saveSemaphore.WaitAsync(0)) {
+            return; // 保存中なら今回はスキップ
+        }
+
+        try {
+            if (_project != null) {
+                _project.UpdatedAt = DateTime.UtcNow;
+                await using var db = DbFactory.CreateDbContext();
+                db.Projects.Update(_project);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex) {
+            // エラーログ（必要に応じて）
+            Console.WriteLine($"AutoSave error: {ex.Message}");
+        }
+        finally {
+            _saveSemaphore.Release();
+        }
     }
 }
+
+<script>
+    (function() {
+        // すでに定義されている場合はスキップ
+        if (window.editorScriptLoaded) return;
+        window.editorScriptLoaded = true;
+
+        let currentFormat = {
+            bold: false,
+            italic: false,
+            underline: false
+        };
+
+        window.setEditableContent = function(elementId, content) {
+            const element = document.getElementById(elementId);
+                if (element.innerHTML !== (content || '')) {
+                element.innerHTML = content || '';
+
+                const selection = window.getSelection();
+                const range = document.createRange();
+
+                if (element.childNodes.length > 0) {
+                    range.setStart(element.childNodes[0], 0);
+                    range.collapse(true);
+                } else {
+                    range.selectNodeContents(element);
+                    range.collapse(true);
+                }
+
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        };
+
+        window.getEditableContent = function(elementId) {
+            const element = document.getElementById(elementId);
+            return element ? element.innerHTML : '';
+        };
+
+        window.setZoomLevel = function(elementId, zoomLevel) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.fontSize = (16 * zoomLevel) + 'px';
+            }
+        };
+
+        // 選択状態の変更を監視
+        document.addEventListener('selectionchange', function() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                updateFormatStates();
+            }
+        });
+
+        function updateFormatStates() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+
+            if (selection.isCollapsed) {
+                // 選択解除された場合、書式状態をリセット
+                currentFormat.bold = false;
+                currentFormat.italic = false;
+                currentFormat.underline = false;
+                notifyFormatStates();
+            } else {
+                // 選択範囲の書式を確認
+                const parentElement = range.commonAncestorContainer.nodeType === 3
+                    ? range.commonAncestorContainer.parentElement
+                    : range.commonAncestorContainer;
+
+                currentFormat.bold = document.queryCommandState('bold') || hasParentTag(parentElement, 'B') || hasParentTag(parentElement, 'STRONG');
+                currentFormat.italic = document.queryCommandState('italic') || hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
+                currentFormat.underline = document.queryCommandState('underline') || hasParentTag(parentElement, 'U');
+                notifyFormatStates();
+            }
+        }
+
+        function hasParentTag(element, tagName) {
+            while (element && element.nodeName !== 'DIV') {
+                if (element.nodeName === tagName) return true;
+                element = element.parentElement;
+            }
+            return false;
+        }
+
+        function notifyFormatStates() {
+            // Blazorに状態を通知（カスタムイベント）
+            window.dispatchEvent(new CustomEvent('formatStateChanged', {
+                detail: currentFormat
+            }));
+        }
+
+        window.toggleFormat = function(elementId, format, isActive) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            element.focus();
+            const selection = window.getSelection();
+
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // テキストが選択されている場合
+                document.execCommand(format, false, null);
+
+                // 選択を解除して書式をリセット
+                setTimeout(() => {
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        range.collapse(false);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    // 書式状態を明示的にオフ
+                    currentFormat[format] = false;
+                    notifyFormatStates();
+                }, 10);
+            } else {
+                // 選択されていない場合
+                currentFormat[format] = isActive;
+                if (isActive) {
+                    document.execCommand(format, false, null);
+                } else {
+                    document.execCommand(format, false, null);
+                }
+            }
+        };
+
+        window.applyBlockFormat = function(elementId, format) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            element.focus();
+            const selection = window.getSelection();
+
+            if (selection.rangeCount > 0) {
+                if (selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
+                    const currentNode = range.startContainer;
+                    const blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
+
+                    const newElement = document.createElement(format);
+                    newElement.innerHTML = blockElement.innerHTML || '<br>';
+                    blockElement.parentNode.replaceChild(newElement, blockElement);
+
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(newElement);
+                    newRange.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    document.execCommand('formatBlock', false, '<' + format + '>');
+
+                    setTimeout(() => {
+                        if (selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0);
+                            range.collapse(false);
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                        }
+                    }, 10);
+                }
+            }
+        };
+
+        window.clearFormat = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            element.focus();
+            const selection = window.getSelection();
+
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                const selectedContent = range.extractContents();
+                const textContent = selectedContent.textContent;
+                const textNode = document.createTextNode(textContent);
+
+                range.insertNode(textNode);
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+
+            // 書式状態を完全にリセット
+            currentFormat.bold = false;
+            currentFormat.italic = false;
+            currentFormat.underline = false;
+            notifyFormatStates();
+        };
+    })();
+</script>
