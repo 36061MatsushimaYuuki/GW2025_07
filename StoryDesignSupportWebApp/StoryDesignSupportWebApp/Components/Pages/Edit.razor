@@ -119,7 +119,14 @@
         padding: 10px 20px 10px 40px;
         cursor: pointer;
         border-bottom: 1px solid #e8e8e8;
+        position: relative;
     }
+
+        .section-item::before {
+            content: "・";
+            position: absolute;
+            left: 16px;
+        }
 
         .section-item:hover {
             background-color: #e8e8e8;
@@ -254,6 +261,35 @@
             border-color: none;
         }
 
+        /* 各要素の行間を明示的に指定 */
+        .content-editable p {
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .content-editable h1 {
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .content-editable h2 {
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .content-editable h3 {
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .content-editable b,
+        .content-editable strong,
+        .content-editable i,
+        .content-editable em,
+        .content-editable u {
+            line-height: inherit;
+        }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -269,8 +305,9 @@
         padding: 15px;
         background-color: #0066cc;
         color: white;
-        font-size: 18px;
-        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .mobile-editor {
@@ -286,23 +323,128 @@
         color: white;
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 10px;
     }
 
     .back-btn {
         background: none;
         border: none;
         color: white;
-        font-size: 24px;
+        font-size: 18px;
         cursor: pointer;
         padding: 0;
     }
 
     .mobile-editor-title {
         flex: 1;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: bold;
     }
+
+    /* モーダル */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        min-width: 300px;
+        max-width: 450px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .modal-body {
+        margin-bottom: 20px;
+    }
+
+    .modal-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .modal-btn-primary {
+        background-color: #0066cc;
+        color: white;
+    }
+
+        .modal-btn-primary:hover {
+            background-color: #0052a3;
+        }
+
+    .modal-btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+        .modal-btn-danger:hover {
+            background-color: #c82333;
+        }
+
+    .modal-btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .modal-btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+    .settings-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 8px;
+        margin-left: 4px;
+        margin-right: -10px;
+        color: #666;
+    }
+
+        .settings-btn:hover {
+            color: #333;
+        }
+
+    .modal-section {
+        margin-bottom: 15px;
+    }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
 
     /* レスポンシブ */
     @@media (max-width: 768px) {
@@ -338,9 +480,78 @@
 @if (_project == null) {
     <p>Loading...</p>
 } else {
+    <!-- 章追加モーダル -->
+    @if (_showAddChapterModal) {
+        <div class="modal-overlay" @onclick="CloseAddChapterModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">新しい章を追加</div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" @bind="_newChapterTitle" placeholder="章のタイトルを入力" />
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseAddChapterModal">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="ConfirmAddChapter">追加</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 話追加モーダル -->
+    @if (_showAddSectionModal) {
+        <div class="modal-overlay" @onclick="CloseAddSectionModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">新しい話を追加</div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" @bind="_newSectionTitle" placeholder="話のタイトルを入力" />
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseAddSectionModal">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="ConfirmAddSection">追加</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 章設定モーダル -->
+    @if (_showChapterSettingsModal) {
+        <div class="modal-overlay" @onclick="CloseChapterSettings">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">章の設定</div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">章のタイトル</label>
+                        <input type="text" class="modal-input" @bind="_editingChapterTitle" />
+                    </div>
+                    <div class="modal-section">
+                        <button class="modal-btn modal-btn-danger" style="width: 100%;" @onclick="ShowDeleteChapterConfirm">章を削除</button>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseChapterSettings">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="SaveChapterSettings">保存</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 章削除確認モーダル -->
+    @if (_showDeleteChapterConfirm) {
+        <div class="modal-overlay" @onclick="CloseDeleteChapterConfirm">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">章の削除</div>
+                <div class="modal-body">
+                    <p>この章を削除してもよろしいですか？</p>
+                    <p style="color: #dc3545; margin-top: 10px;">※この章に含まれるすべての話も削除されます。</p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseDeleteChapterConfirm">キャンセル</button>
+                    <button class="modal-btn modal-btn-danger" @onclick="ConfirmDeleteChapter">削除</button>
+                </div>
+            </div>
+        </div>
+    }
     <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
-        <!-- サイドバー -->
         <!-- サイドバー -->
         <div class="sidebar">
             @if (_showCategoryView) {
@@ -354,7 +565,7 @@
                         @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
                             var chapterIndex = i;
                             var chapter = _project.ProjectDataObject.Scenario.chapters[i];
-                            <div class="chapter-item">
+                            <div class="chapter-item" @key="@($"chapter-{chapterIndex}")">
                                 <div class="chapter-header">
                                     <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)">
                                         @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
@@ -362,7 +573,8 @@
                                     <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                         @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
                                     </span>
-                                    <button class="add-section-btn" @onclick="() => AddSection(chapterIndex)">+</button>
+                                    <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
+                                    <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
                                 </div>
                                 @if (_expandedChapters.Contains(chapterIndex)) {
                                     <div class="sections-list">
@@ -373,6 +585,7 @@
                                                 var sectionIndex = j;
                                                 var section = chapter.Sections[j];
                                                 <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
+                                                     @key="@($"section-{chapterIndex}-{sectionIndex}")"
                                                      @onclick="() => SelectSection(chapterIndex, sectionIndex)">
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </div>
@@ -383,7 +596,7 @@
                             </div>
                         }
                     }
-                    <button class="add-chapter-btn" @onclick="AddChapter">+ 章を追加</button>
+                    <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
@@ -483,8 +696,8 @@
                                             ? $"Chapter {_selectedChapter + 1}"
                                             : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
                                             )
-                        </div>
                     </div>
+                </div>
 
                     <div style="padding: 10px; border-bottom: 1px solid #ddd;">
                         <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" />
@@ -493,13 +706,16 @@
                     <div class="editor-toolbar">
                         <button class="toolbar-btn" @onclick="Undo">←</button>
                         <button class="toolbar-btn" @onclick="Redo">→</button>
+                        <div class="toolbar-separator"></div>
                         <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")'><b>B</b></button>
                         <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")'><i>I</i></button>
                         <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")'><u>U</u></button>
+                        <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                        <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick="ClearFormat" style="font-size: 11px;">✕</button>
                     </div>
 
@@ -512,17 +728,20 @@
                         </div>
                     </div>
                 </div>
-            }
+        }
         } else {
             <div class="mobile-list">
-                <div class="mobile-header">執筆</div>
+                <div class="mobile-header">
+                    <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
+                    <div class="mobile-editor-title">執筆</div>
+                </div>
                 @if (_project.ProjectDataObject?.Scenario?.chapters == null || _project.ProjectDataObject.Scenario.chapters.Length == 0) {
                     <div class="empty-message">章がありません</div>
                 } else {
                     @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
                         var chapterIndex = i;
                         var chapter = _project.ProjectDataObject.Scenario.chapters[i];
-                        <div class="chapter-item">
+                        <div class="chapter-item" @key="@($"mobile-chapter-{chapterIndex}")">
                             <div class="chapter-header">
                                 <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)">
                                     @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
@@ -530,7 +749,8 @@
                                 <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                     @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
                                 </span>
-                                <button class="add-section-btn" @onclick="() => AddSection(chapterIndex)">+</button>
+                                <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
+                                <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
                             </div>
                             @if (_expandedChapters.Contains(chapterIndex)) {
                                 <div class="sections-list">
@@ -540,7 +760,9 @@
                                         @for (int j = 0; j < chapter.Sections.Length; j++) {
                                             var sectionIndex = j;
                                             var section = chapter.Sections[j];
-                                            <div class="section-item" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                            <div class="section-item"
+                                                 @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
+                                                 @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
                                                 @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                             </div>
                                         }
@@ -550,7 +772,7 @@
                         </div>
                     }
                 }
-                <button class="add-chapter-btn" @onclick="AddChapter">+ 章を追加</button>
+                <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
             </div>
         }
     </div>
@@ -610,19 +832,34 @@
     private int _lastRenderedChapter = -1;
     private int _lastRenderedSection = -1;
 
+
+
+    private string _currentContentCache = "";
+    private bool _isResizing = false;
+
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             await JSRuntime.InvokeVoidAsync("eval", $@"
             window.addEventListener('formatStateChanged', function(e) {{
                 DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'UpdateFormatStates', '{_instanceId}', e.detail);
             }});
+
+            // リサイズ検知
+            let resizeTimer;
+            window.addEventListener('resize', function() {{
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {{
+                    DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResize', '{_instanceId}');
+                }}, 300);
+            }});
         ");
         }
 
-        // セクションが変更された場合のみコンテンツを設定
+        // セクションが変更された場合、またはリサイズ時
         bool sectionChanged = (_selectedChapter != _lastRenderedChapter || _selectedSection != _lastRenderedSection);
+        bool needsUpdate = sectionChanged || _isResizing;
 
-        if (sectionChanged &&
+        if (needsUpdate &&
             _selectedChapter >= 0 && _selectedSection >= 0 &&
             _project?.ProjectDataObject?.Scenario?.chapters != null &&
             _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
@@ -630,13 +867,14 @@
             _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
 
             var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
-            var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
 
-            // コンテンツを設定
-            await JSRuntime.InvokeVoidAsync("setEditableContent", elementId, section.Text ?? "");
+            // 両方のエディタに内容を設定
+            await JSRuntime.InvokeVoidAsync("setEditableContent", "content-editable", section.Text ?? "");
+            await JSRuntime.InvokeVoidAsync("setEditableContent", "content-editable-mobile", section.Text ?? "");
 
             _lastRenderedChapter = _selectedChapter;
             _lastRenderedSection = _selectedSection;
+            _isResizing = false;
         }
     }
 
@@ -724,52 +962,6 @@
         StateHasChanged();
     }
 
-    private async Task AddChapter() {
-        if (_project?.ProjectDataObject?.Scenario == null) return;
-
-        var chapterCount = _project.ProjectDataObject.Scenario.chapters?.Length ?? 0;
-        var newChapter = new Chapter {
-            Title = $"第{chapterCount + 1}章"
-        };
-
-        if (_project.ProjectDataObject.Scenario.chapters == null) {
-            _project.ProjectDataObject.Scenario.chapters = new[] { newChapter };
-        } else {
-            var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
-            chapterList.Add(newChapter);
-            _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
-        }
-        _project.UpdatedAt = DateTime.UtcNow;
-        await using var db = DbFactory.CreateDbContext();
-        db.Projects.Update(_project);
-        await db.SaveChangesAsync();
-    }
-
-    private async Task AddSection(int chapterIndex) {
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (chapterIndex < 0 || chapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
-
-        var chapter = _project.ProjectDataObject.Scenario.chapters[chapterIndex];
-        var sectionCount = chapter.Sections?.Length ?? 0;
-
-        var newSection = new Section {
-            Title = $"第{sectionCount + 1}話",
-            Text = ""
-        };
-
-        if (chapter.Sections == null) {
-            chapter.Sections = new[] { newSection };
-        } else {
-            var sectionList = chapter.Sections.ToList();
-            sectionList.Add(newSection);
-            chapter.Sections = sectionList.ToArray();
-        }
-        _project.UpdatedAt = DateTime.UtcNow;
-        await using var db = DbFactory.CreateDbContext();
-        db.Projects.Update(_project);
-        await db.SaveChangesAsync();
-    }
-
     private async Task ToggleFormat(string format) {
         _formatStates[format] = !_formatStates[format];
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
@@ -830,16 +1022,36 @@
     }
 
     private async Task SaveContent() {
-        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
-        var content = await JSRuntime.InvokeAsync<string>("getEditableContent", elementId);
+        try {
+            string content = "";
 
-        if (_selectedChapter >= 0 && _selectedSection >= 0 &&
-            _project?.ProjectDataObject?.Scenario?.chapters != null &&
-            _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-            _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+            // 現在表示されているエディタから内容を取得
+            try {
+                content = await JSRuntime.InvokeAsync<string>("getEditableContent", "content-editable");
+            }
+            catch {
+                // PC版が存在しない場合はモバイル版から取得
+                try {
+                    content = await JSRuntime.InvokeAsync<string>("getEditableContent", "content-editable-mobile");
+                }
+                catch {
+                    // どちらも取得できない場合は何もしない
+                    return;
+                }
+            }
 
-            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text = content;
+            if (_selectedChapter >= 0 && _selectedSection >= 0 &&
+                _project?.ProjectDataObject?.Scenario?.chapters != null &&
+                _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
+                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
+                _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+
+                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text = content;
+                _currentContentCache = content;
+            }
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"SaveContent error: {ex.Message}");
         }
     }
 
@@ -874,11 +1086,180 @@
             _saveSemaphore.Release();
         }
     }
+
+    // モーダル関連の状態
+    private bool _showAddChapterModal = false;
+    private bool _showAddSectionModal = false;
+    private bool _showChapterSettingsModal = false;
+    private bool _showDeleteChapterConfirm = false;
+    private string _newChapterTitle = "";
+    private string _newSectionTitle = "";
+    private string _editingChapterTitle = "";
+    private int _editingChapterIndex = -1;
+    private int _addingSectionToChapterIndex = -1;
+
+    // 章追加モーダル
+    private void ShowAddChapterModal() {
+        var chapterCount = _project?.ProjectDataObject?.Scenario?.chapters?.Length ?? 0;
+        _newChapterTitle = $"第{chapterCount + 1}章";
+        _showAddChapterModal = true;
+    }
+
+    private void CloseAddChapterModal() {
+        _showAddChapterModal = false;
+        _newChapterTitle = "";
+    }
+
+    private async Task ConfirmAddChapter() {
+        if (_project?.ProjectDataObject?.Scenario == null) return;
+
+        var newChapter = new Chapter {
+            Title = _newChapterTitle
+        };
+
+        if (_project.ProjectDataObject.Scenario.chapters == null) {
+            _project.ProjectDataObject.Scenario.chapters = new[] { newChapter };
+        } else {
+            var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
+            chapterList.Add(newChapter);
+            _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
+        }
+
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+
+        CloseAddChapterModal();
+    }
+
+    // 話追加モーダル
+    private void ShowAddSectionModal(int chapterIndex) {
+        _addingSectionToChapterIndex = chapterIndex;
+        var chapter = _project?.ProjectDataObject?.Scenario?.chapters?[chapterIndex];
+        var sectionCount = chapter?.Sections?.Length ?? 0;
+        _newSectionTitle = $"第{sectionCount + 1}話";
+        _showAddSectionModal = true;
+    }
+
+    private void CloseAddSectionModal() {
+        _showAddSectionModal = false;
+        _newSectionTitle = "";
+        _addingSectionToChapterIndex = -1;
+    }
+
+    private async Task ConfirmAddSection() {
+        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
+        if (_addingSectionToChapterIndex < 0 || _addingSectionToChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+
+        var chapter = _project.ProjectDataObject.Scenario.chapters[_addingSectionToChapterIndex];
+        var newSection = new Section {
+            Title = _newSectionTitle,
+            Text = ""
+        };
+
+        if (chapter.Sections == null) {
+            chapter.Sections = new[] { newSection };
+        } else {
+            var sectionList = chapter.Sections.ToList();
+            sectionList.Add(newSection);
+            chapter.Sections = sectionList.ToArray();
+        }
+
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+
+        CloseAddSectionModal();
+    }
+
+    // 章設定モーダル
+    private void ShowChapterSettings(int chapterIndex) {
+        _editingChapterIndex = chapterIndex;
+        var chapter = _project?.ProjectDataObject?.Scenario?.chapters?[chapterIndex];
+        _editingChapterTitle = chapter?.Title ?? "";
+        _showChapterSettingsModal = true;
+    }
+
+    private void CloseChapterSettings() {
+        _showChapterSettingsModal = false;
+        _editingChapterTitle = "";
+        _editingChapterIndex = -1;
+    }
+
+    private async Task SaveChapterSettings() {
+        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
+        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+
+        _project.ProjectDataObject.Scenario.chapters[_editingChapterIndex].Title = _editingChapterTitle;
+
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+
+        CloseChapterSettings();
+    }
+
+    // 章削除
+    private void ShowDeleteChapterConfirm() {
+        _showDeleteChapterConfirm = true;
+    }
+
+    private void CloseDeleteChapterConfirm() {
+        _showDeleteChapterConfirm = false;
+    }
+
+    private async Task ConfirmDeleteChapter() {
+        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
+        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+
+        var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
+        chapterList.RemoveAt(_editingChapterIndex);
+        _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
+
+        // 削除した章を選択していた場合はリセット
+        if (_selectedChapter == _editingChapterIndex) {
+            _selectedChapter = -1;
+            _selectedSection = -1;
+            _lastRenderedChapter = -1;
+            _lastRenderedSection = -1;
+        } else if (_selectedChapter > _editingChapterIndex) {
+            // 削除した章より後ろの章を選択していた場合はインデックスを調整
+            _selectedChapter--;
+        }
+
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+
+        CloseDeleteChapterConfirm();
+        CloseChapterSettings();
+    }
+
+    [JSInvokable("OnWindowResize")]
+    public static async Task OnWindowResize(string instanceId) {
+        if (!_instances.TryGetValue(instanceId, out var instance) || instance == null) {
+            return;
+        }
+
+        await instance.InvokeAsync(async () => {
+            // 現在のコンテンツを保存
+            if (instance._selectedChapter >= 0 && instance._selectedSection >= 0) {
+                await instance.SaveContent();
+            }
+
+            // リサイズフラグを立てて再レンダリング
+            instance._isResizing = true;
+            instance.StateHasChanged();
+        });
+    }
 }
 
 <script>
     (function() {
-        // すでに定義されている場合はスキップ
         if (window.editorScriptLoaded) return;
         window.editorScriptLoaded = true;
 
@@ -890,7 +1271,9 @@
 
         window.setEditableContent = function(elementId, content) {
             const element = document.getElementById(elementId);
-                if (element.innerHTML !== (content || '')) {
+            if (!element) return; // 要素が存在しない場合は何もしない
+
+            if (element.innerHTML !== (content || '')) {
                 element.innerHTML = content || '';
 
                 const selection = window.getSelection();
@@ -914,8 +1297,7 @@
             return element ? element.innerHTML : '';
         };
 
-
-        // 選択状態の変更を監視
+        // 選択状態とフォーカス状態の変更を監視
         document.addEventListener('selectionchange', function() {
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
@@ -930,10 +1312,14 @@
             const range = selection.getRangeAt(0);
 
             if (selection.isCollapsed) {
-                // 選択解除された場合、書式状態をリセット
-                currentFormat.bold = false;
-                currentFormat.italic = false;
-                currentFormat.underline = false;
+                // カーソル位置の書式を確認
+                const node = range.startContainer;
+                const parentElement = node.nodeType === 3 ? node.parentElement : node;
+
+                // 親要素を辿って書式を確認
+                currentFormat.bold = hasParentTag(parentElement, 'B') || hasParentTag(parentElement, 'STRONG');
+                currentFormat.italic = hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
+                currentFormat.underline = hasParentTag(parentElement, 'U');
                 notifyFormatStates();
             } else {
                 // 選択範囲の書式を確認
@@ -949,7 +1335,7 @@
         }
 
         function hasParentTag(element, tagName) {
-            while (element && element.nodeName !== 'DIV') {
+            while (element && element.nodeName !== 'DIV' && element.getAttribute('contenteditable') !== 'true') {
                 if (element.nodeName === tagName) return true;
                 element = element.parentElement;
             }
@@ -957,7 +1343,6 @@
         }
 
         function notifyFormatStates() {
-            // Blazorに状態を通知（カスタムイベント）
             window.dispatchEvent(new CustomEvent('formatStateChanged', {
                 detail: currentFormat
             }));
@@ -974,7 +1359,7 @@
                 // テキストが選択されている場合
                 document.execCommand(format, false, null);
 
-                // 選択を解除して書式をリセット
+                // 選択を解除
                 setTimeout(() => {
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
@@ -982,18 +1367,14 @@
                         selection.removeAllRanges();
                         selection.addRange(range);
                     }
-                    // 書式状態を明示的にオフ
-                    currentFormat[format] = false;
-                    notifyFormatStates();
+                    // 書式状態を更新
+                    updateFormatStates();
                 }, 10);
             } else {
                 // 選択されていない場合
                 currentFormat[format] = isActive;
-                if (isActive) {
-                    document.execCommand(format, false, null);
-                } else {
-                    document.execCommand(format, false, null);
-                }
+                document.execCommand(format, false, null);
+                notifyFormatStates();
             }
         };
 
@@ -1005,34 +1386,133 @@
             const selection = window.getSelection();
 
             if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+
                 if (selection.isCollapsed) {
-                    const range = selection.getRangeAt(0);
+                    // カーソル位置のブロックを変更
                     const currentNode = range.startContainer;
-                    const blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
+                    let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
 
-                    const newElement = document.createElement(format);
-                    newElement.innerHTML = blockElement.innerHTML || '<br>';
-                    blockElement.parentNode.replaceChild(newElement, blockElement);
+                    // contenteditable要素に到達するまで親を辿る
+                    while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
+                        blockElement = blockElement.parentElement;
+                    }
 
-                    const newRange = document.createRange();
-                    newRange.selectNodeContents(newElement);
-                    newRange.collapse(false);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
+                    if (blockElement === element) {
+                        // ルート要素の場合、新しいブロックを作成
+                        const newElement = document.createElement(format);
+                        newElement.innerHTML = '<br>';
+                        newElement.style.lineHeight = ''; // スタイルをクリア
+                        element.appendChild(newElement);
+
+                        const newRange = document.createRange();
+                        newRange.setStart(newElement, 0);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else if (blockElement) {
+                        // カーソル位置を保存
+                        const offset = getCaretOffset(blockElement, range);
+
+                        const newElement = document.createElement(format);
+                        newElement.innerHTML = blockElement.innerHTML || '<br>';
+                        newElement.style.lineHeight = ''; // インラインスタイルをクリア
+                        blockElement.parentNode.replaceChild(newElement, blockElement);
+
+                        // カーソル位置を復元
+                        restoreCaretOffset(newElement, offset);
+                    }
                 } else {
+                    // 選択範囲がある場合
                     document.execCommand('formatBlock', false, '<' + format + '>');
 
                     setTimeout(() => {
+                        // 適用された要素のインラインスタイルをクリア
+                        const currentNode = selection.getRangeAt(0).startContainer;
+                        let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
+
+                        while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
+                            blockElement = blockElement.parentElement;
+                        }
+
+                        if (blockElement && blockElement !== element) {
+                            blockElement.style.lineHeight = '';
+                        }
+
                         if (selection.rangeCount > 0) {
                             const range = selection.getRangeAt(0);
                             range.collapse(false);
                             selection.removeAllRanges();
                             selection.addRange(range);
                         }
+                        element.focus();
                     }, 10);
                 }
             }
         };
+
+        function isBlockElement(element) {
+            const blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE'];
+            return blockTags.includes(element.nodeName);
+        }
+
+        function getCaretOffset(element, range) {
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(element);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            return preCaretRange.toString().length;
+        }
+
+        function restoreCaretOffset(element, offset) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+
+            let currentPos = 0;
+            let found = false;
+
+            function searchNode(node) {
+                if (found) return;
+
+                if (node.nodeType === 3) {
+                    const nodeLength = node.textContent.length;
+                    if (currentPos + nodeLength >= offset) {
+                        range.setStart(node, offset - currentPos);
+                        range.collapse(true);
+                        found = true;
+                        return;
+                    }
+                    currentPos += nodeLength;
+                } else if (node.nodeName === 'BR') {
+                    currentPos += 1;
+                    if (currentPos >= offset) {
+                        range.setStartAfter(node);
+                        range.collapse(true);
+                        found = true;
+                        return;
+                    }
+                } else {
+                    for (let i = 0; i < node.childNodes.length; i++) {
+                        searchNode(node.childNodes[i]);
+                        if (found) return;
+                    }
+                }
+            }
+
+            searchNode(element);
+
+            if (found) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                // 位置が見つからない場合は最後に設定
+                range.selectNodeContents(element);
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+
+            element.focus();
+        }
 
         window.undoEditor = function(elementId) {
             const element = document.getElementById(elementId);
@@ -1050,7 +1530,6 @@
             document.execCommand('redo');
         };
 
-
         window.clearFormat = function(elementId) {
             const element = document.getElementById(elementId);
             if (!element) return;
@@ -1058,19 +1537,48 @@
             element.focus();
             const selection = window.getSelection();
 
-            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
-                const selectedContent = range.extractContents();
-                const textContent = selectedContent.textContent;
-                const textNode = document.createTextNode(textContent);
 
-                range.insertNode(textNode);
-                range.collapse(false);
-                selection.removeAllRanges();
-                selection.addRange(range);
+                if (!selection.isCollapsed) {
+                    // 選択範囲がある場合：選択部分の書式をクリア
+                    const selectedContent = range.extractContents();
+                    const textContent = selectedContent.textContent;
+                    const textNode = document.createTextNode(textContent);
+
+                    range.insertNode(textNode);
+                    range.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // 選択範囲がない場合：現在の行全体の書式をクリア
+                    const currentNode = range.startContainer;
+                    let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
+
+                    // ブロック要素を見つける
+                    while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
+                        blockElement = blockElement.parentElement;
+                    }
+
+                    if (blockElement && blockElement !== element) {
+                        // カーソル位置を保存
+                        const offset = getCaretOffset(blockElement, range);
+
+                        // テキストのみを抽出
+                        const textContent = blockElement.textContent;
+
+                        // 新しいp要素（通常の段落）を作成
+                        const newElement = document.createElement('p');
+                        newElement.textContent = textContent;
+                        blockElement.parentNode.replaceChild(newElement, blockElement);
+
+                        // カーソル位置を復元
+                        restoreCaretOffset(newElement, offset);
+                    }
+                }
             }
 
-            // 書式状態を完全にリセット
+            // 書式状態をリセット
             currentFormat.bold = false;
             currentFormat.italic = false;
             currentFormat.underline = false;
