@@ -438,6 +438,22 @@
             color: #333;
         }
 
+    .delete-section-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0 8px;
+        margin-left: 4px;
+        margin-right: -8px;
+        color: #ff2222;
+        font-weight: bold;
+    }
+
+        .delete-section:hover {
+            color: #ff1111;
+        }
+
     .modal-section {
         margin-bottom: 15px;
     }
@@ -550,6 +566,22 @@
             </div>
         </div>
     }
+
+    <!-- 話削除確認モーダル -->
+    @if (_showDeleteSectionConfirm) {
+        <div class="modal-overlay" @onclick="CloseDeleteSectionConfirm">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">話の削除</div>
+                <div class="modal-body">
+                    <p>この話を削除してもよろしいですか？</p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseDeleteSectionConfirm">キャンセル</button>
+                    <button class="modal-btn modal-btn-danger" @onclick="ConfirmDeleteSection">削除</button>
+                </div>
+            </div>
+        </div>
+    }
     <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
         <!-- サイドバー -->
@@ -586,8 +618,11 @@
                                                 var section = chapter.Sections[j];
                                                 <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
                                                      @key="@($"section-{chapterIndex}-{sectionIndex}")"
-                                                     @onclick="() => SelectSection(chapterIndex, sectionIndex)">
-                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                     style="display: flex; justify-content: space-between; align-items: center;">
+                                                    <span style="flex: 1; cursor: pointer;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
+                                                        @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                    </span>
+                                                    <button class="delete-section-btn" style="font-size: 14px;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
                                                 </div>
                                             }
                                         }
@@ -762,8 +797,11 @@
                                             var section = chapter.Sections[j];
                                             <div class="section-item"
                                                  @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
-                                                 @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
-                                                @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                 style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="flex: 1; cursor: pointer;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                </span>
+                                                <button class="delete-section-btn" style="font-size: 14px;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
                                             </div>
                                         }
                                     }
@@ -832,8 +870,6 @@
     private int _lastRenderedChapter = -1;
     private int _lastRenderedSection = -1;
 
-
-
     private string _currentContentCache = "";
     private bool _isResizing = false;
 
@@ -849,7 +885,7 @@
             window.addEventListener('resize', function() {{
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(function() {{
-                    DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResize', '{_instanceId}');
+                    DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResize', '{_instanceId}', window.innerWidth);
                 }}, 300);
             }});
         ");
@@ -1026,18 +1062,10 @@
             string content = "";
 
             // 現在表示されているエディタから内容を取得
-            try {
+            if(_mobileShowEditor) {
+                content = await JSRuntime.InvokeAsync<string>("getEditableContent", "content-editable-mobile");
+            } else {
                 content = await JSRuntime.InvokeAsync<string>("getEditableContent", "content-editable");
-            }
-            catch {
-                // PC版が存在しない場合はモバイル版から取得
-                try {
-                    content = await JSRuntime.InvokeAsync<string>("getEditableContent", "content-editable-mobile");
-                }
-                catch {
-                    // どちらも取得できない場合は何もしない
-                    return;
-                }
             }
 
             if (_selectedChapter >= 0 && _selectedSection >= 0 &&
@@ -1097,6 +1125,9 @@
     private string _editingChapterTitle = "";
     private int _editingChapterIndex = -1;
     private int _addingSectionToChapterIndex = -1;
+    private bool _showDeleteSectionConfirm = false;
+    private int _deletingSectionChapterIndex = -1;
+    private int _deletingSectionIndex = -1;
 
     // 章追加モーダル
     private void ShowAddChapterModal() {
@@ -1239,20 +1270,72 @@
         CloseChapterSettings();
     }
 
-    [JSInvokable("OnWindowResize")]
-    public static async Task OnWindowResize(string instanceId) {
-        if (!_instances.TryGetValue(instanceId, out var instance) || instance == null) {
-            return;
+    private void ShowDeleteSectionConfirm(int chapterIndex, int sectionIndex) {
+        _deletingSectionChapterIndex = chapterIndex;
+        _deletingSectionIndex = sectionIndex;
+        _showDeleteSectionConfirm = true;
+    }
+
+    private void CloseDeleteSectionConfirm() {
+        _showDeleteSectionConfirm = false;
+        _deletingSectionChapterIndex = -1;
+        _deletingSectionIndex = -1;
+    }
+
+    private async Task ConfirmDeleteSection() {
+        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
+        if (_deletingSectionChapterIndex < 0 || _deletingSectionChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+
+        var chapter = _project.ProjectDataObject.Scenario.chapters[_deletingSectionChapterIndex];
+        if (chapter.Sections == null || _deletingSectionIndex < 0 || _deletingSectionIndex >= chapter.Sections.Length) return;
+
+        var sectionList = chapter.Sections.ToList();
+        sectionList.RemoveAt(_deletingSectionIndex);
+        chapter.Sections = sectionList.ToArray();
+
+        // 削除した話を選択していた場合はリセット
+        if (_selectedChapter == _deletingSectionChapterIndex && _selectedSection == _deletingSectionIndex) {
+            _selectedChapter = -1;
+            _selectedSection = -1;
+            _lastRenderedChapter = -1;
+            _lastRenderedSection = -1;
+            _mobileShowEditor = false;
+        } else if (_selectedChapter == _deletingSectionChapterIndex && _selectedSection > _deletingSectionIndex) {
+            // 削除した話より後ろの話を選択していた場合はインデックスを調整
+            _selectedSection--;
         }
 
+        _project.UpdatedAt = DateTime.UtcNow;
+        await using var db = DbFactory.CreateDbContext();
+        db.Projects.Update(_project);
+        await db.SaveChangesAsync();
+
+        CloseDeleteSectionConfirm();
+    }
+
+    [JSInvokable("OnWindowResize")]
+    public static async Task OnWindowResize(string instanceId, int width) {
+        if (!_instances.TryGetValue(instanceId, out var instance)) return;
+
         await instance.InvokeAsync(async () => {
-            // 現在のコンテンツを保存
-            if (instance._selectedChapter >= 0 && instance._selectedSection >= 0) {
+            bool isMobile = width <= 768;
+
+            // ★ モバイル → PC に切り替わる瞬間
+            if (!isMobile && instance._mobileShowEditor) {
+                // 現在のモバイルエディタの内容を保存
                 await instance.SaveContent();
+                instance._mobileShowEditor = false;
+                // 強制的に再レンダリングフラグを立てる
+                instance._isResizing = true;
+            }
+            // ★ PC → モバイルに切り替わる瞬間（セクションが選択されている場合）
+            else if (isMobile && !instance._mobileShowEditor &&
+                     instance._selectedChapter >= 0 && instance._selectedSection >= 0) {
+                await instance.SaveContent();
+                instance._mobileShowEditor = true;
+                instance._isResizing = true;
             }
 
-            // リサイズフラグを立てて再レンダリング
-            instance._isResizing = true;
             instance.StateHasChanged();
         });
     }
@@ -1585,4 +1668,14 @@
             notifyFormatStates();
         };
     })();
+
+    window.getActiveEditorContent = function () {
+        if (window.mobileEditor) {
+            return window.mobileEditor.getContent();
+        }
+        if (window.pcEditor) {
+            return window.pcEditor.getContent();
+        }
+        return "";
+    };
 </script>
