@@ -23,10 +23,15 @@
         padding: 0;
     }
 
+    body {
+        overflow: hidden;
+    }
+
     .edit-container {
         display: flex;
-        height: calc(100vh - 5rem);
+        height: calc(100vh - 5.5rem);
         overflow: hidden;
+        max-width: 97vw;
     }
 
     /* サイドバー（PC用） */
@@ -91,6 +96,9 @@
 
     .chapter-title {
         flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .toggle-icon {
@@ -120,6 +128,9 @@
         cursor: pointer;
         border-bottom: 1px solid #e8e8e8;
         position: relative;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
         .section-item::before {
@@ -163,18 +174,24 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        min-width: 0;
     }
 
     .editor-header {
         padding: 15px 20px;
         border-bottom: 1px solid #ddd;
         background-color: #fff;
+        overflow: hidden;
     }
 
     .editor-title {
         font-size: 20px;
         font-weight: bold;
         margin-bottom: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
     }
 
     .section-title-input {
@@ -183,6 +200,7 @@
         font-size: 16px;
         border: 1px solid #ddd;
         border-radius: 4px;
+        box-sizing: border-box;
     }
 
     .editor-toolbar {
@@ -255,6 +273,8 @@
         line-height: 1.6;
         outline: none;
         background-color: white;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
         .content-editable:focus {
@@ -290,14 +310,26 @@
             line-height: inherit;
         }
 
+        .content-editable ruby {
+            line-height: inherit;
+            user-select: all;
+            cursor: pointer;
+        }
+
+        .content-editable rt {
+            font-size: 0.5em;
+            user-select: all;
+        }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
-        height: calc(100vh - 5rem);
+        height: calc(100vh - 5.5rem);
+        overflow: hidden;
     }
 
     .mobile-list {
-        height: 100vh;
+        height: calc(100vh - 5.5rem);
         overflow-y: auto;
         background-color: #f5f5f5;
     }
@@ -312,7 +344,7 @@
     }
 
     .mobile-editor {
-        height: 100vh;
+        height: calc(100vh - 5.5rem);
         display: flex;
         flex-direction: column;
         background-color: #fff;
@@ -340,6 +372,9 @@
         flex: 1;
         font-size: 18px;
         font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* モーダル */
@@ -503,7 +538,7 @@
             <div class="modal-content" @onclick:stopPropagation="true">
                 <div class="modal-header">新しい章を追加</div>
                 <div class="modal-body">
-                    <input type="text" class="modal-input" @bind="_newChapterTitle" placeholder="章のタイトルを入力" />
+                    <input type="text" class="modal-input" @bind="_newChapterTitle" placeholder="章のタイトルを入力" maxlength="90" />
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-secondary" @onclick="CloseAddChapterModal">キャンセル</button>
@@ -519,7 +554,7 @@
             <div class="modal-content" @onclick:stopPropagation="true">
                 <div class="modal-header">新しい話を追加</div>
                 <div class="modal-body">
-                    <input type="text" class="modal-input" @bind="_newSectionTitle" placeholder="話のタイトルを入力" />
+                    <input type="text" class="modal-input" @bind="_newSectionTitle" placeholder="話のタイトルを入力" maxlength="90" />
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-secondary" @onclick="CloseAddSectionModal">キャンセル</button>
@@ -537,7 +572,7 @@
                 <div class="modal-body">
                     <div class="modal-section">
                         <label style="display: block; margin-bottom: 5px; font-weight: bold;">章のタイトル</label>
-                        <input type="text" class="modal-input" @bind="_editingChapterTitle" />
+                        <input type="text" class="modal-input" @bind="_editingChapterTitle" maxlength="90" />
                     </div>
                     <div class="modal-section">
                         <button class="modal-btn modal-btn-danger" style="width: 100%;" @onclick="ShowDeleteChapterConfirm">章を削除</button>
@@ -583,6 +618,29 @@
             </div>
         </div>
     }
+
+    <!-- ルビ追加モーダル -->
+    @if (_showRubyModal) {
+        <div class="modal-overlay" @onclick="CloseRubyModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">@(_isEditingRuby ? "ルビを編集" : "ルビを追加")</div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">テキスト</label>
+                        <input type="text" class="modal-input" @bind="_rubyBase" placeholder="漢字など" readonly="@(_hasSelectedText && !_isEditingRuby)" />
+                    </div>
+                    <div class="modal-section">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">ルビ</label>
+                        <input type="text" class="modal-input" @bind="_rubyText" placeholder="ふりがな" />
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" @onclick="CloseRubyModal">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="ConfirmAddRuby">@(_isEditingRuby ? "更新" : "追加")</button>
+                </div>
+            </div>
+        </div>
+    }
     <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
         <!-- サイドバー -->
@@ -620,10 +678,10 @@
                                                 <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
                                                      @key="@($"section-{chapterIndex}-{sectionIndex}")"
                                                      style="display: flex; justify-content: space-between; align-items: center;">
-                                                    <span style="flex: 1; cursor: pointer;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
+                                                    <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
                                                         @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                     </span>
-                                                    <button class="delete-section-btn" style="font-size: 14px;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                    <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
                                                 </div>
                                             }
                                         }
@@ -672,7 +730,7 @@
                                         : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
                                         )
                 </div>
-                <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" />
+                <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
             </div>
 
                 <div class="editor-toolbar">
@@ -682,6 +740,8 @@
                     <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' title="太字"><b>B</b></button>
                     <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体"><i>I</i></button>
                     <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' title="下線"><u>U</u></button>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" @onclick="ShowRubyModal" title="ルビ">ルビ</button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
@@ -738,11 +798,11 @@
                                             ? $"Chapter {_selectedChapter + 1}"
                                             : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
                                             )
+                        </div>
                     </div>
-                </div>
 
                     <div style="padding: 10px; border-bottom: 1px solid #ddd;">
-                        <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" />
+                        <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
                     </div>
 
                     <div class="editor-toolbar">
@@ -752,6 +812,8 @@
                         <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")'><b>B</b></button>
                         <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")'><i>I</i></button>
                         <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")'><u>U</u></button>
+                        <div class="toolbar-separator"></div>
+                        <button class="toolbar-btn" @onclick="ShowRubyModal" style="font-size: 11px;">ルビ</button>
                         <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
@@ -805,10 +867,10 @@
                                             <div class="section-item"
                                                  @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
                                                  style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="flex: 1; cursor: pointer;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                                <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </span>
-                                                <button class="delete-section-btn" style="font-size: 14px;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
                                             </div>
                                         }
                                     }
@@ -901,16 +963,24 @@
                 const topRow = document.querySelector('.top-row');
                 const desktopContainer = document.querySelector('.edit-container.desktop-view');
                 const mobileContainer = document.querySelector('.mobile-view');
+                const mobileView = document.querySelector('.mobile-list');
+                const mobileEditor = document.querySelector('.mobile-editor');
 
                 if (topRow) {{
                     const isCollapsed = topRow.classList.contains('collapsed');
-                    const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5rem)';
+                    const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
 
                     if (desktopContainer) {{
                         desktopContainer.style.height = height;
                     }}
                     if (mobileContainer) {{
                         mobileContainer.style.height = height;
+                    }}
+                    if (mobileView) {{
+                        mobileView.style.height = height;
+                    }}
+                    if (mobileEditor) {{
+                        mobileEditor.style.height = height;
                     }}
                 }}
             }}
@@ -1208,6 +1278,11 @@
     private bool _showDeleteSectionConfirm = false;
     private int _deletingSectionChapterIndex = -1;
     private int _deletingSectionIndex = -1;
+    private bool _showRubyModal = false;
+    private string _rubyText = "";
+    private string _rubyBase = "";
+    private bool _isEditingRuby = false;
+    private bool _hasSelectedText = false;
 
     // 章追加モーダル
     private void ShowAddChapterModal() {
@@ -1391,6 +1466,70 @@
         await db.SaveChangesAsync();
 
         CloseDeleteSectionConfirm();
+    }
+
+    //ルビモーダル
+    private async Task ShowRubyModal() {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+
+        // カーソル位置を保存
+        await JSRuntime.InvokeVoidAsync("saveSelection", elementId);
+
+        var rubyData = await JSRuntime.InvokeAsync<string[]>("checkRubySelection", elementId);
+
+        if (rubyData != null && rubyData.Length == 2) {
+            // ルビ要素を編集
+            _isEditingRuby = true;
+            _hasSelectedText = false;
+            _rubyBase = rubyData[0];
+            _rubyText = rubyData[1];
+        } else {
+            // 新規追加
+            _isEditingRuby = false;
+            var selectedText = await JSRuntime.InvokeAsync<string>("getSelectedText", elementId);
+
+            if (!string.IsNullOrEmpty(selectedText)) {
+                // 選択範囲がある場合
+                _hasSelectedText = true;
+                _rubyBase = selectedText;
+                _rubyText = "";
+            } else {
+                // カーソル位置に挿入
+                _hasSelectedText = false;
+                _rubyBase = "";
+                _rubyText = "";
+            }
+        }
+
+        _showRubyModal = true;
+    }
+
+    private void CloseRubyModal() {
+        _showRubyModal = false;
+        _rubyText = "";
+        _rubyBase = "";
+        _isEditingRuby = false;
+        _hasSelectedText = false;
+    }
+
+    private async Task ConfirmAddRuby() {
+        if (string.IsNullOrEmpty(_rubyText) || string.IsNullOrEmpty(_rubyBase)) {
+            CloseRubyModal();
+            return;
+        }
+
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+
+        // 保存した選択範囲を復元
+        await JSRuntime.InvokeVoidAsync("restoreSelection", elementId);
+
+        if (_isEditingRuby) {
+            await JSRuntime.InvokeVoidAsync("updateRuby", elementId, _rubyBase, _rubyText);
+        } else {
+            await JSRuntime.InvokeVoidAsync("insertRuby", elementId, _rubyBase, _rubyText, _hasSelectedText);
+        }
+
+        CloseRubyModal();
     }
 
     [JSInvokable("OnWindowResize")]
@@ -1676,6 +1815,196 @@
 
             element.focus();
         }
+
+        // 選択範囲を保存する変数
+        let savedSelection = null;
+
+        window.saveSelection = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                savedSelection = {
+                    range: selection.getRangeAt(0).cloneRange(),
+                    elementId: elementId
+                };
+            }
+        };
+
+        window.restoreSelection = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element || !savedSelection || savedSelection.elementId !== elementId) return;
+
+            element.focus();
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection.range);
+        };
+
+        window.getSelectedText = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return '';
+
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                // ruby要素内のテキストを除外
+                const fragment = range.cloneContents();
+                const temp = document.createElement('div');
+                temp.appendChild(fragment);
+
+                // rt要素を削除
+                const rtElements = temp.querySelectorAll('rt');
+                rtElements.forEach(rt => rt.remove());
+
+                return temp.textContent;
+            }
+            return '';
+        };
+
+        window.checkRubySelection = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return null;
+
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return null;
+
+            const range = selection.getRangeAt(0);
+            let node = range.commonAncestorContainer;
+
+            // テキストノードの場合は親要素を取得
+            if (node.nodeType === 3) {
+                node = node.parentElement;
+            }
+
+            // ruby要素またはその中にいるか確認
+            let rubyElement = null;
+            let currentNode = node;
+            while (currentNode && currentNode !== element) {
+                if (currentNode.nodeName === 'RUBY') {
+                    rubyElement = currentNode;
+                    break;
+                }
+                currentNode = currentNode.parentElement;
+            }
+
+            if (rubyElement) {
+                // rt要素以外のテキストを取得
+                const baseText = Array.from(rubyElement.childNodes)
+                    .filter(n => n.nodeName !== 'RT')
+                    .map(n => n.textContent)
+                    .join('');
+                const rtElement = rubyElement.querySelector('rt');
+                const rubyText = rtElement ? rtElement.textContent : '';
+
+                // ruby要素全体を選択状態にする
+                const newRange = document.createRange();
+                newRange.selectNode(rubyElement);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                return [baseText, rubyText];
+            }
+
+            return null;
+        };
+
+        window.insertRuby = function(elementId, baseText, rubyText, hasSelectedText) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            element.focus();
+            const selection = window.getSelection();
+
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+
+                // 選択範囲がある場合は削除
+                if (!selection.isCollapsed && hasSelectedText) {
+                    range.deleteContents();
+                }
+
+                const ruby = document.createElement('ruby');
+                ruby.contentEditable = 'false';
+                ruby.style.userSelect = 'all';
+                ruby.textContent = baseText;
+
+                const rt = document.createElement('rt');
+                rt.textContent = rubyText;
+                ruby.appendChild(rt);
+
+                // 前後にゼロ幅スペースを追加してカーソル移動を可能にする
+                const before = document.createTextNode('\u200B');
+                const after = document.createTextNode('\u200B');
+
+                range.insertNode(after);
+                range.insertNode(ruby);
+                range.insertNode(before);
+
+                // カーソルをルビの後ろに移動
+                range.setStart(after, 1);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+
+            savedSelection = null;
+        };
+
+        window.updateRuby = function(elementId, baseText, rubyText) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+            let node = range.commonAncestorContainer;
+
+            if (node.nodeType === 3) {
+                node = node.parentElement;
+            }
+
+            // ruby要素を見つける
+            let rubyElement = null;
+            if (node.nodeName === 'RUBY') {
+                rubyElement = node;
+            } else {
+                let currentNode = node;
+                while (currentNode && currentNode !== element) {
+                    if (currentNode.nodeName === 'RUBY') {
+                        rubyElement = currentNode;
+                        break;
+                    }
+                    currentNode = currentNode.parentElement;
+                }
+            }
+
+            if (rubyElement) {
+                // 新しいruby要素を作成
+                const newRuby = document.createElement('ruby');
+                newRuby.contentEditable = 'false';
+                newRuby.style.userSelect = 'all';
+                newRuby.textContent = baseText;
+
+                const rt = document.createElement('rt');
+                rt.textContent = rubyText;
+                newRuby.appendChild(rt);
+
+                // 古いruby要素を置き換え
+                rubyElement.parentNode.replaceChild(newRuby, rubyElement);
+
+                // カーソルをルビの後ろに移動
+                const newRange = document.createRange();
+                newRange.setStartAfter(newRuby);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+
+            savedSelection = null;
+        };
 
         window.undoEditor = function(elementId) {
             const element = document.getElementById(elementId);
