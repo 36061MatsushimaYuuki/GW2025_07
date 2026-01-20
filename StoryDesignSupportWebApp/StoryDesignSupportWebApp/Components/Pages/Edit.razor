@@ -312,13 +312,11 @@
 
         .content-editable ruby {
             line-height: inherit;
-            user-select: all;
-            cursor: pointer;
+            cursor: text;
         }
 
         .content-editable rt {
             font-size: 0.5em;
-            user-select: all;
         }
 
     /* モバイルビュー */
@@ -1472,8 +1470,8 @@
     private async Task ShowRubyModal() {
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
 
-        // カーソル位置を保存
-        await JSRuntime.InvokeVoidAsync("saveSelection", elementId);
+        // カーソル位置を保存（editableエリア内でない場合は末尾に移動）
+        await JSRuntime.InvokeVoidAsync("saveSelectionForRuby", elementId);
 
         var rubyData = await JSRuntime.InvokeAsync<string[]>("checkRubySelection", elementId);
 
@@ -1820,6 +1818,7 @@
         let savedSelection = null;
 
         window.saveSelection = function(elementId) {
+            // この関数は他の用途で使われている可能性があるので残す
             const element = document.getElementById(elementId);
             if (!element) return;
 
@@ -1863,53 +1862,6 @@
             return '';
         };
 
-        window.checkRubySelection = function(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return null;
-
-            const selection = window.getSelection();
-            if (selection.rangeCount === 0) return null;
-
-            const range = selection.getRangeAt(0);
-            let node = range.commonAncestorContainer;
-
-            // テキストノードの場合は親要素を取得
-            if (node.nodeType === 3) {
-                node = node.parentElement;
-            }
-
-            // ruby要素またはその中にいるか確認
-            let rubyElement = null;
-            let currentNode = node;
-            while (currentNode && currentNode !== element) {
-                if (currentNode.nodeName === 'RUBY') {
-                    rubyElement = currentNode;
-                    break;
-                }
-                currentNode = currentNode.parentElement;
-            }
-
-            if (rubyElement) {
-                // rt要素以外のテキストを取得
-                const baseText = Array.from(rubyElement.childNodes)
-                    .filter(n => n.nodeName !== 'RT')
-                    .map(n => n.textContent)
-                    .join('');
-                const rtElement = rubyElement.querySelector('rt');
-                const rubyText = rtElement ? rtElement.textContent : '';
-
-                // ruby要素全体を選択状態にする
-                const newRange = document.createRange();
-                newRange.selectNode(rubyElement);
-                selection.removeAllRanges();
-                selection.addRange(newRange);
-
-                return [baseText, rubyText];
-            }
-
-            return null;
-        };
-
         window.insertRuby = function(elementId, baseText, rubyText, hasSelectedText) {
             const element = document.getElementById(elementId);
             if (!element) return;
@@ -1920,33 +1872,111 @@
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
 
-                // 選択範囲がある場合は削除
-                if (!selection.isCollapsed && hasSelectedText) {
+                // 削除前の位置情報を保存
+                let insertPosition = null;
+
+                // 選択範囲内の既存ruby要素を削除
+                if (!selection.isCollapsed) {
+                    const fragment = range.cloneContents();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.appendChild(fragment);
+
+                    if (tempDiv.querySelector('ruby')) {
+                        // ruby要素が含まれる場合、実際のDOMから削除
+                        const actualRange = range.cloneRange();
+
+                        // 挿入位置を記録（範囲の開始位置）
+                        insertPosition = {
+                            container: actualRange.startContainer,
+                            offset: actualRange.startOffset
+                        };
+
+                        // 範囲内のすべてのruby要素を取得
+                        const rubysToDelete = [];
+
+                        const walker = document.createTreeWalker(
+                            actualRange.commonAncestorContainer,
+                            NodeFilter.SHOW_ELEMENT,
+                            {
+                                acceptNode: function(node) {
+                                    if (node.nodeName === 'RUBY' && actualRange.intersectsNode(node)) {
+                                        return NodeFilter.FILTER_ACCEPT;
+                                    }
+                                    return NodeFilter.FILTER_SKIP;
+                                }
+                            }
+                        );
+
+                        let node;
+                        while (node = walker.nextNode()) {
+                            rubysToDelete.push(node);
+                        }
+
+                        rubysToDelete.forEach(ruby => {
+                            const prevNode = ruby.previousSibling;
+                            const nextNode = ruby.nextSibling;
+
+                            if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
+                                prevNode.remove();
+                            }
+                            if (nextNode && nextNode.nodeType === 3 && nextNode.textContent === '\u200B') {
+                                nextNode.remove();
+                            }
+
+                            ruby.remove();
+                        });
+                    }
+
                     range.deleteContents();
                 }
 
+                // 新しいruby要素を作成
                 const ruby = document.createElement('ruby');
-                ruby.contentEditable = 'false';
-                ruby.style.userSelect = 'all';
                 ruby.textContent = baseText;
 
                 const rt = document.createElement('rt');
                 rt.textContent = rubyText;
                 ruby.appendChild(rt);
 
-                // 前後にゼロ幅スペースを追加してカーソル移動を可能にする
                 const before = document.createTextNode('\u200B');
                 const after = document.createTextNode('\u200B');
 
-                range.insertNode(after);
-                range.insertNode(ruby);
-                range.insertNode(before);
+                // 挿入位置が保存されている場合はそこに挿入
+                if (insertPosition) {
+                    try {
+                        const newRange = document.createRange();
+                        newRange.setStart(insertPosition.container, insertPosition.offset);
+                        newRange.collapse(true);
 
-                // カーソルをルビの後ろに移動
-                range.setStart(after, 1);
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
+                        newRange.insertNode(after);
+                        newRange.insertNode(ruby);
+                        newRange.insertNode(before);
+
+                        newRange.setStart(after, 1);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } catch (e) {
+                        // エラーが発生した場合は通常の挿入
+                        range.insertNode(after);
+                        range.insertNode(ruby);
+                        range.insertNode(before);
+
+                        range.setStart(after, 1);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                } else {
+                    range.insertNode(after);
+                    range.insertNode(ruby);
+                    range.insertNode(before);
+
+                    range.setStart(after, 1);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
             }
 
             savedSelection = null;
@@ -1960,17 +1990,19 @@
             if (selection.rangeCount === 0) return;
 
             const range = selection.getRangeAt(0);
-            let node = range.commonAncestorContainer;
 
-            if (node.nodeType === 3) {
-                node = node.parentElement;
-            }
-
-            // ruby要素を見つける
+            // 選択されているruby要素を取得
             let rubyElement = null;
-            if (node.nodeName === 'RUBY') {
-                rubyElement = node;
+
+            if (range.startContainer.nodeType === 1 &&
+                range.startContainer.childNodes[range.startOffset]?.nodeName === 'RUBY') {
+                rubyElement = range.startContainer.childNodes[range.startOffset];
             } else {
+                let node = range.commonAncestorContainer;
+                if (node.nodeType === 3) {
+                    node = node.parentElement;
+                }
+
                 let currentNode = node;
                 while (currentNode && currentNode !== element) {
                     if (currentNode.nodeName === 'RUBY') {
@@ -1984,8 +2016,6 @@
             if (rubyElement) {
                 // 新しいruby要素を作成
                 const newRuby = document.createElement('ruby');
-                newRuby.contentEditable = 'false';
-                newRuby.style.userSelect = 'all';
                 newRuby.textContent = baseText;
 
                 const rt = document.createElement('rt');
@@ -1996,14 +2026,605 @@
                 rubyElement.parentNode.replaceChild(newRuby, rubyElement);
 
                 // カーソルをルビの後ろに移動
-                const newRange = document.createRange();
-                newRange.setStartAfter(newRuby);
-                newRange.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(newRange);
+                const afterNode = newRuby.nextSibling;
+                if (afterNode && afterNode.nodeType === 3 && afterNode.textContent === '\u200B') {
+                    const newRange = document.createRange();
+                    newRange.setStart(afterNode, 1);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    // ゼロ幅スペースがない場合は追加
+                    const after = document.createTextNode('\u200B');
+                    if (newRuby.nextSibling) {
+                        newRuby.parentNode.insertBefore(after, newRuby.nextSibling);
+                    } else {
+                        newRuby.parentNode.appendChild(after);
+                    }
+
+                    const newRange = document.createRange();
+                    newRange.setStart(after, 1);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
             }
 
             savedSelection = null;
+        };
+
+        window.checkRubySelection = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return null;
+
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return null;
+
+            const range = selection.getRangeAt(0);
+
+            // ruby要素全体が選択されているかチェック
+            if (range.startContainer === range.endContainer &&
+                range.startContainer.nodeType === 1) {
+                const selectedNode = range.startContainer.childNodes[range.startOffset];
+                if (selectedNode && selectedNode.nodeName === 'RUBY') {
+                    const baseText = Array.from(selectedNode.childNodes)
+                        .filter(n => n.nodeName !== 'RT')
+                        .map(n => n.textContent)
+                        .join('');
+                    const rtElement = selectedNode.querySelector('rt');
+                    const rubyText = rtElement ? rtElement.textContent : '';
+
+                    return [baseText, rubyText];
+                }
+            }
+
+            // 選択範囲の開始・終了位置からruby要素を探す
+            let startNode = range.startContainer;
+            let endNode = range.endContainer;
+
+            // テキストノードの場合は親要素を取得
+            if (startNode.nodeType === 3) {
+                startNode = startNode.parentElement;
+            }
+            if (endNode.nodeType === 3) {
+                endNode = endNode.parentElement;
+            }
+
+            // 開始位置と終了位置が同じruby要素内にあるかチェック
+            let startRuby = null;
+            let endRuby = null;
+
+            let node = startNode;
+            while (node && node !== element) {
+                if (node.nodeName === 'RUBY') {
+                    startRuby = node;
+                    break;
+                }
+                node = node.parentElement;
+            }
+
+            node = endNode;
+            while (node && node !== element) {
+                if (node.nodeName === 'RUBY') {
+                    endRuby = node;
+                    break;
+                }
+                node = node.parentElement;
+            }
+
+            // 同じruby要素内の選択、またはカーソルがruby要素内にある場合
+            if (startRuby && startRuby === endRuby) {
+                const baseText = Array.from(startRuby.childNodes)
+                    .filter(n => n.nodeName !== 'RT')
+                    .map(n => n.textContent)
+                    .join('');
+                const rtElement = startRuby.querySelector('rt');
+                const rubyText = rtElement ? rtElement.textContent : '';
+
+                // ruby要素全体を選択し直す
+                const newRange = document.createRange();
+                newRange.selectNode(startRuby);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                return [baseText, rubyText];
+            }
+
+            // 複数のruby要素にまたがる選択の場合はnullを返す（新規追加として扱う）
+            const fragment = range.cloneContents();
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(fragment);
+            const rubysInSelection = tempDiv.querySelectorAll('ruby');
+
+            if (rubysInSelection.length > 0) {
+                return null;
+            }
+
+            return null;
+        };
+
+        // contenteditable要素のクリックイベントを監視
+        document.addEventListener('click', function(e) {
+            const target = e.target;
+
+            // content-editableまたはcontent-editable-mobile内のクリックか確認
+            let editableElement = null;
+            if (target.id === 'content-editable' || target.id === 'content-editable-mobile') {
+                editableElement = target;
+            } else {
+                let parent = target.parentElement;
+                while (parent) {
+                    if (parent.id === 'content-editable' || parent.id === 'content-editable-mobile') {
+                        editableElement = parent;
+                        break;
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+
+            if (!editableElement) return;
+
+            // ruby要素またはその子要素がクリックされた場合の処理
+            let rubyElement = null;
+            if (target.nodeName === 'RUBY') {
+                rubyElement = target;
+            } else if (target.nodeName === 'RT') {
+                rubyElement = target.parentElement;
+            } else if (target.parentElement?.nodeName === 'RUBY') {
+                rubyElement = target.parentElement;
+            }
+
+            if (rubyElement) {
+                // ruby要素全体を選択
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNode(rubyElement);
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                e.preventDefault();
+                return;
+            }
+
+            // クリック位置が末尾付近で、最後の要素がrubyの場合
+            const rect = editableElement.getBoundingClientRect();
+            const clickY = e.clientY;
+
+            // 下半分をクリックした場合
+            if (clickY > rect.top + rect.height / 2) {
+                const lastChild = editableElement.lastChild;
+                let needsNewLine = false;
+
+                // 最後の要素がrubyまたはゼロ幅スペースの場合
+                if (lastChild) {
+                    if (lastChild.nodeName === 'RUBY') {
+                        needsNewLine = true;
+                    } else if (lastChild.nodeType === 3 && lastChild.textContent === '\u200B' &&
+                               lastChild.previousSibling?.nodeName === 'RUBY') {
+                        needsNewLine = true;
+                    }
+                }
+
+                if (needsNewLine) {
+                    // 末尾にテキストノードを追加
+                    const textNode = document.createTextNode('\u200B');
+                    editableElement.appendChild(textNode);
+
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.setStart(textNode, 1);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+
+                    editableElement.focus();
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // ruby要素内での直接入力を防ぐ
+        document.addEventListener('beforeinput', function(e) {
+            const target = e.target;
+
+            // content-editableまたはcontent-editable-mobile内の入力か確認
+            if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
+                return;
+            }
+
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+            let node = range.startContainer;
+
+            // テキストノードの場合は親要素を取得
+            if (node.nodeType === 3) {
+                node = node.parentElement;
+            }
+
+            // ruby要素内またはrt要素内にいるかチェック
+            let currentNode = node;
+            let rubyElement = null;
+
+            while (currentNode && currentNode !== target) {
+                if (currentNode.nodeName === 'RUBY') {
+                    rubyElement = currentNode;
+                    break;
+                }
+                if (currentNode.nodeName === 'RT') {
+                    // rt要素内の場合、親のruby要素を取得
+                    rubyElement = currentNode.parentElement;
+                    break;
+                }
+                currentNode = currentNode.parentElement;
+            }
+
+            // ruby要素内での入力を検出した場合
+            if (rubyElement) {
+                e.preventDefault();
+
+                // ruby要素の直後にカーソルを移動
+                const newRange = document.createRange();
+                const afterNode = rubyElement.nextSibling;
+
+                if (afterNode && afterNode.nodeType === 3 && afterNode.textContent === '\u200B') {
+                    // 既存のゼロ幅スペースにカーソルを移動
+                    newRange.setStart(afterNode, 1);
+                } else {
+                    // ゼロ幅スペースを追加
+                    const zeroWidthSpace = document.createTextNode('\u200B');
+                    if (rubyElement.nextSibling) {
+                        rubyElement.parentNode.insertBefore(zeroWidthSpace, rubyElement.nextSibling);
+                    } else {
+                        rubyElement.parentNode.appendChild(zeroWidthSpace);
+                    }
+                    newRange.setStart(zeroWidthSpace, 1);
+                }
+
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                // 入力内容が文字の場合は、カーソル位置に挿入
+                if (e.data) {
+                    document.execCommand('insertText', false, e.data);
+                }
+
+                return;
+            }
+        });
+
+        // inputイベントでもチェック（ペーストや部分削除などの場合）
+        document.addEventListener('input', function(e) {
+            const target = e.target;
+
+            // content-editableまたはcontent-editable-mobile内の変更か確認
+            if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
+                return;
+            }
+
+            // すべてのruby要素をチェック
+            const rubyElements = target.querySelectorAll('ruby');
+            const elementsToRemove = [];
+
+            rubyElements.forEach(ruby => {
+                // 元のruby構造が壊れているかチェック
+                const rtElement = ruby.querySelector('rt');
+
+                // rtがない、または子要素の構造が不正な場合は削除
+                if (!rtElement) {
+                    elementsToRemove.push(ruby);
+                    return;
+                }
+
+                // rt要素以外のテキストを取得
+                let baseText = '';
+                let hasOnlyTextAndRt = true;
+
+                Array.from(ruby.childNodes).forEach(node => {
+                    if (node.nodeName === 'RT') {
+                        // rtはスキップ
+                    } else if (node.nodeType === 3) {
+                        // テキストノード
+                        baseText += node.textContent;
+                    } else {
+                        // その他の要素が含まれている場合は構造が壊れている
+                        hasOnlyTextAndRt = false;
+                    }
+                });
+
+                // 構造が壊れているか、ベーステキストが空の場合は削除
+                if (!hasOnlyTextAndRt || !baseText || baseText.trim() === '') {
+                    elementsToRemove.push(ruby);
+                }
+            });
+
+            // 削除対象のruby要素を削除
+            elementsToRemove.forEach(ruby => {
+                // 前後のゼロ幅スペースも削除
+                const prevNode = ruby.previousSibling;
+                const nextNode = ruby.nextSibling;
+
+                if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
+                    prevNode.remove();
+                }
+                if (nextNode && nextNode.nodeType === 3 && nextNode.textContent === '\u200B') {
+                    nextNode.remove();
+                }
+
+                ruby.remove();
+            });
+        });
+
+        // キーボード入力でのruby削除処理を追加
+        document.addEventListener('keydown', function(e) {
+            const target = e.target;
+
+            // content-editableまたはcontent-editable-mobile内の入力か確認
+            if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
+                return;
+            }
+
+            // BackspaceまたはDeleteキーの場合
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+
+                const range = selection.getRangeAt(0);
+
+                // 選択範囲がある場合
+                if (!selection.isCollapsed) {
+                    const fragment = range.cloneContents();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.appendChild(fragment);
+
+                    // 選択範囲内または部分的に含まれるruby要素をチェック
+                    let affectedRubies = [];
+
+                    // 範囲の開始・終了コンテナからruby要素を探す
+                    let startNode = range.startContainer;
+                    let endNode = range.endContainer;
+
+                    // 開始位置のruby要素をチェック
+                    let node = startNode;
+                    while (node && node !== target) {
+                        if (node.nodeName === 'RUBY') {
+                            affectedRubies.push(node);
+                            break;
+                        }
+                        node = node.parentElement;
+                    }
+
+                    // 終了位置のruby要素をチェック（開始と異なる場合）
+                    node = endNode;
+                    while (node && node !== target) {
+                        if (node.nodeName === 'RUBY' && !affectedRubies.includes(node)) {
+                            affectedRubies.push(node);
+                            break;
+                        }
+                        node = node.parentElement;
+                    }
+
+                    // 範囲内のすべてのruby要素もチェック
+                    const rangeRubies = tempDiv.querySelectorAll('ruby');
+                    if (rangeRubies.length > 0) {
+                        // 実際のDOM内で対応するruby要素を見つける
+                        const allRubies = target.querySelectorAll('ruby');
+                        allRubies.forEach(ruby => {
+                            if (range.intersectsNode(ruby) && !affectedRubies.includes(ruby)) {
+                                affectedRubies.push(ruby);
+                            }
+                        });
+                    }
+
+                    if (affectedRubies.length > 0) {
+                        e.preventDefault();
+
+                        // 影響を受けるruby要素を全て削除
+                        affectedRubies.forEach(ruby => {
+                            const prevNode = ruby.previousSibling;
+                            const nextNode = ruby.nextSibling;
+
+                            if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
+                                prevNode.remove();
+                            }
+                            if (nextNode && nextNode.nodeType === 3 && nextNode.textContent === '\u200B') {
+                                nextNode.remove();
+                            }
+
+                            ruby.remove();
+                        });
+
+                        // 選択範囲内の他のコンテンツも削除
+                        if (selection.rangeCount > 0) {
+                            const newRange = selection.getRangeAt(0);
+                            newRange.deleteContents();
+                        }
+
+                        return;
+                    }
+
+                    // ruby要素が含まれない通常の削除
+                    const hasRuby = tempDiv.querySelector('ruby') !== null;
+                    if (hasRuby) {
+                        e.preventDefault();
+                        range.deleteContents();
+
+                        // 削除後のクリーンアップは後続の処理で行われる
+                        setTimeout(() => {
+                            const rubyElements = target.querySelectorAll('ruby');
+                            rubyElements.forEach(ruby => {
+                                const baseText = Array.from(ruby.childNodes)
+                                    .filter(n => n.nodeName !== 'RT')
+                                    .map(n => n.textContent)
+                                    .join('');
+
+                                if (!baseText || baseText.trim() === '') {
+                                    const prevNode = ruby.previousSibling;
+                                    const nextNode = ruby.nextSibling;
+
+                                    if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
+                                        prevNode.remove();
+                                    }
+                                    if (nextNode && nextNode.nodeType === 3 && nextNode.textContent === '\u200B') {
+                                        nextNode.remove();
+                                    }
+
+                                    ruby.remove();
+                                }
+                            });
+                        }, 0);
+                    }
+                } else {
+                    // カーソル位置のみの場合（選択範囲なし）
+                    const node = range.startContainer;
+                    let rubyElement = null;
+
+                    // ruby要素の中または隣接しているかチェック
+                    if (node.nodeType === 3) {
+                        // テキストノードの場合、親がrubyかチェック
+                        let parent = node.parentElement;
+                        while (parent && parent !== target) {
+                            if (parent.nodeName === 'RUBY') {
+                                rubyElement = parent;
+                                break;
+                            }
+                            parent = parent.parentElement;
+                        }
+
+                        // ruby要素の直前または直後にいるかチェック
+                        if (!rubyElement) {
+                            if (e.key === 'Backspace') {
+                                // Backspaceの場合、直前のノードをチェック
+                                if (range.startOffset === 0 && node.previousSibling?.nodeName === 'RUBY') {
+                                    rubyElement = node.previousSibling;
+                                } else if (node.textContent === '\u200B' && node.previousSibling?.nodeName === 'RUBY') {
+                                    rubyElement = node.previousSibling;
+                                }
+                            } else if (e.key === 'Delete') {
+                                // Deleteの場合、直後のノードをチェック
+                                if (range.startOffset === node.textContent.length && node.nextSibling?.nodeName === 'RUBY') {
+                                    rubyElement = node.nextSibling;
+                                } else if (node.textContent === '\u200B' && node.nextSibling?.nodeName === 'RUBY') {
+                                    rubyElement = node.nextSibling;
+                                }
+                            }
+                        }
+                    } else if (node.nodeType === 1) {
+                        // 要素ノードの場合
+                        if (e.key === 'Backspace' && range.startOffset > 0) {
+                            const prevNode = node.childNodes[range.startOffset - 1];
+                            if (prevNode?.nodeName === 'RUBY') {
+                                rubyElement = prevNode;
+                            }
+                        } else if (e.key === 'Delete' && range.startOffset < node.childNodes.length) {
+                            const nextNode = node.childNodes[range.startOffset];
+                            if (nextNode?.nodeName === 'RUBY') {
+                                rubyElement = nextNode;
+                            }
+                        }
+                    }
+
+                    // ruby要素が見つかった場合、全体を削除
+                    if (rubyElement) {
+                        e.preventDefault();
+
+                        // 前後のゼロ幅スペースも削除
+                        const prevNode = rubyElement.previousSibling;
+                        const nextNode = rubyElement.nextSibling;
+
+                        if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
+                            prevNode.remove();
+                        }
+                        if (nextNode && nextNode.nodeType === 3 && nextNode.textContent === '\u200B') {
+                            nextNode.remove();
+                        }
+
+                        // カーソル位置を保存
+                        const parentNode = rubyElement.parentNode;
+                        const nextSibling = rubyElement.nextSibling;
+
+                        rubyElement.remove();
+
+                        // カーソルを削除位置に移動
+                        const newRange = document.createRange();
+                        if (nextSibling) {
+                            newRange.setStartBefore(nextSibling);
+                        } else {
+                            newRange.selectNodeContents(parentNode);
+                            newRange.collapse(false);
+                        }
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    }
+                }
+            }
+        });
+
+        window.saveSelectionForRuby = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const selection = window.getSelection();
+
+            // 選択範囲が存在し、かつeditable要素内にあるかチェック
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                let node = range.commonAncestorContainer;
+
+                // editable要素内にあるかチェック
+                let isInside = false;
+                let checkNode = node;
+                while (checkNode) {
+                    if (checkNode === element) {
+                        isInside = true;
+                        break;
+                    }
+                    checkNode = checkNode.parentNode;
+                }
+
+                if (isInside) {
+                    // 要素内にある場合は現在の位置を保存
+                    savedSelection = {
+                        range: range.cloneRange(),
+                        elementId: elementId
+                    };
+                    return;
+                }
+            }
+
+            // 要素内にない場合、または選択範囲がない場合は末尾に移動
+            element.focus();
+            const newRange = document.createRange();
+
+            // 要素の末尾にカーソルを配置
+            if (element.childNodes.length > 0) {
+                const lastChild = element.lastChild;
+
+                // 最後の子要素がテキストノードの場合
+                if (lastChild.nodeType === 3) {
+                    newRange.setStart(lastChild, lastChild.textContent.length);
+                } else {
+                    // それ以外の場合は要素の末尾
+                    newRange.selectNodeContents(element);
+                    newRange.collapse(false);
+                }
+            } else {
+                // 子要素がない場合は要素自体の末尾
+                newRange.selectNodeContents(element);
+                newRange.collapse(false);
+            }
+
+            newRange.collapse(true);
+
+            savedSelection = {
+                range: newRange,
+                elementId: elementId
+            };
+
+            selection.removeAllRanges();
+            selection.addRange(newRange);
         };
 
         window.undoEditor = function(elementId) {

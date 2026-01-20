@@ -1212,22 +1212,16 @@
             if (target != null) {
                 Db.Projects.Remove(target);
                 await Db.SaveChangesAsync();
-                _projects!.Remove(target);
+
+                if (_projects != null) {
+                    var itemToRemove = _projects.FirstOrDefault(p => p.Id == deleteTargetId.Value);
+                    if (itemToRemove != null) {
+                        _projects.Remove(itemToRemove);
+                    }
+                }
             }
         }
         CloseDeleteModal();
-    }
-
-    private async Task Delete(int id) {
-        var target = await Db.Projects
-            .Where(x => x.Id == id && x.UserId == userId)
-            .FirstOrDefaultAsync();
-
-        if (target != null) {
-            Db.Projects.Remove(target);
-            await Db.SaveChangesAsync();
-            _projects!.Remove(target);
-        }
     }
 
     private string GetRelativeTime(DateTime? dateTime) {
