@@ -522,6 +522,20 @@
         }
     }
 
+    #char-counter {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        font-size: 14px;
+        color: #666;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        pointer-events: none;
+        z-index: 1000;
+    }
+
     .hidden {
         display: none;
     }
@@ -763,6 +777,7 @@
                          @onkeydown="OnKeyDown">
                     </div>
                 </div>
+                <div id="char-counter">0文字</div>
                 } else {
                 <div class="editor-content">
                     @if (_showCategoryView) {
@@ -834,6 +849,7 @@
                              @onkeydown="OnKeyDown">
                         </div>
                     </div>
+                    <div id="char-counter">0文字</div>
                 </div>
         }
         } else {
@@ -1116,7 +1132,6 @@
         // 強制的に再レンダリング
         _lastRenderedChapter = -1;
         _lastRenderedSection = -1;
-
         StateHasChanged();
     }
 
@@ -1565,7 +1580,6 @@
                 instance._mobileShowEditor = true;
                 instance._isResizing = true;
             }
-
             instance.StateHasChanged();
         });
     }
@@ -1609,6 +1623,53 @@
             const element = document.getElementById(elementId);
             return element ? element.innerHTML : '';
         };
+
+        function countPlainTextCharacters(root) {
+            let count = 0;
+
+            const walker = document.createTreeWalker(
+                root,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode(node) {
+                        // ruby / rt 内のテキストは除外
+                        if (node.parentElement?.closest('ruby')) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            while (walker.nextNode()) {
+                const text = walker.currentNode.textContent
+                    .replace(/\u200B/g, '')   // ゼロ幅スペース除外
+                    .replace(/\s/g, '');      // 空白除外
+
+                count += text.length;
+            }
+
+            return count;
+        }
+
+        function updateCharCounter() {
+            // PC / モバイルどちらが存在するかを判定
+            const editor = document.querySelector(
+                "#content-editable:not([hidden]), #content-editable-mobile:not([hidden])"
+            );
+
+            if (!editor) return;
+
+            const count = countPlainTextCharacters(editor);
+            const counter = document.getElementById("char-counter");
+            if (counter) {
+                counter.textContent = `${count}文字`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateCharCounter();
+        });
 
         // 選択状態とフォーカス状態の変更を監視
         document.addEventListener('selectionchange', function() {
@@ -1992,6 +2053,7 @@
                 }
             }
 
+            updateCharCounter();
             savedSelection = null;
         };
 
@@ -2062,7 +2124,7 @@
                     selection.addRange(newRange);
                 }
             }
-
+            updateCharCounter();
             savedSelection = null;
         };
 
@@ -2130,7 +2192,7 @@
 
                 element.focus();
             }
-
+            updateCharCounter();
             savedSelection = null;
         };
 
@@ -2436,6 +2498,7 @@
 
                 ruby.remove();
             });
+            updateCharCounter();
         });
 
         // キーボード入力でのruby削除処理を追加
