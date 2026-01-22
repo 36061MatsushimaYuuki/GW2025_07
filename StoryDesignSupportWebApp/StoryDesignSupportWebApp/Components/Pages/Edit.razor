@@ -32,6 +32,7 @@
         height: calc(100vh - 5.5rem);
         overflow: hidden;
         max-width: 97vw;
+        transition: height 0.3s ease;
     }
 
     /* サイドバー（PC用） */
@@ -43,12 +44,12 @@
         flex-direction: column;
         overflow-y: auto;
         position: relative;
-        transition: margin-left 0.3s ease, width 0.3s ease;
+        transition: margin-left 0.3s ease;
     }
 
         .sidebar.collapsed {
-            margin-left: 0;
-            width: 0;
+            margin-left: -300px;
+            width: 300px;
         }
 
     .sidebar-header {
@@ -313,22 +314,110 @@
         margin: 0 5px;
     }
 
-    .color-picker-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 4px 8px;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 3px;
+    .color-picker-container {
+        position: relative;
+        display: inline-block;
     }
 
-    .color-picker {
-        width: 30px;
-        height: 24px;
-        border: none;
+    .color-picker-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        z-index: 1000;
+        display: none;
+        min-width: 200px;
+    }
+
+        .color-picker-dropdown.show {
+            display: block;
+        }
+
+    .color-picker-input-wrapper {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .native-color-picker {
+        width: 50px;
+        height: 35px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
         cursor: pointer;
     }
+
+    .color-input {
+        flex: 1;
+        padding: 5px 8px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        font-size: 14px;
+    }
+
+    .color-apply-btn {
+        padding: 5px 12px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .color-apply-btn:hover {
+            background: #0052a3;
+        }
+
+    .color-remove-btn {
+        width: 100%;
+        padding: 5px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+        .color-remove-btn:hover {
+            background: #e8e8e8;
+        }
+
+    .recent-colors {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #eee;
+    }
+
+    .recent-colors-title {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .recent-colors-list {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .recent-color-option {
+        width: 25px;
+        height: 25px;
+        border: 2px solid #ddd;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+        .recent-color-option:hover {
+            transform: scale(1.1);
+            border-color: #999;
+        }
 
     .editor-content {
         flex: 1;
@@ -397,12 +486,14 @@
         display: none;
         height: calc(100vh - 5.5rem);
         overflow: hidden;
+        transition: height 0.3s ease;
     }
 
     .mobile-list {
         height: calc(100vh - 5.5rem);
         overflow-y: auto;
         background-color: #f5f5f5;
+        transition: height 0.3s ease;
     }
 
     .mobile-header {
@@ -419,6 +510,7 @@
         display: flex;
         flex-direction: column;
         background-color: #fff;
+        transition: height 0.3s ease;
     }
 
     .mobile-editor-header {
@@ -865,12 +957,38 @@
                     <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体"><i>I</i></button>
                     <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' title="下線"><u>U</u></button>
                     <div class="toolbar-separator"></div>
-                    <button class="toolbar-btn" @onclick="ShowRubyModal" title="ルビ" disabled="@_isRubyButtonDisabled">ルビ</button>
-                    <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                    <div class="toolbar-separator"></div>
+                    <div class="color-picker-container">
+                        <button class="toolbar-btn" @onclick="ToggleColorPicker">🎨</button>
+                        <div class="color-picker-dropdown @(_showColorPicker ? "show" : "")" @onclick:stopPropagation="true">
+                            <div class="color-picker-input-wrapper">
+                                <input type="color" class="native-color-picker" @bind="_selectedColor" @bind:event="oninput" />
+                                <input type="text" class="color-input" @bind="_selectedColor" @bind:event="oninput" placeholder="#000000" maxlength="7" />
+                                <button class="color-apply-btn" @onclick="ApplySelectedColor">適用</button>
+                            </div>
+                            <button class="color-remove-btn" @onclick="RemoveColor">× カラーを戻す</button>
+
+                    @if (_recentColors.Count > 0) {
+                                <div class="recent-colors">
+                                    <div class="recent-colors-title">最近使った色</div>
+                                    <div class="recent-colors-list">
+                                        @foreach (var color in _recentColors) {
+                                            <div class="recent-color-option"
+                                                 style="background-color: @color;"
+                                                 @onclick="() => ApplyRecentColor(color)"
+                                                 title="@color"></div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="toolbar-separator"></div>
+                    <button class="toolbar-btn" @onclick="ShowRubyModal" title="ルビ" disabled="@_isRubyButtonDisabled">ルビ</button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" @onclick="ClearFormat" title="書式をクリア">✕ クリア</button>
                 </div>
@@ -938,12 +1056,38 @@
                         <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")'><i>I</i></button>
                         <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")'><u>U</u></button>
                         <div class="toolbar-separator"></div>
-                        <button class="toolbar-btn" @onclick="ShowRubyModal" style="font-size: 11px;" disabled="@_isRubyButtonDisabled">ルビ</button>
-                        <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                        <div class="toolbar-separator"></div>
+                        <div class="color-picker-container">
+                            <button class="toolbar-btn" @onclick="ToggleColorPicker">🎨</button>
+                            <div class="color-picker-dropdown @(_showColorPicker ? "show" : "")" @onclick:stopPropagation="true">
+                                <div class="color-picker-input-wrapper">
+                                    <input type="color" class="native-color-picker" @bind="_selectedColor" @bind:event="oninput" />
+                                    <input type="text" class="color-input" @bind="_selectedColor" @bind:event="oninput" placeholder="#000000" maxlength="7" />
+                                    <button class="color-apply-btn" @onclick="ApplySelectedColor">適用</button>
+                                </div>
+                                <button class="color-remove-btn" @onclick="RemoveColor">× カラーを戻す</button>
+
+                    @if (_recentColors.Count > 0) {
+                                    <div class="recent-colors">
+                                        <div class="recent-colors-title">最近使った色</div>
+                                        <div class="recent-colors-list">
+                                            @foreach (var color in _recentColors) {
+                                                <div class="recent-color-option"
+                                                     style="background-color: @color;"
+                                                     @onclick="() => ApplyRecentColor(color)"
+                                                     title="@color"></div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="toolbar-separator"></div>
+                        <button class="toolbar-btn" @onclick="ShowRubyModal" title="ルビ" disabled="@_isRubyButtonDisabled">ルビ</button>
                         <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick="ClearFormat" style="font-size: 11px;">✕</button>
                     </div>
@@ -1657,6 +1801,70 @@
         CloseDeleteSectionConfirm();
     }
 
+    private bool _showColorPicker = false;
+    private string _selectedColor = "#000000";
+    private List<string> _recentColors = new List<string>();
+    private const int MAX_RECENT_COLORS = 10;
+
+    private void ToggleColorPicker() {
+        _showColorPicker = !_showColorPicker;
+    }
+
+    private async Task ApplySelectedColor() {
+        if (string.IsNullOrEmpty(_selectedColor)) return;
+
+        // カラーコードの正規化
+        string color = _selectedColor.Trim();
+        if (!color.StartsWith("#")) {
+            color = "#" + color;
+        }
+
+        await ApplyColor(color);
+        AddToRecentColors(color);
+    }
+
+    private async Task ApplyRecentColor(string color) {
+        _selectedColor = color;
+        await ApplyColor(color);
+    }
+
+    private async Task ApplyColor(string color) {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+
+        try {
+            await JSRuntime.InvokeVoidAsync("applyColor", elementId, color);
+            _showColorPicker = false;
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"ApplyColor error: {ex.Message}");
+        }
+    }
+
+    private async Task RemoveColor() {
+        var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
+
+        try {
+            await JSRuntime.InvokeVoidAsync("removeColor", elementId);
+            _showColorPicker = false;
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"RemoveColor error: {ex.Message}");
+        }
+    }
+
+    private void AddToRecentColors(string color) {
+        // 既に存在する場合は削除
+        _recentColors.Remove(color);
+
+        // 先頭に追加
+        _recentColors.Insert(0, color);
+
+        // 最大数を超えたら削除
+        if (_recentColors.Count > MAX_RECENT_COLORS) {
+            _recentColors.RemoveAt(_recentColors.Count - 1);
+        }
+    }
+
     //ルビモーダル
     private async Task ShowRubyModal() {
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
@@ -1818,6 +2026,23 @@
                 }
             });
 
+            // カラーピッカー外クリックイベント
+            if (!window.colorPickerClickListenerRegistered) {
+                window.colorPickerClickListenerRegistered = true;
+
+                document.addEventListener('click', function(e) {
+                    const colorPickers = document.querySelectorAll('.color-picker-container');
+                    colorPickers.forEach(picker => {
+                        if (!picker.contains(e.target)) {
+                            const dropdown = picker.querySelector('.color-picker-dropdown');
+                            if (dropdown && dropdown.classList.contains('show')) {
+                                dropdown.classList.remove('show');
+                            }
+                        }
+                    });
+                });
+            }
+
             // リサイズ検知
             let resizeTimer;
             window.addEventListener('resize', function() {
@@ -1864,6 +2089,135 @@
 
             // Blazor接続状態の初期化
             window.blazorConnected = true;
+        };
+
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_UNDO_STACK = 100;
+
+        function saveUndoState(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const state = {
+                html: element.innerHTML,
+                selection: saveSelectionState(element)
+            };
+
+            undoStack.push(state);
+            if (undoStack.length > MAX_UNDO_STACK) {
+                undoStack.shift();
+            }
+            redoStack = []; // 新しい操作でredoスタックをクリア
+        }
+
+        function saveSelectionState(element) {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return null;
+
+            const range = selection.getRangeAt(0);
+
+            function getNodePath(node) {
+                if (!node) return [];
+                const path = [];
+                while (node && node !== element) {
+                    const parent = node.parentNode;
+                    if (!parent) break;
+                    const index = Array.from(parent.childNodes).indexOf(node);
+                    path.unshift(index);
+                    node = parent;
+                }
+                return path;
+            }
+
+            try {
+                return {
+                    startPath: getNodePath(range.startContainer),
+                    startOffset: range.startOffset,
+                    endPath: getNodePath(range.endContainer),
+                    endOffset: range.endOffset
+                };
+            } catch (e) {
+                console.warn('Failed to save selection state:', e);
+                return null;
+            }
+        }
+
+        function restoreSelectionState(element, selectionState) {
+            if (!selectionState || !element) return;
+
+            function getNodeFromPath(path) {
+                if (!path || path.length === 0) return element;
+                let node = element;
+                for (const index of path) {
+                    if (!node || !node.childNodes || !node.childNodes[index]) {
+                        return null;
+                    }
+                    node = node.childNodes[index];
+                }
+                return node;
+            }
+
+            try {
+                const startNode = getNodeFromPath(selectionState.startPath);
+                const endNode = getNodeFromPath(selectionState.endPath);
+
+                if (!startNode || !endNode) return;
+
+                const range = document.createRange();
+                range.setStart(startNode, Math.min(selectionState.startOffset, startNode.length || startNode.childNodes?.length || 0));
+                range.setEnd(endNode, Math.min(selectionState.endOffset, endNode.length || endNode.childNodes?.length || 0));
+
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } catch (e) {
+                console.warn('Selection restore failed:', e);
+            }
+        }
+
+        window.undoEditor = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element || undoStack.length === 0) return;
+
+            // 現在の状態をredoスタックに保存
+            const currentState = {
+                html: element.innerHTML,
+                selection: saveSelectionState(element)
+            };
+            redoStack.push(currentState);
+
+            // undoスタックから状態を復元
+            const state = undoStack.pop();
+            element.innerHTML = state.html;
+
+            if (state.selection) {
+                restoreSelectionState(element, state.selection);
+            }
+
+            element.focus();
+        };
+
+        window.redoEditor = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element || redoStack.length === 0) return;
+
+            // 現在の状態をundoスタックに保存
+            const currentState = {
+                html: element.innerHTML,
+                selection: saveSelectionState(element)
+            };
+            undoStack.push(currentState);
+
+            // redoスタックから状態を復元
+            const state = redoStack.pop();
+            element.innerHTML = state.html;
+
+            if (state.selection) {
+                restoreSelectionState(element, state.selection);
+            }
+
+            element.focus();
         };
 
         // ルビと非ルビが混在する選択範囲かチェック
@@ -2030,14 +2384,16 @@
 
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
-                    updateFormatStates();
+                    // 選択範囲がない場合のみフォーマット状態を更新
+                    if (selection.isCollapsed) {
+                        updateFormatStates();
+                    }
 
                     // ルビボタンの状態をチェック
                     const activeElement = document.activeElement;
                     if (activeElement && (activeElement.id === 'content-editable' || activeElement.id === 'content-editable-mobile')) {
                         try {
                             const isMixed = window.isMixedRubySelection(activeElement.id);
-                            // C#側に通知
                             window.dispatchEvent(new CustomEvent('rubyButtonStateChanged', {
                                 detail: { disabled: isMixed }
                             }));
@@ -2058,27 +2414,33 @@
             const range = selection.getRangeAt(0);
 
             if (selection.isCollapsed) {
+                // カーソル位置のみの場合
                 const node = range.startContainer;
                 const parentElement = node.nodeType === 3 ? node.parentElement : node;
+
+                if (!parentElement || parentElement.nodeType !== 1) return;
 
                 currentFormat.bold = hasParentTag(parentElement, 'B') || hasParentTag(parentElement, 'STRONG');
                 currentFormat.italic = hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
                 currentFormat.underline = hasParentTag(parentElement, 'U');
                 notifyFormatStates();
-            } else {
-                const parentElement = range.commonAncestorContainer.nodeType === 3
-                    ? range.commonAncestorContainer.parentElement
-                    : range.commonAncestorContainer;
-
-                currentFormat.bold = document.queryCommandState('bold') || hasParentTag(parentElement, 'B') || hasParentTag(parentElement, 'STRONG');
-                currentFormat.italic = document.queryCommandState('italic') || hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
-                currentFormat.underline = document.queryCommandState('underline') || hasParentTag(parentElement, 'U');
-                notifyFormatStates();
             }
+            // 選択範囲がある場合は状態を更新しない（ボタン状態を維持）
         }
 
         function hasParentTag(element, tagName) {
-            while (element && element.nodeName !== 'DIV' && element.getAttribute('contenteditable') !== 'true') {
+            // elementがnullまたは要素でない場合の処理を追加
+            if (!element) return false;
+
+            // テキストノードの場合は親要素を取得
+            if (element.nodeType === 3) {
+                element = element.parentElement;
+            }
+
+            // 要素でない場合はfalseを返す
+            if (!element || element.nodeType !== 1) return false;
+
+            while (element && element.nodeName !== 'DIV' && !element.hasAttribute('contenteditable')) {
                 if (element.nodeName === tagName) return true;
                 element = element.parentElement;
             }
@@ -2110,14 +2472,18 @@
             const element = document.getElementById(elementId);
             if (!element) return;
 
+            saveUndoState(elementId);
+
+            const scrollTop = element.scrollTop;
             element.focus();
             const selection = window.getSelection();
 
             if (selection.rangeCount > 0 && !selection.isCollapsed) {
                 // テキストが選択されている場合
-                document.execCommand(format, false, null);
+                const range = selection.getRangeAt(0);
+                applyInlineFormat(range, format, isActive);
 
-                // 選択を解除
+                // 選択を解除してカーソルを末尾に
                 setTimeout(() => {
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
@@ -2125,21 +2491,270 @@
                         selection.removeAllRanges();
                         selection.addRange(range);
                     }
-                    // 書式状態を更新
-                    updateFormatStates();
+                    element.scrollTop = scrollTop;
                 }, 10);
-            } else {
-                // 選択されていない場合
+
+                // 選択適用後もボタンの状態は維持（変更しない）
                 currentFormat[format] = isActive;
-                document.execCommand(format, false, null);
                 notifyFormatStates();
+            } else {
+                // 選択されていない場合 - ボタンの状態を切り替え
+                currentFormat[format] = isActive;
+
+                const range = selection.getRangeAt(0);
+                const tagName = format === 'bold' ? 'b' : format === 'italic' ? 'i' : 'u';
+
+                // 現在のカーソル位置のフォーマット状態を確認
+                const node = range.startContainer;
+                const parentElement = node.nodeType === 3 ? node.parentElement : node;
+                const hasFormat = hasParentTag(parentElement, tagName.toUpperCase());
+
+                if (isActive && !hasFormat) {
+                    // フォーマットを適用
+                    const formatNode = document.createElement(tagName);
+                    const dummyNode = document.createTextNode('\u200B');
+                    formatNode.appendChild(dummyNode);
+                    range.insertNode(formatNode);
+                    range.setStart(dummyNode, 1);
+                } else if (!isActive && hasFormat) {
+                    // フォーマットを解除 - フォーマット範囲の外に移動
+                    let formatElement = parentElement;
+                    while (formatElement && formatElement !== element) {
+                        if (formatElement.nodeName === tagName.toUpperCase()) {
+                            break;
+                        }
+                        formatElement = formatElement.parentElement;
+                    }
+
+                    if (formatElement && formatElement.nodeName === tagName.toUpperCase()) {
+                        const dummyNode = document.createTextNode('\u200B');
+                        if (formatElement.nextSibling) {
+                            formatElement.parentNode.insertBefore(dummyNode, formatElement.nextSibling);
+                        } else {
+                            formatElement.parentNode.appendChild(dummyNode);
+                        }
+                        range.setStart(dummyNode, 1);
+                    }
+                } else {
+                    // 状態が一致している場合はゼロ幅スペースを挿入
+                    const dummyNode = document.createTextNode('\u200B');
+                    range.insertNode(dummyNode);
+                    range.setStart(dummyNode, 1);
+                }
+
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                notifyFormatStates();
+                element.scrollTop = scrollTop;
             }
+        };
+
+        function applyInlineFormat(range, format, isActive) {
+            const tagName = format === 'bold' ? 'B' : format === 'italic' ? 'I' : 'U';
+
+            if (isActive) {
+                // フォーマットを適用
+                const wrapper = document.createElement(tagName.toLowerCase());
+                try {
+                    range.surroundContents(wrapper);
+                } catch (e) {
+                    // 複雑な選択の場合
+                    const fragment = range.extractContents();
+                    wrapper.appendChild(fragment);
+                    range.insertNode(wrapper);
+                }
+            } else {
+                // フォーマットを解除
+                const content = range.extractContents();
+                const tempDiv = document.createElement('div');
+                tempDiv.appendChild(content);
+
+                // 指定されたタグを削除
+                const tags = tempDiv.querySelectorAll(tagName.toLowerCase());
+                tags.forEach(tag => {
+                    const parent = tag.parentNode;
+                    while (tag.firstChild) {
+                        parent.insertBefore(tag.firstChild, tag);
+                    }
+                    parent.removeChild(tag);
+                });
+
+                // 内容を戻す
+                while (tempDiv.firstChild) {
+                    range.insertNode(tempDiv.lastChild);
+                }
+            }
+        }
+
+        // カラー適用関数
+        window.applyColor = function(elementId, color) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.warn('Element not found:', elementId);
+                return;
+            }
+
+            element.focus();
+
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                console.warn('No selection available');
+                return;
+            }
+
+            try {
+                saveUndoState(elementId);
+            } catch (e) {
+                console.warn('Failed to save undo state:', e);
+            }
+
+            const scrollTop = element.scrollTop;
+
+            if (!selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.color = color;
+
+                try {
+                    const contents = range.extractContents();
+                    span.appendChild(contents);
+                    range.insertNode(span);
+
+                    // カラー適用範囲の直後にゼロ幅スペースを追加して移動
+                    const after = document.createTextNode('\u200B');
+                    range.setStartAfter(span);
+                    range.insertNode(after);
+                    range.setStart(after, 1);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } catch (e) {
+                    console.error('Failed to apply color to selection:', e);
+                }
+            } else {
+                try {
+                    const range = selection.getRangeAt(0);
+                    const span = document.createElement('span');
+                    span.style.color = color;
+                    const dummyNode = document.createTextNode('\u200B');
+                    span.appendChild(dummyNode);
+
+                    range.insertNode(span);
+                    range.setStart(dummyNode, 1);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } catch (e) {
+                    console.error('Failed to apply color at cursor:', e);
+                }
+            }
+
+            element.scrollTop = scrollTop;
+        };
+
+        // カラー解除関数
+        window.removeColor = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.warn('Element not found:', elementId);
+                return;
+            }
+
+            element.focus();
+
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+                console.warn('No selection available');
+                return;
+            }
+
+            try {
+                saveUndoState(elementId);
+            } catch (e) {
+                console.warn('Failed to save undo state:', e);
+            }
+
+            const scrollTop = element.scrollTop;
+
+            if (!selection.isCollapsed) {
+                // 選択範囲がある場合
+                try {
+                    const range = selection.getRangeAt(0);
+                    const fragment = range.extractContents();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.appendChild(fragment);
+
+                    const colorSpans = tempDiv.querySelectorAll('span[style*="color"]');
+                    colorSpans.forEach(span => {
+                        span.style.color = '';
+                        if (!span.getAttribute('style') || span.getAttribute('style').trim() === '') {
+                            const parent = span.parentNode;
+                            while (span.firstChild) {
+                                parent.insertBefore(span.firstChild, span);
+                            }
+                            parent.removeChild(span);
+                        }
+                    });
+
+                    while (tempDiv.firstChild) {
+                        range.insertNode(tempDiv.lastChild);
+                    }
+
+                    range.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } catch (e) {
+                    console.error('Failed to remove color from selection:', e);
+                }
+            } else {
+                // カーソル位置のみの場合 - カラー範囲外に移動
+                try {
+                    const range = selection.getRangeAt(0);
+                    let node = range.startContainer;
+                    if (node.nodeType === 3) {
+                        node = node.parentElement;
+                    }
+
+                    let colorSpan = null;
+                    while (node && node !== element) {
+                        if (node.nodeName === 'SPAN' && node.style.color) {
+                            colorSpan = node;
+                            break;
+                        }
+                        node = node.parentElement;
+                    }
+
+                    if (colorSpan) {
+                        // カラー範囲の直後にゼロ幅スペースを追加して移動
+                        const after = document.createTextNode('\u200B');
+                        if (colorSpan.nextSibling) {
+                            colorSpan.parentNode.insertBefore(after, colorSpan.nextSibling);
+                        } else {
+                            colorSpan.parentNode.appendChild(after);
+                        }
+
+                        range.setStart(after, 1);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                } catch (e) {
+                    console.error('Failed to remove color at cursor:', e);
+                }
+            }
+
+            element.scrollTop = scrollTop;
         };
 
         window.applyBlockFormat = function(elementId, format) {
             const element = document.getElementById(elementId);
             if (!element) return;
 
+            saveUndoState(elementId);
+
+            const scrollTop = element.scrollTop;
             element.focus();
             const selection = window.getSelection();
 
@@ -2147,20 +2762,17 @@
                 const range = selection.getRangeAt(0);
 
                 if (selection.isCollapsed) {
-                    // カーソル位置のブロックを変更
                     const currentNode = range.startContainer;
                     let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
 
-                    // contenteditable要素に到達するまで親を辿る
                     while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
                         blockElement = blockElement.parentElement;
                     }
 
                     if (blockElement === element) {
-                        // ルート要素の場合、新しいブロックを作成
                         const newElement = document.createElement(format);
                         newElement.innerHTML = '<br>';
-                        newElement.style.lineHeight = ''; // スタイルをクリア
+                        newElement.style.lineHeight = '';
                         element.appendChild(newElement);
 
                         const newRange = document.createRange();
@@ -2169,34 +2781,24 @@
                         selection.removeAllRanges();
                         selection.addRange(newRange);
                     } else if (blockElement) {
-                        // カーソル位置を保存
                         const offset = getCaretOffset(blockElement, range);
 
                         const newElement = document.createElement(format);
                         newElement.innerHTML = blockElement.innerHTML || '<br>';
-                        newElement.style.lineHeight = ''; // インラインスタイルをクリア
+                        newElement.style.lineHeight = '';
                         blockElement.parentNode.replaceChild(newElement, blockElement);
 
-                        // カーソル位置を復元
                         restoreCaretOffset(newElement, offset);
                     }
+                    element.scrollTop = scrollTop;
                 } else {
-                    // 選択範囲がある場合
-                    document.execCommand('formatBlock', false, '<' + format + '>');
+                    const fragment = range.extractContents();
+                    const newElement = document.createElement(format);
+                    newElement.appendChild(fragment);
+                    newElement.style.lineHeight = '';
+                    range.insertNode(newElement);
 
                     setTimeout(() => {
-                        // 適用された要素のインラインスタイルをクリア
-                        const currentNode = selection.getRangeAt(0).startContainer;
-                        let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
-
-                        while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
-                            blockElement = blockElement.parentElement;
-                        }
-
-                        if (blockElement && blockElement !== element) {
-                            blockElement.style.lineHeight = '';
-                        }
-
                         if (selection.rangeCount > 0) {
                             const range = selection.getRangeAt(0);
                             range.collapse(false);
@@ -2204,6 +2806,7 @@
                             selection.addRange(range);
                         }
                         element.focus();
+                        element.scrollTop = scrollTop;
                     }, 10);
                 }
             }
@@ -2324,14 +2927,14 @@
             const element = document.getElementById(elementId);
             if (!element) return;
 
+            saveUndoState(elementId);
+
+            const scrollTop = element.scrollTop;
             element.focus();
             const selection = window.getSelection();
 
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
-
-                // 削除前の位置情報を保存
-                let insertPosition = null;
 
                 // 選択範囲内の既存ruby要素を削除
                 if (!selection.isCollapsed) {
@@ -2340,16 +2943,7 @@
                     tempDiv.appendChild(fragment);
 
                     if (tempDiv.querySelector('ruby')) {
-                        // ruby要素が含まれる場合、実際のDOMから削除
                         const actualRange = range.cloneRange();
-
-                        // 挿入位置を記録（範囲の開始位置）
-                        insertPosition = {
-                            container: actualRange.startContainer,
-                            offset: actualRange.startOffset
-                        };
-
-                        // 範囲内のすべてのruby要素を取得
                         const rubysToDelete = [];
 
                         const walker = document.createTreeWalker(
@@ -2399,43 +2993,17 @@
                 const before = document.createTextNode('\u200B');
                 const after = document.createTextNode('\u200B');
 
-                // 挿入位置が保存されている場合はそこに挿入
-                if (insertPosition) {
-                    try {
-                        const newRange = document.createRange();
-                        newRange.setStart(insertPosition.container, insertPosition.offset);
-                        newRange.collapse(true);
+                range.insertNode(after);
+                range.insertNode(ruby);
+                range.insertNode(before);
 
-                        newRange.insertNode(after);
-                        newRange.insertNode(ruby);
-                        newRange.insertNode(before);
-
-                        newRange.setStart(after, 1);
-                        newRange.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                    } catch (e) {
-                        // エラーが発生した場合は通常の挿入
-                        range.insertNode(after);
-                        range.insertNode(ruby);
-                        range.insertNode(before);
-
-                        range.setStart(after, 1);
-                        range.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    }
-                } else {
-                    range.insertNode(after);
-                    range.insertNode(ruby);
-                    range.insertNode(before);
-
-                    range.setStart(after, 1);
-                    range.collapse(true);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
+                range.setStart(after, 1);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
             }
+
+            element.scrollTop = scrollTop;
             savedSelection = null;
         };
 
@@ -2443,6 +3011,9 @@
             const element = document.getElementById(elementId);
             if (!element) return;
 
+            saveUndoState(elementId);
+
+            const scrollTop = element.scrollTop;
             const selection = window.getSelection();
             if (selection.rangeCount === 0) return;
 
@@ -2491,7 +3062,6 @@
                     selection.removeAllRanges();
                     selection.addRange(newRange);
                 } else {
-                    // ゼロ幅スペースがない場合は追加
                     const after = document.createTextNode('\u200B');
                     if (newRuby.nextSibling) {
                         newRuby.parentNode.insertBefore(after, newRuby.nextSibling);
@@ -2506,6 +3076,8 @@
                     selection.addRange(newRange);
                 }
             }
+
+            element.scrollTop = scrollTop;
             savedSelection = null;
         };
 
@@ -2513,6 +3085,9 @@
             const element = document.getElementById(elementId);
             if (!element) return;
 
+            saveUndoState(elementId);
+
+            const scrollTop = element.scrollTop;
             const selection = window.getSelection();
             if (selection.rangeCount === 0) return;
 
@@ -2573,6 +3148,8 @@
 
                 element.focus();
             }
+
+            element.scrollTop = scrollTop;
             savedSelection = null;
         };
 
@@ -3019,17 +3596,23 @@
                         // ruby要素の直前または直後にいるかチェック
                         if (!rubyElement) {
                             if (e.key === 'Backspace') {
-                                // Backspaceの場合、直前のノードをチェック
-                                if (range.startOffset === 0 && node.previousSibling?.nodeName === 'RUBY') {
-                                    rubyElement = node.previousSibling;
-                                } else if (node.textContent === '\u200B' && node.previousSibling?.nodeName === 'RUBY') {
+                                // ゼロ幅スペース位置での削除を修正
+                                if (node.textContent === '\u200B' && range.startOffset === 1) {
+                                    const prevNode = node.previousSibling;
+                                    if (prevNode?.nodeName === 'RUBY') {
+                                        rubyElement = prevNode;
+                                    }
+                                } else if (range.startOffset === 0 && node.previousSibling?.nodeName === 'RUBY') {
                                     rubyElement = node.previousSibling;
                                 }
                             } else if (e.key === 'Delete') {
                                 // Deleteの場合、直後のノードをチェック
-                                if (range.startOffset === node.textContent.length && node.nextSibling?.nodeName === 'RUBY') {
-                                    rubyElement = node.nextSibling;
-                                } else if (node.textContent === '\u200B' && node.nextSibling?.nodeName === 'RUBY') {
+                                if (node.textContent === '\u200B' && range.startOffset === 0) {
+                                    const nextNode = node.nextSibling;
+                                    if (nextNode?.nodeName === 'RUBY') {
+                                        rubyElement = nextNode;
+                                    }
+                                } else if (range.startOffset === node.textContent.length && node.nextSibling?.nodeName === 'RUBY') {
                                     rubyElement = node.nextSibling;
                                 }
                             }
@@ -3056,6 +3639,9 @@
                         // 前後のゼロ幅スペースも削除
                         const prevNode = rubyElement.previousSibling;
                         const nextNode = rubyElement.nextSibling;
+                        const parentNode = rubyElement.parentNode;
+
+                        const isAfterRuby = e.key === 'Backspace';
 
                         if (prevNode && prevNode.nodeType === 3 && prevNode.textContent === '\u200B') {
                             prevNode.remove();
@@ -3064,20 +3650,22 @@
                             nextNode.remove();
                         }
 
-                        // カーソル位置を保存
-                        const parentNode = rubyElement.parentNode;
-                        const nextSibling = rubyElement.nextSibling;
-
                         rubyElement.remove();
 
-                        // カーソルを削除位置に移動
+                        // カーソル位置を適切に設定
                         const newRange = document.createRange();
-                        if (nextSibling) {
-                            newRange.setStartBefore(nextSibling);
-                        } else {
+                        if (isAfterRuby && parentNode.lastChild) {
+                            // Backspaceの場合、削除位置の直前に配置
                             newRange.selectNodeContents(parentNode);
                             newRange.collapse(false);
+                        } else if (parentNode.firstChild) {
+                            newRange.setStartBefore(parentNode.firstChild);
+                            newRange.collapse(true);
+                        } else {
+                            newRange.selectNodeContents(parentNode);
+                            newRange.collapse(true);
                         }
+
                         selection.removeAllRanges();
                         selection.addRange(newRange);
                     }
@@ -3150,25 +3738,11 @@
             selection.addRange(newRange);
         };
 
-        window.undoEditor = function(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-
-            element.focus();
-            document.execCommand('undo');
-        };
-
-        window.redoEditor = function(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-
-            element.focus();
-            document.execCommand('redo');
-        };
-
         window.clearFormat = function(elementId) {
             const element = document.getElementById(elementId);
             if (!element) return;
+
+            saveUndoState(elementId);
 
             element.focus();
             const selection = window.getSelection();
@@ -3177,9 +3751,12 @@
                 const range = selection.getRangeAt(0);
 
                 if (!selection.isCollapsed) {
-                    // 選択範囲がある場合：選択部分の書式をクリア
-                    const selectedContent = range.extractContents();
-                    const textContent = selectedContent.textContent;
+                    const fragment = range.extractContents();
+                    const tempDiv = document.createElement('div');
+                    tempDiv.appendChild(fragment);
+
+                    // すべてのタグを削除してプレーンテキストに
+                    const textContent = tempDiv.textContent;
                     const textNode = document.createTextNode(textContent);
 
                     range.insertNode(textNode);
@@ -3187,34 +3764,26 @@
                     selection.removeAllRanges();
                     selection.addRange(range);
                 } else {
-                    // 選択範囲がない場合：現在の行全体の書式をクリア
                     const currentNode = range.startContainer;
                     let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
 
-                    // ブロック要素を見つける
                     while (blockElement && blockElement !== element && !isBlockElement(blockElement)) {
                         blockElement = blockElement.parentElement;
                     }
 
                     if (blockElement && blockElement !== element) {
-                        // カーソル位置を保存
                         const offset = getCaretOffset(blockElement, range);
-
-                        // テキストのみを抽出
                         const textContent = blockElement.textContent;
 
-                        // 新しいp要素（通常の段落）を作成
                         const newElement = document.createElement('p');
                         newElement.textContent = textContent;
                         blockElement.parentNode.replaceChild(newElement, blockElement);
 
-                        // カーソル位置を復元
                         restoreCaretOffset(newElement, offset);
                     }
                 }
             }
 
-            // 書式状態をリセット
             currentFormat.bold = false;
             currentFormat.italic = false;
             currentFormat.underline = false;
