@@ -2378,16 +2378,14 @@
                 clearTimeout(debounceTimer);
             }
 
-            // 100ms後に実行
+            // 50msに短縮（元は100ms）
             debounceTimer = setTimeout(function() {
                 if (!blazorConnected) return;
 
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
-                    // 選択範囲がない場合のみフォーマット状態を更新
-                    if (selection.isCollapsed) {
-                        updateFormatStates();
-                    }
+                    // 常にフォーマット状態を更新
+                    updateFormatStates();
 
                     // ルビボタンの状態をチェック
                     const activeElement = document.activeElement;
@@ -2402,7 +2400,7 @@
                         }
                     }
                 }
-            }, 100);
+            }, 50);
         });
 
         function updateFormatStates() {
@@ -2423,9 +2421,14 @@
                 currentFormat.bold = hasParentTag(parentElement, 'B') || hasParentTag(parentElement, 'STRONG');
                 currentFormat.italic = hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
                 currentFormat.underline = hasParentTag(parentElement, 'U');
-                notifyFormatStates();
+            } else {
+                // 選択範囲がある場合
+                currentFormat.bold = document.queryCommandState('bold');
+                currentFormat.italic = document.queryCommandState('italic');
+                currentFormat.underline = document.queryCommandState('underline');
             }
-            // 選択範囲がある場合は状態を更新しない（ボタン状態を維持）
+
+            notifyFormatStates();
         }
 
         function hasParentTag(element, tagName) {
@@ -2480,10 +2483,9 @@
 
             if (selection.rangeCount > 0 && !selection.isCollapsed) {
                 // テキストが選択されている場合
-                const range = selection.getRangeAt(0);
-                applyInlineFormat(range, format, isActive);
+                document.execCommand(format, false, null);
 
-                // 選択を解除してカーソルを末尾に
+                // 選択を解除して書式をリセット
                 setTimeout(() => {
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
@@ -2491,27 +2493,24 @@
                         selection.removeAllRanges();
                         selection.addRange(range);
                     }
+                    // 書式状態を明示的にオフ
+                    currentFormat[format] = false;
+                    notifyFormatStates();
                     element.scrollTop = scrollTop;
                 }, 10);
-
-                // 選択適用後もボタンの状態は維持（変更しない）
-                currentFormat[format] = isActive;
-                notifyFormatStates();
             } else {
-                // 選択されていない場合 - ボタンの状態を切り替え
+                // 選択されていない場合
                 currentFormat[format] = isActive;
 
                 const range = selection.getRangeAt(0);
-                const tagName = format === 'bold' ? 'b' : format === 'italic' ? 'i' : 'u';
-
-                // 現在のカーソル位置のフォーマット状態を確認
+                const tagName = format === 'bold' ? 'B' : format === 'italic' ? 'I' : 'U';
                 const node = range.startContainer;
                 const parentElement = node.nodeType === 3 ? node.parentElement : node;
-                const hasFormat = hasParentTag(parentElement, tagName.toUpperCase());
+                const hasFormat = hasParentTag(parentElement, tagName);
 
                 if (isActive && !hasFormat) {
                     // フォーマットを適用
-                    const formatNode = document.createElement(tagName);
+                    const formatNode = document.createElement(tagName.toLowerCase());
                     const dummyNode = document.createTextNode('\u200B');
                     formatNode.appendChild(dummyNode);
                     range.insertNode(formatNode);
@@ -2520,13 +2519,13 @@
                     // フォーマットを解除 - フォーマット範囲の外に移動
                     let formatElement = parentElement;
                     while (formatElement && formatElement !== element) {
-                        if (formatElement.nodeName === tagName.toUpperCase()) {
+                        if (formatElement.nodeName === tagName) {
                             break;
                         }
                         formatElement = formatElement.parentElement;
                     }
 
-                    if (formatElement && formatElement.nodeName === tagName.toUpperCase()) {
+                    if (formatElement && formatElement.nodeName === tagName) {
                         const dummyNode = document.createTextNode('\u200B');
                         if (formatElement.nextSibling) {
                             formatElement.parentNode.insertBefore(dummyNode, formatElement.nextSibling);
@@ -2550,43 +2549,6 @@
                 element.scrollTop = scrollTop;
             }
         };
-
-        function applyInlineFormat(range, format, isActive) {
-            const tagName = format === 'bold' ? 'B' : format === 'italic' ? 'I' : 'U';
-
-            if (isActive) {
-                // フォーマットを適用
-                const wrapper = document.createElement(tagName.toLowerCase());
-                try {
-                    range.surroundContents(wrapper);
-                } catch (e) {
-                    // 複雑な選択の場合
-                    const fragment = range.extractContents();
-                    wrapper.appendChild(fragment);
-                    range.insertNode(wrapper);
-                }
-            } else {
-                // フォーマットを解除
-                const content = range.extractContents();
-                const tempDiv = document.createElement('div');
-                tempDiv.appendChild(content);
-
-                // 指定されたタグを削除
-                const tags = tempDiv.querySelectorAll(tagName.toLowerCase());
-                tags.forEach(tag => {
-                    const parent = tag.parentNode;
-                    while (tag.firstChild) {
-                        parent.insertBefore(tag.firstChild, tag);
-                    }
-                    parent.removeChild(tag);
-                });
-
-                // 内容を戻す
-                while (tempDiv.firstChild) {
-                    range.insertNode(tempDiv.lastChild);
-                }
-            }
-        }
 
         // カラー適用関数
         window.applyColor = function(elementId, color) {
@@ -2759,9 +2721,8 @@
             const selection = window.getSelection();
 
             if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-
                 if (selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
                     const currentNode = range.startContainer;
                     let blockElement = currentNode.nodeType === 3 ? currentNode.parentElement : currentNode;
 
@@ -2792,12 +2753,9 @@
                     }
                     element.scrollTop = scrollTop;
                 } else {
-                    const fragment = range.extractContents();
-                    const newElement = document.createElement(format);
-                    newElement.appendChild(fragment);
-                    newElement.style.lineHeight = '';
-                    range.insertNode(newElement);
+                    document.execCommand('formatBlock', false, format);
 
+                    // 選択を解除
                     setTimeout(() => {
                         if (selection.rangeCount > 0) {
                             const range = selection.getRangeAt(0);
