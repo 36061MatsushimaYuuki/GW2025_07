@@ -56,35 +56,30 @@
 
 <style>
     .top-row {
-        transition: height 0.3s ease, min-height 0.3s ease;
+        transition: margin-top 0.3s ease;
         background-color: #f7f7f7;
         border-bottom: 1px solid #d6d5d5;
         justify-content: flex-start;
         height: 3.5rem;
+        margin-top: 0;
         display: flex;
         align-items: center;
         position: relative;
     }
 
         .top-row.collapsed {
-            height: 0;
-            min-height: 0;
+            margin-top: -3.5rem;
             overflow: visible;
             border-bottom: none;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
         }
 
-            .top-row.collapsed img {
-                display: none;
-            }
-
         .top-row img {
             height: 45px;
             margin-right: auto;
             display: block;
             object-fit: contain;
-            transition: opacity 0.2s ease;
         }
 
     .toggle-btn {
@@ -111,7 +106,7 @@
     }
 
     .top-row.collapsed .toggle-btn {
-        top: 0;
+        top: 3.5rem;
         border-bottom: 1px solid #d6d5d5;
         border-top: none;
         border-radius: 0 0 6px 6px;
