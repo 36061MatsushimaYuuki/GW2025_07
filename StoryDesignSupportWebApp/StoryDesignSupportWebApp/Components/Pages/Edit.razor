@@ -320,7 +320,7 @@
         width: 1px;
         height: 20px;
         background-color: #ccc;
-        margin: 0 5px;
+        margin: 0 3px;
     }
 
     .color-picker-container {
@@ -719,7 +719,15 @@
         .editor-toolbar {
             padding: 8px;
             gap: 3px;
+            overflow: hidden;
+            width: calc(200vw - 110px);
+            margin-left: 0px;
+            transition: margin-left 0.3s ease;
         }
+
+            .editor-toolbar.moved {
+                margin-left: -390px;
+            }
 
         .content-editable {
             min-height: 300px;
@@ -1061,7 +1069,7 @@
                     </div>
                 </div>
                 <div id="char-counter">0文字</div>
-                } else {
+            } else {
                 <div class="editor-content">
                     @if (_showCategoryView) {
                         <div class="empty-message" style="margin-top: 50px;">
@@ -1099,14 +1107,14 @@
                                             ? $"Chapter {_selectedChapter + 1}"
                                             : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
                                             )
-                        </div>
                     </div>
+                </div>
 
                     <div style="padding: 10px; border-bottom: 1px solid #ddd;">
                         <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
                     </div>
 
-                    <div class="editor-toolbar">
+                    <div class="editor-toolbar @(isToolbarExpanded ? "moved" : "")">
                         <button class="toolbar-btn" @onclick="Undo">←</button>
                         <button class="toolbar-btn" @onclick="Redo">→</button>
                         <div class="toolbar-separator"></div>
@@ -1118,6 +1126,10 @@
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
+                        <div class="toolbar-separator"></div>
+                        <button type="button" class="toolbar-btn" @onclick="() => isToolbarExpanded = !isToolbarExpanded" title="@(isToolbarExpanded ? "ツールバーを戻す" : "ツールバーを展開")">
+                            <span>@(isToolbarExpanded ? "≪" : "≫")</span>
+                        </button>
                         <div class="toolbar-separator"></div>
                         <div class="color-picker-container">
                             <button class="color-indicator-btn" @onclick="ToggleColorPicker">
@@ -1168,7 +1180,7 @@
                     </div>
                     <div id="char-counter-mobile">0文字</div>
                 </div>
-        }
+            }
         } else {
             <div class="mobile-list">
                 <div class="mobile-header">
@@ -1245,6 +1257,7 @@
     private System.Threading.Timer? _autoSaveTimer;
     private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
     private bool _isRubyButtonDisabled = false;
+    private bool isToolbarExpanded = false;
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -3675,14 +3688,14 @@
 
             document.addEventListener('input', function(e) {
                 const target = e.target;
-                
+
                 // content-editableまたはcontent-editable-mobile内の入力か確認
                 if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                     return;
                 }
 
                 const elementId = target.id;
-                
+
                 // 初期状態を保存（初回のみ）
                 if (!lastSavedContent[elementId]) {
                     lastSavedContent[elementId] = target.innerHTML;
@@ -3696,7 +3709,7 @@
                 // 1秒間入力がなければUndoスタックに保存
                 inputTimeout = setTimeout(function() {
                     const currentContent = target.innerHTML;
-                    
+
                     // 内容が変わっている場合のみ保存
                     if (lastSavedContent[elementId] !== currentContent) {
                         // 現在の状態を保存する前に、前の状態をUndoスタックに追加
@@ -3710,7 +3723,7 @@
                             undoStack.shift();
                         }
                         redoStack = []; // 新しい入力でredoスタックをクリア
-                        
+
                         lastSavedContent[elementId] = currentContent;
                     }
                 }, 1000); // 1秒のディレイ
@@ -3719,14 +3732,14 @@
             // キーボードショートカット (Ctrl+Z, Ctrl+Y)
             document.addEventListener('keydown', function(e) {
                 const target = e.target;
-                
+
                 // content-editableまたはcontent-editable-mobile内の入力か確認
                 if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                     return;
                 }
 
                 const elementId = target.id;
-                
+
                 if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                     e.preventDefault();
                     window.undoEditor(elementId);
