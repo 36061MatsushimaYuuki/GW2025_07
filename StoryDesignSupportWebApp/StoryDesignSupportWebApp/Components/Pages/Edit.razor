@@ -157,18 +157,25 @@
 
     .chapter-title {
         flex: 1;
+        font-size: 18px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .toggle-icon {
-        margin-right: 10px;
+        margin-left: -2px;
+        margin-right: 12px;
         font-size: 12px;
         display: inline-block;
         width: 12px;
         text-align: center;
+        transition: transform 0.3s ease;
     }
+
+        .toggle-icon.expanded {
+            transform: rotate(90deg);
+        }
 
     .add-section-btn {
         background: none;
@@ -185,7 +192,14 @@
 
     .sections-list {
         background-color: #fafafa;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
     }
+
+        .sections-list.expanded {
+            max-height: 2000px;
+        }
 
     .section-item {
         padding: 10px 20px 10px 40px;
@@ -762,7 +776,7 @@
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         pointer-events: none;
-        z-index: 1000;
+        z-index: 999;
     }
 
     #char-counter-mobile {
@@ -776,7 +790,7 @@
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         pointer-events: none;
-        z-index: 1000;
+        z-index: 999;
     }
 
     .hidden {
@@ -927,9 +941,8 @@
                             var chapter = _project.ProjectDataObject.Scenario.chapters[i];
                             <div class="chapter-item" @key="@($"chapter-{chapterIndex}")">
                                 <div class="chapter-header">
-                                    <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)"
-                                          style="@(_expandedChapters.Contains(chapterIndex) ? "font-size: 15px; margin-left: -2px; margin-right: 12px;" : "font-size: 12px; margin-left: 0; margin-right: 10px;")">
-                                        @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
+                                    <span class="toggle-icon @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")" @onclick="() => ToggleChapter(chapterIndex)">
+                                        ▶
                                     </span>
                                     <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                         @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
@@ -937,26 +950,24 @@
                                     <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
                                     <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
                                 </div>
-                                @if (_expandedChapters.Contains(chapterIndex)) {
-                                    <div class="sections-list">
-                                        @if (chapter.Sections == null || chapter.Sections.Length == 0) {
-                                            <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
-                                        } else {
-                                            @for (int j = 0; j < chapter.Sections.Length; j++) {
-                                                var sectionIndex = j;
-                                                var section = chapter.Sections[j];
-                                                <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
-                                                     @key="@($"section-{chapterIndex}-{sectionIndex}")"
-                                                     style="display: flex; justify-content: space-between; align-items: center;">
-                                                    <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
-                                                        @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
-                                                    </span>
-                                                    <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
-                                                </div>
-                                            }
+                                <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
+                                    @if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                                        <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
+                                    } else {
+                                        @for (int j = 0; j < chapter.Sections.Length; j++) {
+                                            var sectionIndex = j;
+                                            var section = chapter.Sections[j];
+                                            <div class="section-item @(_selectedChapter == chapterIndex && _selectedSection == sectionIndex ? "active" : "")"
+                                                 @key="@($"section-{chapterIndex}-{sectionIndex}")"
+                                                 style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
+                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                </span>
+                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                            </div>
                                         }
-                                    </div>
-                                }
+                                    }
+                                </div>
                             </div>
                         }
                     }
@@ -1195,9 +1206,8 @@
                         var chapter = _project.ProjectDataObject.Scenario.chapters[i];
                         <div class="chapter-item" @key="@($"mobile-chapter-{chapterIndex}")">
                             <div class="chapter-header">
-                                <span class="toggle-icon" @onclick="() => ToggleChapter(chapterIndex)"
-                                      style="@(_expandedChapters.Contains(chapterIndex) ? "font-size: 15px; margin-left: -2px; margin-right: 12px;" : "font-size: 12px; margin-left: 0; margin-right: 10px;")">
-                                    @(_expandedChapters.Contains(chapterIndex) ? "▼" : "▶")
+                                <span class="toggle-icon @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")" @onclick="() => ToggleChapter(chapterIndex)">
+                                    ▶
                                 </span>
                                 <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                     @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
@@ -1205,26 +1215,24 @@
                                 <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
                                 <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
                             </div>
-                            @if (_expandedChapters.Contains(chapterIndex)) {
-                                <div class="sections-list">
-                                    @if (chapter.Sections == null || chapter.Sections.Length == 0) {
-                                        <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
-                                    } else {
-                                        @for (int j = 0; j < chapter.Sections.Length; j++) {
-                                            var sectionIndex = j;
-                                            var section = chapter.Sections[j];
-                                            <div class="section-item"
-                                                 @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
-                                                 style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
-                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
-                                                </span>
-                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
-                                            </div>
-                                        }
+                            <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
+                                @if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                                    <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
+                                } else {
+                                    @for (int j = 0; j < chapter.Sections.Length; j++) {
+                                        var sectionIndex = j;
+                                        var section = chapter.Sections[j];
+                                        <div class="section-item"
+                                             @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
+                                             style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="flex: 1; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                                @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                            </span>
+                                            <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                        </div>
                                     }
-                                </div>
-                            }
+                                }
+                            </div>
                         </div>
                     }
                 }
