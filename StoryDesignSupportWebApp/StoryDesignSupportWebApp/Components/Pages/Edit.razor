@@ -1048,12 +1048,12 @@
             </div>
 
                 <div class="editor-toolbar">
-                    <button class="toolbar-btn" @onclick="Undo" title="Undo">←</button>
-                    <button class="toolbar-btn" @onclick="Redo" title="Redo">→</button>
+                    <button class="toolbar-btn" @onclick="Undo" title="Undo" disabled="@(!_canUndo)">←</button>
+                    <button class="toolbar-btn" @onclick="Redo" title="Redo" disabled="@(!_canRedo)">→</button>
                     <div class="toolbar-separator"></div>
-                    <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' title="太字"><b>B</b></button>
-                    <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体"><i>I</i></button>
-                    <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' title="下線"><u>U</u></button>
+                    <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' title="太字" disabled="@_isFormatButtonDisabled"><b>B</b></button>
+                    <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体" disabled="@_isFormatButtonDisabled"><i>I</i></button>
+                    <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' title="下線" disabled="@_isFormatButtonDisabled"><u>U</u></button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                     <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
@@ -1154,12 +1154,12 @@
                     </div>
 
                     <div class="editor-toolbar @(isToolbarExpanded ? "moved" : "")">
-                        <button class="toolbar-btn" @onclick="Undo">←</button>
-                        <button class="toolbar-btn" @onclick="Redo">→</button>
+                        <button class="toolbar-btn" @onclick="Undo" disabled="@(!_canUndo)">←</button>
+                        <button class="toolbar-btn" @onclick="Redo" disabled="@(!_canRedo)">→</button>
                         <div class="toolbar-separator"></div>
-                        <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")'><b>B</b></button>
-                        <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")'><i>I</i></button>
-                        <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")'><u>U</u></button>
+                        <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' disabled="@_isFormatButtonDisabled"><b>B</b></button>
+                        <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' disabled="@_isFormatButtonDisabled"><i>I</i></button>
+                        <button class="toolbar-btn @(_formatStates["underline"] ? "active" : "")" @onclick='() => ToggleFormat("underline")' disabled="@_isFormatButtonDisabled"><u>U</u></button>
                         <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("p")'>本文</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h1")'>H1</button>
@@ -1299,6 +1299,9 @@
     private System.Threading.Timer? _autoSaveTimer;
     private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
     private bool _isRubyButtonDisabled = false;
+    private bool _canUndo = false;
+    private bool _canRedo = false;
+    private bool _isFormatButtonDisabled = false;
     private bool isToolbarExpanded = false;
 
     protected override async Task OnInitializedAsync() {
@@ -1353,6 +1356,7 @@
             try {
                 await JSRuntime.InvokeVoidAsync("initializeEditorEventListeners", _instanceId);
                 await JSRuntime.InvokeVoidAsync("setupInputUndoTracking");
+                await JSRuntime.InvokeVoidAsync("setBlazorInstance", DotNetObjectReference.Create(this));
 
                 // SessionStorageから遷移元を確認
                 if (!_hasCheckedSessionStorage) {
@@ -1542,6 +1546,9 @@
         _selectedSection = sectionIndex;
         ResetFormatStates();
 
+        // Undo/Redoスタックを初期化
+        await JSRuntime.InvokeVoidAsync("resetUndoRedoStack");
+
         // 強制的に再レンダリング
         _lastRenderedChapter = -1;
         _lastRenderedSection = -1;
@@ -1559,6 +1566,9 @@
         _selectedSection = sectionIndex;
         _mobileShowEditor = true;
         ResetFormatStates();
+
+        // Undo/Redoスタックを初期化
+        await JSRuntime.InvokeVoidAsync("resetUndoRedoStack");
 
         // 強制的に再レンダリング
         _lastRenderedChapter = -1;
@@ -2266,6 +2276,19 @@
             Console.WriteLine($"OnWindowResize error: {ex.Message}");
         }
     }
+
+    [JSInvokable]
+    public void UpdateUndoRedoState(bool canUndo, bool canRedo) {
+        _canUndo = canUndo;
+        _canRedo = canRedo;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void UpdateFormatButtonState(bool isDisabled) {
+        _isFormatButtonDisabled = isDisabled;
+        StateHasChanged();
+    }
 }
 
 <script>
@@ -2393,22 +2416,55 @@
         let inputTimeout = null;
         let lastSavedContent = {};
 
+        window.setBlazorInstance = function(instance) {
+            window.blazorInstance = instance;
+        };
+
+        function notifyUndoRedoStates() {
+            const canUndo = undoStack.length > 0;
+            const canRedo = redoStack.length > 0;
+
+            if (window.blazorInstance) {
+                window.blazorInstance.invokeMethodAsync('UpdateUndoRedoState', canUndo, canRedo);
+            }
+        }
+
+        window.resetUndoRedoStack = function() {
+            undoStack = [];
+            redoStack = [];
+            lastSavedContent = {};
+    
+            // Undo/Redo状態を通知
+            notifyUndoRedoStates();
+        };
+
         function saveUndoState(elementId) {
             const element = document.getElementById(elementId);
             if (!element) return;
 
-            const state = {
-                html: element.innerHTML,
-                selection: saveSelectionState(element)
-            };
+            const currentContent = element.innerHTML;
 
-            undoStack.push(state);
-            if (undoStack.length > MAX_UNDO_STACK) {
-                undoStack.shift();
+            // lastSavedContentが未定義の場合は初期化
+            if (lastSavedContent[elementId] === undefined) {
+                lastSavedContent[elementId] = currentContent;
+                return;
             }
-            redoStack = []; // 新しい操作でredoスタックをクリア
 
-            lastSavedContent[elementId] = element.innerHTML;
+            // 内容が変わっている場合のみ保存
+            if (lastSavedContent[elementId] !== currentContent) {
+                const state = {
+                    html: lastSavedContent[elementId],
+                    selection: saveSelectionState(element)
+                };
+                undoStack.push(state);
+                if (undoStack.length > MAX_UNDO_STACK) {
+                    undoStack.shift();
+                }
+                redoStack = []; // 新しい操作でredoスタックをクリア
+
+                lastSavedContent[elementId] = currentContent;
+                notifyUndoRedoStates();
+            }
         }
 
         function saveSelectionState(element) {
@@ -2480,22 +2536,30 @@
             const element = document.getElementById(elementId);
             if (!element || undoStack.length === 0) return;
 
+            // undoスタックから状態を取得
+            const state = undoStack.pop();
+
             // 現在の状態をredoスタックに保存
-            const currentState = {
+            redoStack.push({
                 html: element.innerHTML,
                 selection: saveSelectionState(element)
-            };
-            redoStack.push(currentState);
+            });
 
-            // undoスタックから状態を復元
-            const state = undoStack.pop();
+            // 状態を復元
             element.innerHTML = state.html;
 
+            // カーソル位置を復元
             if (state.selection) {
                 restoreSelectionState(element, state.selection);
             }
 
+            // 最後に保存した内容を更新
+            lastSavedContent[elementId] = state.html;
+
             element.focus();
+
+            // Undo/Redo状態を通知
+            notifyUndoRedoStates();
         };
 
         window.redoEditor = function(elementId) {
@@ -2503,21 +2567,30 @@
             if (!element || redoStack.length === 0) return;
 
             // 現在の状態をundoスタックに保存
-            const currentState = {
-                html: element.innerHTML,
-                selection: saveSelectionState(element)
-            };
-            undoStack.push(currentState);
+            const currentHtml = element.innerHTML;
+            const currentSelection = saveSelectionState(element);
+
+            undoStack.push({
+                html: currentHtml,
+                selection: currentSelection
+            });
 
             // redoスタックから状態を復元
             const state = redoStack.pop();
             element.innerHTML = state.html;
 
+            // カーソル位置を復元
             if (state.selection) {
                 restoreSelectionState(element, state.selection);
             }
 
+            // 最後に保存した内容を更新
+            lastSavedContent[elementId] = state.html;
+
             element.focus();
+
+            // Undo/Redo状態を通知
+            notifyUndoRedoStates();
         };
 
         // ルビと非ルビが混在する選択範囲かチェック
@@ -2695,6 +2768,13 @@
                             window.dispatchEvent(new CustomEvent('rubyButtonStateChanged', {
                                 detail: { disabled: isMixed }
                             }));
+
+                            // フォーマットボタンの状態をチェック（ルビが選択されているか）
+                            const rubySelection = window.checkRubySelection(activeElement.id);
+                            const hasRubySelected = rubySelection !== null || isMixed;
+                            if (window.blazorInstance) {
+                                window.blazorInstance.invokeMethodAsync('UpdateFormatButtonState', hasRubySelected);
+                            }
                         } catch (e) {
                             console.warn('Selection check failed:', e);
                         }
@@ -3840,11 +3920,11 @@
 
         // テキスト入力時のUndoスタック管理
         window.setupInputUndoTracking = function() {
-            // イベントリスナーが既に設定されている場合は何もしない
-            if (window.inputUndoTrackingInitialized) return;
-            window.inputUndoTrackingInitialized = true;
+            let inputTimeout = null;
+            let lastInputTime = 0;
 
-            document.addEventListener('input', function(e) {
+            // beforeinput: 入力前の状態を保存
+            document.addEventListener('beforeinput', function(e) {
                 const target = e.target;
 
                 // content-editableまたはcontent-editable-mobile内の入力か確認
@@ -3855,7 +3935,25 @@
                 const elementId = target.id;
 
                 // 初期状態を保存（初回のみ）
-                if (!lastSavedContent[elementId]) {
+                if (lastSavedContent[elementId] === undefined) {
+                    lastSavedContent[elementId] = target.innerHTML;
+                }
+            }, true);
+
+            // inputイベントでの自動保存
+            document.addEventListener('input', function(e) {
+                const target = e.target;
+
+                // content-editableまたはcontent-editable-mobile内の入力か確認
+                if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
+                    return;
+                }
+
+                const elementId = target.id;
+                const currentTime = Date.now();
+
+                // 初期状態を保存（初回のみ）
+                if (lastSavedContent[elementId] === undefined) {
                     lastSavedContent[elementId] = target.innerHTML;
                 }
 
@@ -3864,15 +3962,16 @@
                     clearTimeout(inputTimeout);
                 }
 
-                // 1秒間入力がなければUndoスタックに保存
+                // 500ms間入力がなければUndoスタックに保存
                 inputTimeout = setTimeout(function() {
                     const currentContent = target.innerHTML;
+                    const previousContent = lastSavedContent[elementId];
 
                     // 内容が変わっている場合のみ保存
-                    if (lastSavedContent[elementId] !== currentContent) {
-                        // 現在の状態を保存する前に、前の状態をUndoスタックに追加
+                    if (previousContent !== undefined && previousContent !== currentContent) {
+                        // 前の状態をundoスタックに保存
                         const state = {
-                            html: lastSavedContent[elementId],
+                            html: previousContent,
                             selection: saveSelectionState(target)
                         };
 
@@ -3883,8 +3982,13 @@
                         redoStack = []; // 新しい入力でredoスタックをクリア
 
                         lastSavedContent[elementId] = currentContent;
+                        notifyUndoRedoStates();
+
+                        console.log('Undo state saved:', undoStack.length);
                     }
-                }, 1000); // 1秒のディレイ
+                }, 500); // 500msのディレイ（1秒から短縮）
+
+                lastInputTime = currentTime;
             }, true); // キャプチャフェーズで実行
 
             // キーボードショートカット (Ctrl+Z, Ctrl+Y)
@@ -3900,6 +4004,28 @@
 
                 if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                     e.preventDefault();
+
+                    // タイマーがある場合は即座に保存してからUndo
+                    if (inputTimeout) {
+                        clearTimeout(inputTimeout);
+                        inputTimeout = null;
+
+                        const currentContent = target.innerHTML;
+                        const previousContent = lastSavedContent[elementId];
+
+                        if (previousContent !== undefined && previousContent !== currentContent) {
+                            undoStack.push({
+                                html: previousContent,
+                                selection: saveSelectionState(target)
+                            });
+                            lastSavedContent[elementId] = currentContent;
+                            redoStack = [];
+                            notifyUndoRedoStates();
+
+                            console.log('Undo state saved on Ctrl+Z:', undoStack.length);
+                        }
+                    }
+
                     window.undoEditor(elementId);
                 } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
                     e.preventDefault();
