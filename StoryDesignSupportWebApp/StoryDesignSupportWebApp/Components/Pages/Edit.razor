@@ -41,13 +41,14 @@
     /* サイドバー（PC用） */
     .sidebar {
         width: 300px;
-        background-color: #f5f5f5;
-        border-right: 1px solid #ddd;
+        background-color: #fafbfc;
+        border-right: 1px solid #e1e4e8;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
         position: relative;
         transition: margin-left 0.3s ease;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
     }
 
         .sidebar.collapsed {
@@ -57,39 +58,43 @@
 
     .sidebar-header {
         padding: 15px;
-        border-bottom: 1px solid #ddd;
-        background-color: #fff;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #0066cc;
         cursor: pointer;
-        color: #0066cc;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s ease;
     }
 
         .sidebar-header:hover {
-            background-color: #f0f0f0;
+            background-color: #0550ae;
         }
 
     /* サイドバー開閉ボタン */
     .sidebar-toggle {
         position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background-color: #0066cc;
+        bottom: 15px;
+        right: 15px;
+        background-color: #0969da;
         color: white;
         border: none;
-        border-radius: 4px;
-        width: 32px;
-        height: 32px;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 16px;
         z-index: 10;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        transition: background-color 0.2s;
+        box-shadow: 0 3px 10px rgba(9, 105, 218, 0.25);
+        transition: all 0.2s ease;
     }
 
         .sidebar-toggle:hover {
-            background-color: #0052a3;
+            background-color: #0550ae;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(9, 105, 218, 0.35);
         }
 
     .sidebar-open-btn {
@@ -97,24 +102,26 @@
         left: 0;
         top: 50%;
         transform: translateY(-50%);
-        background-color: #0066cc;
+        background-color: #0969da;
         color: white;
         border: none;
-        border-radius: 0 4px 4px 0;
-        width: 32px;
-        height: 48px;
+        border-radius: 0 8px 8px 0;
+        width: 36px;
+        height: 56px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         z-index: 10;
-        box-shadow: 2px 0 4px rgba(0,0,0,0.2);
-        transition: background-color 0.2s;
+        box-shadow: 3px 0 10px rgba(9, 105, 218, 0.25);
+        transition: all 0.2s ease;
     }
 
         .sidebar-open-btn:hover {
-            background-color: #0052a3;
+            background-color: #0550ae;
+            transform: translateY(-50%);
+            box-shadow: 3px 0 15px rgba(9, 105, 218, 0.35);
         }
 
     .category-view, .chapter-view {
@@ -123,44 +130,55 @@
     }
 
     .category-item {
-        padding: 15px 20px;
-        border-bottom: 1px solid #e0e0e0;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        border-left: 3px solid transparent;
     }
 
         .category-item:hover {
-            background-color: #e8e8e8;
+            background-color: #f6f8fa;
+            border-left-color: #0969da;
         }
 
         .category-item.active {
-            background-color: #0066cc;
-            color: white;
+            background-color: #ddf4ff;
+            color: #0969da;
+            border-left-color: #0969da;
+            font-weight: 600;
         }
 
     .chapter-item {
+        border-left: 1px solid #e1e4e8;
         border-bottom: 1px solid #e0e0e0;
     }
 
     .chapter-header {
-        padding: 12px 20px;
+        padding: 14px 20px 14px 15px;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #fff;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
     }
 
         .chapter-header:hover {
-            background-color: #f0f0f0;
+            background-color: #f6f8fa;
+            border-left-color: #0969da;
         }
 
     .chapter-title {
         flex: 1;
         font-size: 18px;
+        font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        color: #24292f;
     }
 
     .toggle-icon {
@@ -191,7 +209,7 @@
         }
 
     .sections-list {
-        background-color: #fafafa;
+        background-color: #f6f8fa;
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.4s ease;
@@ -202,57 +220,69 @@
         }
 
     .section-item {
-        padding: 10px 20px 10px 40px;
+        padding: 12px 20px 12px 35.5px;
         cursor: pointer;
-        border-bottom: 1px solid #e8e8e8;
+        border-top: 1px solid #e1e4e8;
         position: relative;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        transition: all 0.2s ease;
+        font-size: 15px;
+        border-left: 3px solid transparent;
     }
 
         .section-item::before {
             content: "・";
             position: absolute;
-            left: 16px;
+            left: 11px;
+            color: #656d76;
         }
 
         .section-item:hover {
-            background-color: #e8e8e8;
+            background-color: #ffffff;
+            border-left: 3px solid #0969da;
         }
 
         .section-item.active {
-            background-color: #0066cc;
-            color: white;
+            background-color: #ddf4ff;
+            color: #0969da;
+            font-weight: 600;
+            border-left: 3px solid #0969da;
         }
 
         .section-item.dragging {
-            opacity: 0.5;
-            background-color: #e0e0e0;
+            opacity: 0.6;
+            background-color: #f6f8fa;
         }
 
         .section-item.drag-over-top {
-            border-top: 3px solid #0066cc;
-            background-color: #e8f4ff;
+            border-top: 3px solid #0969da;
+            background-color: #ddf4ff;
         }
 
         .section-item.drag-over-bottom {
-            border-bottom: 3px solid #0066cc;
-            background-color: #e8f4ff;
+            border-bottom: 3px solid #0969da;
+            background-color: #ddf4ff;
         }
 
     .add-chapter-btn {
-        padding: 10px 15px;
-        background-color: #0066cc;
+        padding: 12px 20px;
+        background-color: #0969da;
         border: none;
-        border-radius: 10px;
+        border-radius: 8px;
         cursor: pointer;
-        color: #fff;
+        color: #ffffff;
         text-align: left;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
     }
 
         .add-chapter-btn:hover {
-            background-color: #0052a3;
+            background-color: #0550ae;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
         }
 
     .empty-message {
@@ -741,6 +771,10 @@
         .mobile-view {
             display: block;
             width: 100%;
+        }
+
+        .chapter-item {
+            border-right: 1px solid #e1e4e8;
         }
 
         .editor-toolbar {
@@ -2438,7 +2472,7 @@
             notifyUndoRedoStates();
         };
 
-        function saveUndoState(elementId) {
+        function saveUndoState(elementId, force = false) {
             const element = document.getElementById(elementId);
             if (!element) return;
 
@@ -2447,13 +2481,13 @@
             // lastSavedContentが未定義の場合は初期化
             if (lastSavedContent[elementId] === undefined) {
                 lastSavedContent[elementId] = currentContent;
-                return;
+                if (!force) return;
             }
 
-            // 内容が変わっている場合のみ保存
-            if (lastSavedContent[elementId] !== currentContent) {
+            // 内容が変わっている場合、または強制保存の場合
+            if (force || lastSavedContent[elementId] !== currentContent) {
                 const state = {
-                    html: lastSavedContent[elementId],
+                    html: force ? currentContent : lastSavedContent[elementId],
                     selection: saveSelectionState(element)
                 };
                 undoStack.push(state);
@@ -4046,6 +4080,24 @@
             // BackspaceまたはDeleteキーの場合
             if (e.key === 'Backspace' || e.key === 'Delete') {
                 const selection = window.getSelection();
+
+                if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+                    // 選択範囲がある場合、削除前に現在の状態を保存
+                    const element = document.getElementById(target.id);
+                    if (element) {
+                        const state = {
+                            html: element.innerHTML,
+                            selection: saveSelectionState(element)
+                        };
+                        undoStack.push(state);
+                        if (undoStack.length > MAX_UNDO_STACK) {
+                            undoStack.shift();
+                        }
+                        redoStack = [];
+                        lastSavedContent[target.id] = element.innerHTML;
+                        notifyUndoRedoStates();
+                    }
+                }
                 if (selection.rangeCount === 0) return;
 
                 const range = selection.getRangeAt(0);
