@@ -267,14 +267,14 @@
         }
 
     .add-chapter-btn {
-        padding: 12px 20px;
+        margin: 15px;
+        padding: 10px;
         background-color: #0969da;
+        color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         cursor: pointer;
-        color: #ffffff;
-        text-align: left;
-        font-weight: 600;
+        font-weight: 500;
         transition: all 0.2s ease;
         box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
     }
@@ -326,10 +326,16 @@
         width: 100%;
         padding: 8px;
         font-size: 16px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border: none;
+        border-bottom: 2px solid #e1e4e8;
+        background: transparent;
+        outline: none;
         box-sizing: border-box;
     }
+
+        .section-title-input:focus {
+            border-bottom-color: #0969da;
+        }
 
     .editor-toolbar {
         padding: 10px;
@@ -352,8 +358,17 @@
         white-space: nowrap;
         min-width: 36px;
         width: max-content;
+        min-height: 36px;
         max-height: 36px;
     }
+
+        .toolbar-btn.undo {
+            line-height: calc(36px / 2 + 4px);
+        }
+
+        .toolbar-btn.redo {
+            line-height: calc(36px / 2 + 4px);
+        }
 
         .toolbar-btn.move {
             transform: rotate(90deg);
@@ -585,10 +600,18 @@
     }
 
     .mobile-list {
+        display: flex;
+        flex-direction: column;
+        position: relative;
         height: calc(100vh - 5.5rem);
         overflow-y: auto;
         background-color: #f5f5f5;
         transition: height 0.3s ease;
+    }
+
+    .mobile-chapter-view {
+        flex: 1;
+        overflow-y: auto;
     }
 
     .mobile-header {
@@ -647,6 +670,17 @@
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 
     .modal-content {
@@ -656,6 +690,19 @@
         min-width: 300px;
         max-width: 450px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideUp 0.3s ease;
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     .modal-header {
@@ -796,6 +843,14 @@
             margin-bottom: 7px;
         }
 
+            .toolbar-btn.undo {
+                line-height: calc(36px / 2 + 2px);
+            }
+
+            .toolbar-btn.redo {
+                line-height: calc(36px / 2 + 2px);
+            }
+
         .color-indicator-btn {
             margin-top: -6px;
         }
@@ -862,7 +917,7 @@
             <div class="modal-content" @onclick:stopPropagation="true">
                 <div class="modal-header">新しい章を追加</div>
                 <div class="modal-body">
-                    <input type="text" class="modal-input" @bind="_newChapterTitle" placeholder="章のタイトルを入力" maxlength="90" />
+                    <input type="text" class="modal-input" @bind="_newChapterTitle" placeholder="章のタイトルを入力" maxlength="90" @onkeydown="HandleAddChapterModalKeyDown" />
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-secondary" @onclick="CloseAddChapterModal">キャンセル</button>
@@ -878,7 +933,7 @@
             <div class="modal-content" @onclick:stopPropagation="true">
                 <div class="modal-header">新しい話を追加</div>
                 <div class="modal-body">
-                    <input type="text" class="modal-input" @bind="_newSectionTitle" placeholder="話のタイトルを入力" maxlength="90" />
+                    <input type="text" class="modal-input" @bind="_newSectionTitle" placeholder="話のタイトルを入力" maxlength="90" @onkeydown="HandleAddSectionModalKeyDown" />
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-secondary" @onclick="CloseAddSectionModal">キャンセル</button>
@@ -896,7 +951,7 @@
                 <div class="modal-body">
                     <div class="modal-section">
                         <label style="display: block; margin-bottom: 5px; font-weight: bold;">章のタイトル</label>
-                        <input type="text" class="modal-input" @bind="_editingChapterTitle" maxlength="90" />
+                        <input type="text" class="modal-input" @bind="_editingChapterTitle" maxlength="90" @onkeydown="HandleChapterSettingsKeyDown" />
                     </div>
                     <div class="modal-section">
                         <button class="modal-btn modal-btn-danger" style="width: 100%;" @onclick="ShowDeleteChapterConfirm">章を削除</button>
@@ -959,7 +1014,7 @@
                     </div>
                     <div class="modal-section">
                         <label style="display: block; margin-bottom: 5px; font-weight: bold;">ルビ</label>
-                        <input type="text" class="modal-input" @bind="_rubyText" placeholder="ふりがな" />
+                        <input type="text" class="modal-input" @bind="_rubyText" placeholder="ふりがな" @onkeydown="HandleRubyModalKeyDown" />
                     </div>
                     @if (_isEditingRuby) {
                         <div class="modal-section">
@@ -988,12 +1043,12 @@
                     &lt; カテゴリ選択に戻る
                 </div>
                 <div class="chapter-view">
-                    @if (_project.ProjectDataObject?.Scenario?.chapters == null || _project.ProjectDataObject.Scenario.chapters.Length == 0) {
+                    @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
                         <div class="empty-message">章がありません</div>
                     } else {
-                        @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
+                        @for (int i = 0; i < _project.ProjectDataObject.Scenario.Chapters.Length; i++) {
                             var chapterIndex = i;
-                            var chapter = _project.ProjectDataObject.Scenario.chapters[i];
+                            var chapter = _project.ProjectDataObject.Scenario.Chapters[i];
                             <div class="chapter-item" @key="@($"chapter-{chapterIndex}")">
                                 <div class="chapter-header">
                                     <span class="toggle-icon @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")" @onclick="() => ToggleChapter(chapterIndex)">
@@ -1022,7 +1077,7 @@
                                                  @ondragover:preventDefault="true"
                                                  @ondrop="() => HandleDrop(chapterIndex, sectionIndex)"
                                                  style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="flex: 1; cursor: move; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
+                                                <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </span>
                                                 <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
@@ -1061,29 +1116,29 @@
         <!-- 編集エリア -->
         <div class="editor-area">
             @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
-                    _project.ProjectDataObject?.Scenario?.chapters != null &&
-                    _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-                    _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-                    _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+                    _project.ProjectDataObject?.Scenario?.Chapters != null &&
+                    _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
+                    _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
+                    _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
-                var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+                var section = _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection];
 
                 <div class="editor-header">
                     <div class="editor-title">
                         @(
                                         string.IsNullOrEmpty(
-                                        _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                        _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                         )
                                         ? $"Chapter {_selectedChapter + 1}"
-                                        : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                        : _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                         )
                 </div>
                 <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
             </div>
 
                 <div class="editor-toolbar">
-                    <button class="toolbar-btn" @onclick="Undo" title="Undo" disabled="@(!_canUndo)">←</button>
-                    <button class="toolbar-btn" @onclick="Redo" title="Redo" disabled="@(!_canRedo)">→</button>
+                    <button class="toolbar-btn undo" @onclick="Undo" title="Undo" disabled="@(!_canUndo)">⬅</button>
+                    <button class="toolbar-btn redo" @onclick="Redo" title="Redo" disabled="@(!_canRedo)">⮕</button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' title="太字" disabled="@_isFormatButtonDisabled"><b>B</b></button>
                     <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' title="斜体" disabled="@_isFormatButtonDisabled"><i>I</i></button>
@@ -1162,12 +1217,12 @@
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
-                _project.ProjectDataObject?.Scenario?.chapters != null &&
-                _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-                _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+                _project.ProjectDataObject?.Scenario?.Chapters != null &&
+                _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
+                _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
+                _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
-                var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+                var section = _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection];
 
                 <div class="mobile-editor">
                     <div class="mobile-editor-header">
@@ -1175,10 +1230,10 @@
                         <div class="mobile-editor-title">
                             @(
                                             string.IsNullOrEmpty(
-                                            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                            _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                             )
                                             ? $"Chapter {_selectedChapter + 1}"
-                                            : _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Title
+                                            : _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                             )
                     </div>
                 </div>
@@ -1188,8 +1243,12 @@
                     </div>
 
                     <div class="editor-toolbar @(isToolbarExpanded ? "moved" : "")">
-                        <button class="toolbar-btn" @onclick="Undo" disabled="@(!_canUndo)">←</button>
-                        <button class="toolbar-btn" @onclick="Redo" disabled="@(!_canRedo)">→</button>
+                        <button type="button" class="toolbar-btn move" @onclick="() => isToolbarExpanded = !isToolbarExpanded" title="@(isToolbarExpanded ? "ツールバーを戻す" : "ツールバーを展開")">
+                            <span>@(isToolbarExpanded ? "≪" : "≫")</span>
+                        </button>
+                        <div class="toolbar-separator"></div>
+                        <button class="toolbar-btn undo" @onclick="Undo" disabled="@(!_canUndo)">⬅</button>
+                        <button class="toolbar-btn redo" @onclick="Redo" disabled="@(!_canRedo)">⮕</button>
                         <div class="toolbar-separator"></div>
                         <button class="toolbar-btn @(_formatStates["bold"] ? "active" : "")" @onclick='() => ToggleFormat("bold")' disabled="@_isFormatButtonDisabled"><b>B</b></button>
                         <button class="toolbar-btn @(_formatStates["italic"] ? "active" : "")" @onclick='() => ToggleFormat("italic")' disabled="@_isFormatButtonDisabled"><i>I</i></button>
@@ -1200,9 +1259,6 @@
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h2")'>H2</button>
                         <button class="toolbar-btn" @onclick='() => ApplyFormat("h3")'>H3</button>
                         <div class="toolbar-separator"></div>
-                        <button type="button" class="toolbar-btn move" @onclick="() => isToolbarExpanded = !isToolbarExpanded" title="@(isToolbarExpanded ? "ツールバーを戻す" : "ツールバーを展開")">
-                            <span>@(isToolbarExpanded ? "≪" : "≫")</span>
-                        </button>
                         <div class="color-picker-container">
                             <button class="color-indicator-btn" @onclick="ToggleColorPicker">
                                 <span class="color-box" style="background-color: @_currentTextColor;"></span>
@@ -1259,52 +1315,54 @@
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
                     <div class="mobile-editor-title">執筆</div>
                 </div>
-                @if (_project.ProjectDataObject?.Scenario?.chapters == null || _project.ProjectDataObject.Scenario.chapters.Length == 0) {
-                    <div class="empty-message">章がありません</div>
-                } else {
-                    @for (int i = 0; i < _project.ProjectDataObject.Scenario.chapters.Length; i++) {
-                        var chapterIndex = i;
-                        var chapter = _project.ProjectDataObject.Scenario.chapters[i];
-                        <div class="chapter-item" @key="@($"mobile-chapter-{chapterIndex}")">
-                            <div class="chapter-header">
-                                <span class="toggle-icon @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")" @onclick="() => ToggleChapter(chapterIndex)">
-                                    ▶
-                                </span>
-                                <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
-                                    @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
-                                </span>
-                                <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
-                                <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
-                            </div>
-                            <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
-                                @if (chapter.Sections == null || chapter.Sections.Length == 0) {
-                                    <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
-                                } else {
-                                    @for (int j = 0; j < chapter.Sections.Length; j++) {
-                                        var sectionIndex = j;
-                                        var section = chapter.Sections[j];
-                                        <div class="section-item @(GetDragClass(chapterIndex, sectionIndex))"
-                                             @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
-                                             draggable="true"
-                                             @ondragstart="() => HandleDragStart(chapterIndex, sectionIndex)"
-                                             @ondragend="HandleDragEnd"
-                                             @ondragover="(e) => HandleDragOver(e, chapterIndex, sectionIndex)"
-                                             @ondragleave="HandleDragLeave"
-                                             @ondragover:preventDefault="true"
-                                             @ondrop="() => HandleDrop(chapterIndex, sectionIndex)"
-                                             style="display: flex; justify-content: space-between; align-items: center;">
-                                            <span style="flex: 1; cursor: move; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
-                                                @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
-                                            </span>
-                                            <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
-                                        </div>
+                <div class="mobile-chapter-view">
+                    @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
+                        <div class="empty-message">章がありません</div>
+                    } else {
+                        @for (int i = 0; i < _project.ProjectDataObject.Scenario.Chapters.Length; i++) {
+                            var chapterIndex = i;
+                            var chapter = _project.ProjectDataObject.Scenario.Chapters[i];
+                            <div class="chapter-item" @key="@($"mobile-chapter-{chapterIndex}")">
+                                <div class="chapter-header">
+                                    <span class="toggle-icon @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")" @onclick="() => ToggleChapter(chapterIndex)">
+                                        ▶
+                                    </span>
+                                    <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
+                                        @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
+                                    </span>
+                                    <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
+                                    <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
+                                </div>
+                                <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
+                                    @if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                                        <div class="empty-message" style="padding: 10px 40px;">話がありません</div>
+                                    } else {
+                                        @for (int j = 0; j < chapter.Sections.Length; j++) {
+                                            var sectionIndex = j;
+                                            var section = chapter.Sections[j];
+                                            <div class="section-item @(GetDragClass(chapterIndex, sectionIndex))"
+                                                 @key="@($"mobile-section-{chapterIndex}-{sectionIndex}")"
+                                                 draggable="true"
+                                                 @ondragstart="() => HandleDragStart(chapterIndex, sectionIndex)"
+                                                 @ondragend="HandleDragEnd"
+                                                 @ondragover="(e) => HandleDragOver(e, chapterIndex, sectionIndex)"
+                                                 @ondragleave="HandleDragLeave"
+                                                 @ondragover:preventDefault="true"
+                                                 @ondrop="() => HandleDrop(chapterIndex, sectionIndex)"
+                                                 style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
+                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
+                                                </span>
+                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                            </div>
+                                        }
                                     }
-                                }
+                                </div>
                             </div>
-                        </div>
+                        }
                     }
-                }
-                <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
+                    <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
+                </div>
             </div>
         }
     </div>
@@ -1417,12 +1475,12 @@
 
         if (needsUpdate &&
             _selectedChapter >= 0 && _selectedSection >= 0 &&
-            _project?.ProjectDataObject?.Scenario?.chapters != null &&
-            _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-            _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-            _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+            _project?.ProjectDataObject?.Scenario?.Chapters != null &&
+            _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
+            _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
+            _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
-            var section = _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection];
+            var section = _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection];
 
             // 両方のエディタに内容を設定
             await JSRuntime.InvokeVoidAsync("setEditableContent", "content-editable", section.Text ?? "");
@@ -1430,6 +1488,8 @@
 
             var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
             await JSRuntime.InvokeVoidAsync("updateCharCounterForElement", elementId);
+
+            await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
 
             _lastRenderedChapter = _selectedChapter;
             _lastRenderedSection = _selectedSection;
@@ -1609,6 +1669,7 @@
         _lastRenderedSection = -1;
 
         StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
 
     // ドラッグ&ドロップ関連
@@ -1672,10 +1733,10 @@
             return;
         }
 
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (targetChapter < 0 || targetChapter >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+        if (_project?.ProjectDataObject?.Scenario?.Chapters == null) return;
+        if (targetChapter < 0 || targetChapter >= _project.ProjectDataObject.Scenario.Chapters.Length) return;
 
-        var chapter = _project.ProjectDataObject.Scenario.chapters[targetChapter];
+        var chapter = _project.ProjectDataObject.Scenario.Chapters[targetChapter];
         if (chapter.Sections == null) return;
 
         var sectionList = chapter.Sections.ToList();
@@ -1735,6 +1796,7 @@
         _lastRenderedChapter = -1;
         _lastRenderedSection = -1;
         StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
 
     private async Task ToggleFormat(string format) {
@@ -1842,17 +1904,17 @@
             }
 
             if (_selectedChapter >= 0 && _selectedSection >= 0 &&
-                _project?.ProjectDataObject?.Scenario?.chapters != null &&
-                _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-                _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+                _project?.ProjectDataObject?.Scenario?.Chapters != null &&
+                _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
+                _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
+                _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
                 // 内容が変わっていない場合はスキップ
-                if (_project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text == content) {
+                if (_project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection].Text == content) {
                     return;
                 }
 
-                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text = content;
+                _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection].Text = content;
                 _currentContentCache = content;
             }
         }
@@ -1860,14 +1922,14 @@
             Console.WriteLine("SaveContent timeout - content might be too large");
             // タイムアウトの場合は、キャッシュされた内容を使用
             if (_selectedChapter >= 0 && _selectedSection >= 0 &&
-                _project?.ProjectDataObject?.Scenario?.chapters != null &&
-                _selectedChapter < _project.ProjectDataObject.Scenario.chapters.Length &&
-                _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections != null &&
-                _selectedSection < _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections.Length) {
+                _project?.ProjectDataObject?.Scenario?.Chapters != null &&
+                _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
+                _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
+                _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
                 // 既にキャッシュがある場合はそれを使用
                 if (!string.IsNullOrEmpty(_currentContentCache)) {
-                    _project.ProjectDataObject.Scenario.chapters[_selectedChapter].Sections[_selectedSection].Text = _currentContentCache;
+                    _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection].Text = _currentContentCache;
                 }
             }
         }
@@ -1939,7 +2001,7 @@
 
     // 章追加モーダル
     private void ShowAddChapterModal() {
-        var chapterCount = _project?.ProjectDataObject?.Scenario?.chapters?.Length ?? 0;
+        var chapterCount = _project?.ProjectDataObject?.Scenario?.Chapters?.Length ?? 0;
         _newChapterTitle = $"第{chapterCount + 1}章";
         _showAddChapterModal = true;
     }
@@ -1949,6 +2011,14 @@
         _newChapterTitle = "";
     }
 
+    private async Task HandleAddChapterModalKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await ConfirmAddChapter();
+        } else if (e.Key == "Escape") {
+            CloseAddChapterModal();
+        }
+    }
+
     private async Task ConfirmAddChapter() {
         if (_project?.ProjectDataObject?.Scenario == null) return;
 
@@ -1956,12 +2026,12 @@
             Title = _newChapterTitle
         };
 
-        if (_project.ProjectDataObject.Scenario.chapters == null) {
-            _project.ProjectDataObject.Scenario.chapters = new[] { newChapter };
+        if (_project.ProjectDataObject.Scenario.Chapters == null) {
+            _project.ProjectDataObject.Scenario.Chapters = new[] { newChapter };
         } else {
-            var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
+            var chapterList = _project.ProjectDataObject.Scenario.Chapters.ToList();
             chapterList.Add(newChapter);
-            _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
+            _project.ProjectDataObject.Scenario.Chapters = chapterList.ToArray();
         }
 
         _project.UpdatedAt = DateTime.UtcNow;
@@ -1975,7 +2045,7 @@
     // 話追加モーダル
     private void ShowAddSectionModal(int chapterIndex) {
         _addingSectionToChapterIndex = chapterIndex;
-        var chapter = _project?.ProjectDataObject?.Scenario?.chapters?[chapterIndex];
+        var chapter = _project?.ProjectDataObject?.Scenario?.Chapters?[chapterIndex];
         var sectionCount = chapter?.Sections?.Length ?? 0;
         _newSectionTitle = $"第{sectionCount + 1}話";
         _showAddSectionModal = true;
@@ -1987,11 +2057,19 @@
         _addingSectionToChapterIndex = -1;
     }
 
-    private async Task ConfirmAddSection() {
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (_addingSectionToChapterIndex < 0 || _addingSectionToChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+    private async Task HandleAddSectionModalKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await ConfirmAddSection();
+        } else if (e.Key == "Escape") {
+            CloseAddSectionModal();
+        }
+    }
 
-        var chapter = _project.ProjectDataObject.Scenario.chapters[_addingSectionToChapterIndex];
+    private async Task ConfirmAddSection() {
+        if (_project?.ProjectDataObject?.Scenario?.Chapters == null) return;
+        if (_addingSectionToChapterIndex < 0 || _addingSectionToChapterIndex >= _project.ProjectDataObject.Scenario.Chapters.Length) return;
+
+        var chapter = _project.ProjectDataObject.Scenario.Chapters[_addingSectionToChapterIndex];
         var newSection = new Section {
             Title = _newSectionTitle,
             Text = ""
@@ -2016,7 +2094,7 @@
     // 章設定モーダル
     private void ShowChapterSettings(int chapterIndex) {
         _editingChapterIndex = chapterIndex;
-        var chapter = _project?.ProjectDataObject?.Scenario?.chapters?[chapterIndex];
+        var chapter = _project?.ProjectDataObject?.Scenario?.Chapters?[chapterIndex];
         _editingChapterTitle = chapter?.Title ?? "";
         _showChapterSettingsModal = true;
     }
@@ -2027,11 +2105,19 @@
         _editingChapterIndex = -1;
     }
 
-    private async Task SaveChapterSettings() {
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+    private async Task HandleChapterSettingsKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await SaveChapterSettings();
+        } else if (e.Key == "Escape") {
+            CloseChapterSettings();
+        }
+    }
 
-        _project.ProjectDataObject.Scenario.chapters[_editingChapterIndex].Title = _editingChapterTitle;
+    private async Task SaveChapterSettings() {
+        if (_project?.ProjectDataObject?.Scenario?.Chapters == null) return;
+        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.Chapters.Length) return;
+
+        _project.ProjectDataObject.Scenario.Chapters[_editingChapterIndex].Title = _editingChapterTitle;
 
         _project.UpdatedAt = DateTime.UtcNow;
         await using var db = DbFactory.CreateDbContext();
@@ -2051,12 +2137,12 @@
     }
 
     private async Task ConfirmDeleteChapter() {
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+        if (_project?.ProjectDataObject?.Scenario?.Chapters == null) return;
+        if (_editingChapterIndex < 0 || _editingChapterIndex >= _project.ProjectDataObject.Scenario.Chapters.Length) return;
 
-        var chapterList = _project.ProjectDataObject.Scenario.chapters.ToList();
+        var chapterList = _project.ProjectDataObject.Scenario.Chapters.ToList();
         chapterList.RemoveAt(_editingChapterIndex);
-        _project.ProjectDataObject.Scenario.chapters = chapterList.ToArray();
+        _project.ProjectDataObject.Scenario.Chapters = chapterList.ToArray();
 
         // 削除した章を選択していた場合はリセット
         if (_selectedChapter == _editingChapterIndex) {
@@ -2091,10 +2177,10 @@
     }
 
     private async Task ConfirmDeleteSection() {
-        if (_project?.ProjectDataObject?.Scenario?.chapters == null) return;
-        if (_deletingSectionChapterIndex < 0 || _deletingSectionChapterIndex >= _project.ProjectDataObject.Scenario.chapters.Length) return;
+        if (_project?.ProjectDataObject?.Scenario?.Chapters == null) return;
+        if (_deletingSectionChapterIndex < 0 || _deletingSectionChapterIndex >= _project.ProjectDataObject.Scenario.Chapters.Length) return;
 
-        var chapter = _project.ProjectDataObject.Scenario.chapters[_deletingSectionChapterIndex];
+        var chapter = _project.ProjectDataObject.Scenario.Chapters[_deletingSectionChapterIndex];
         if (chapter.Sections == null || _deletingSectionIndex < 0 || _deletingSectionIndex >= chapter.Sections.Length) return;
 
         var sectionList = chapter.Sections.ToList();
@@ -2245,6 +2331,14 @@
         _rubyBase = "";
         _isEditingRuby = false;
         _hasSelectedText = false;
+    }
+
+    private async Task HandleRubyModalKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await ConfirmAddRuby();
+        } else if (e.Key == "Escape") {
+            CloseRubyModal();
+        }
     }
 
     private async Task ConfirmAddRuby() {
@@ -2433,6 +2527,8 @@
             // 初回調整
             adjustContainerHeight();
 
+            window.adjustContainerHeight = adjustContainerHeight;
+
             // MutationObserverでヘッダーの変更を監視
             const observer = new MutationObserver(adjustContainerHeight);
             const topRow = document.querySelector('.top-row');
@@ -2467,7 +2563,7 @@
             undoStack = [];
             redoStack = [];
             lastSavedContent = {};
-    
+
             // Undo/Redo状態を通知
             notifyUndoRedoStates();
         };

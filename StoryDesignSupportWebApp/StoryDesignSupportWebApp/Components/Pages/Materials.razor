@@ -8,34 +8,120 @@
 @using Microsoft.EntityFrameworkCore
 @using StoryDesignSupportWebApp.Data
 @using StoryDesignSupportWebApp.Data.EditData
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject UserManager<ApplicationUser> UserManager
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
+@inject ProtectedSessionStorage SessionStorage
 
 <PageTitle>Materials</PageTitle>
 
 <style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        overflow: hidden;
+    }
+
+    .edit-container {
+        display: flex;
+        height: calc(100vh - 5.5rem);
+        overflow: hidden;
+        max-width: 100vw;
+        transition: height 0.3s ease;
+    }
+
+    /* サイドバー（PC用） */
     .sidebar {
         width: 300px;
-        background-color: #f5f5f5;
-        border-right: 1px solid #ddd;
+        background-color: #fafbfc;
+        border-right: 1px solid #e1e4e8;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        position: relative;
+        transition: margin-left 0.3s ease;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
     }
+
+        .sidebar.collapsed {
+            margin-left: -300px;
+            width: 300px;
+        }
 
     .sidebar-header {
         padding: 15px;
-        border-bottom: 1px solid #ddd;
-        background-color: #fff;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #0066cc;
         cursor: pointer;
-        color: #0066cc;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s ease;
     }
 
         .sidebar-header:hover {
-            background-color: #f0f0f0;
+            background-color: #0550ae;
+        }
+
+    /* サイドバー開閉ボタン */
+    .sidebar-toggle {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background-color: #0969da;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        z-index: 10;
+        box-shadow: 0 3px 10px rgba(9, 105, 218, 0.25);
+        transition: all 0.2s ease;
+    }
+
+        .sidebar-toggle:hover {
+            background-color: #0550ae;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(9, 105, 218, 0.35);
+        }
+
+    .sidebar-open-btn {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #0969da;
+        color: white;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        width: 36px;
+        height: 56px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        z-index: 10;
+        box-shadow: 3px 0 10px rgba(9, 105, 218, 0.25);
+        transition: all 0.2s ease;
+    }
+
+        .sidebar-open-btn:hover {
+            background-color: #0550ae;
+            transform: translateY(-50%);
+            box-shadow: 3px 0 15px rgba(9, 105, 218, 0.35);
         }
 
     .category-view, .material-view {
@@ -44,50 +130,838 @@
     }
 
     .category-item {
-        padding: 15px 20px;
-        border-bottom: 1px solid #e0e0e0;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        border-left: 3px solid transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
         .category-item:hover {
-            background-color: #e8e8e8;
+            background-color: #f6f8fa;
+            border-left-color: #0969da;
         }
 
         .category-item.active {
-            background-color: #0066cc;
-            color: white;
+            background-color: #ddf4ff;
+            color: #0969da;
+            border-left-color: #0969da;
+            font-weight: 600;
         }
+
+        .category-item.dragging {
+            opacity: 0.6;
+            background-color: #f6f8fa;
+        }
+
+        .category-item.drag-over-top {
+            border-top: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+        .category-item.drag-over-bottom {
+            border-bottom: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+    .category-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .category-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .category-count {
+        color: #656d76;
+        font-size: 13px;
+        font-weight: 400;
+        flex-shrink: 0;
+    }
+
+    .category-actions {
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .category-item:hover .category-actions {
+        opacity: 1;
+    }
+
+    .icon-btn {
+        background: none;
+        border: none;
+        color: #0066cc;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px;
+        transition: color 0.2s ease;
+    }
+
+        .icon-btn:hover {
+            color: #0052a3;
+        }
+
+        .icon-btn.delete {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #ff2222;
+            font-weight: bold;
+        }
+
+            .icon-btn.delete:hover {
+                color: #ff1111;
+            }
+
+    .add-category-btn {
+        margin: 15px;
+        padding: 10px;
+        background-color: #0969da;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
+    }
+
+        .add-category-btn:hover {
+            background-color: #0550ae;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+        }
+
+    .material-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .material-item:hover {
+            background-color: #f6f8fa;
+            border-left-color: #0969da;
+        }
+
+        .material-item.active {
+            background-color: #ddf4ff;
+            color: #0969da;
+            border-left-color: #0969da;
+            font-weight: 600;
+        }
+
+        .material-item.dragging {
+            opacity: 0.6;
+            background-color: #f6f8fa;
+        }
+
+        .material-item.drag-over-top {
+            border-top: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+        .material-item.drag-over-bottom {
+            border-bottom: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+    .material-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .material-actions {
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .material-item:hover .material-actions {
+        opacity: 1;
+    }
+
+    .add-material-btn {
+        margin: 15px;
+        padding: 10px;
+        background-color: #0969da;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
+    }
+
+        .add-material-btn:hover {
+            background-color: #0550ae;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
+        }
+
+    .material-list-panel {
+        width: 300px;
+        background-color: #fafbfc;
+        border-right: 1px solid #e1e4e8;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        position: relative;
+        transition: margin-left 0.3s ease;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .material-list-header {
+        padding: 15px;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #f6f8fa;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        color: #24292f;
+        font-size: 16px;
+    }
+
+    /* エディタエリア */
+    .editor-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff;
+        overflow: hidden;
+    }
+
+    .editor-header {
+        padding: 15px;
+    }
+
+    .editor-title-input {
+        width: 100%;
+        font-size: 18px;
+        font-weight: 600;
+        border: none;
+        border-bottom: 2px solid #e1e4e8;
+        margin: 0 12px;
+        background: transparent;
+        outline: none;
+        color: #24292f;
+    }
+
+        .editor-title-input:focus {
+            border-bottom-color: #0969da;
+        }
+
+        .editor-title-input::placeholder {
+            color: #8c959f;
+        }
+
+    .editor-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px 0 30px 30px;
+    }
+
+    .editor-textarea {
+        width: 100%;
+        min-height: 400px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .editor-textarea:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #8c959f;
+        font-size: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    /* モーダル */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.3s ease;
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #24292f;
+    }
+
+    .modal-body {
+        margin-bottom: 20px;
+    }
+
+    .modal-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .modal-input:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .modal-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .modal-btn-cancel {
+        background-color: #f6f8fa;
+        color: #24292f;
+    }
+
+        .modal-btn-cancel:hover {
+            background-color: #e1e4e8;
+        }
+
+    .modal-btn-primary {
+        background-color: #0969da;
+        color: white;
+    }
+
+        .modal-btn-primary:hover {
+            background-color: #0550ae;
+        }
+
+    /* モバイルビュー */
+    .mobile-view {
+        display: none;
+        height: calc(100vh - 5.5rem);
+        overflow: hidden;
+        transition: height 0.3s ease;
+    }
+
+    .mobile-list {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        height: calc(100vh - 5.5rem);
+        overflow-y: auto;
+        background-color: #f5f5f5;
+        transition: height 0.3s ease;
+    }
+
+    .mobile-header {
+        padding: 15px;
+        background-color: #0066cc;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .back-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .mobile-title {
+        flex: 1;
+        font-size: 18px;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-category-list {
+        flex: 1;
+        overflow-y: auto;
+        background-color: white;
+    }
+
+    .mobile-category-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .mobile-category-item:hover {
+            background-color: #f6f8fa;
+        }
+
+        .mobile-category-item.dragging {
+            opacity: 0.6;
+            background-color: #f6f8fa;
+        }
+
+        .mobile-category-item.drag-over-top {
+            border-top: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+        .mobile-category-item.drag-over-bottom {
+            border-bottom: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+    .mobile-material-list {
+        flex: 1;
+        overflow-y: auto;
+        background-color: white;
+    }
+
+    .mobile-material-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .mobile-material-item:hover {
+            background-color: #f6f8fa;
+        }
+
+        .mobile-material-item.dragging {
+            opacity: 0.6;
+            background-color: #f6f8fa;
+        }
+
+        .mobile-material-item.drag-over-top {
+            border-top: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+        .mobile-material-item.drag-over-bottom {
+            border-bottom: 3px solid #0969da;
+            background-color: #ddf4ff;
+        }
+
+    .mobile-editor {
+        height: calc(100vh - 5.5rem);
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        transition: height 0.3s ease;
+    }
+
+    .mobile-editor-header {
+        padding: 15px;
+        background-color: #0066cc;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mobile-editor-title {
+        flex: 1;
+        font-size: 18px;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-editor-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .mobile-title-input {
+        width: 100%;
+        font-size: 20px;
+        font-weight: 600;
+        border: none;
+        border-bottom: 2px solid #e1e4e8;
+        padding: 10px 0;
+        margin-bottom: 20px;
+        outline: none;
+    }
+
+        .mobile-title-input:focus {
+            border-bottom-color: #0969da;
+        }
+
+    .mobile-textarea {
+        width: 100%;
+        min-height: 300px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 14px;
+        line-height: 1.6;
+        resize: vertical;
+        outline: none;
+    }
+
+        .mobile-textarea:focus {
+            border-color: #0969da;
+        }
+
+    /* レスポンシブ */
+    @@media (max-width: 768px) {
+        .desktop-view {
+            display: none !important;
+        }
+
+        .mobile-view {
+            display: block;
+            width: 100%;
+        }
+
+        .sidebar-toggle,
+        .sidebar-open-btn {
+            display: none;
+        }
+
+        .sidebar.collapsed {
+            margin-left: 0;
+            width: 300px;
+        }
+    }
 </style>
 
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <div class="sidebar">
-        @if (_showCategoryView) {
-            <div class="sidebar-header" @onclick="BackToCategoryView">
-                &lt; カテゴリ選択に戻る
-            </div>
-            <div class="material-view">
+    <!-- デスクトップビュー -->
+    <div class="edit-container desktop-view">
+        <!-- サイドバー開くボタン -->
+        @if (_sidebarCollapsed) {
+            <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
+        }
 
+        <!-- 左サイドバー：カテゴリ一覧またはナビゲーション -->
+        <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
+            @if (_showCategoryView) {
+                <div class="sidebar-header" @onclick="BackToCategoryView">
+                    &lt; カテゴリ選択に戻る
+                </div>
+                <div class="category-view">
+                    @if (_project.ProjectDataObject?.Material?.Category != null && _project.ProjectDataObject.Material.Category.Length > 0) {
+                        @for (int i = 0; i < _project.ProjectDataObject.Material.Category.Length; i++) {
+                            var category = _project.ProjectDataObject.Material.Category[i];
+                            var index = i;
+                            <div class="category-item @(category == _selectedCategory ? "active" : "") @GetDragClass(index)"
+                                 draggable="true"
+                                 @ondragstart="() => HandleDragStart(index)"
+                                 @ondragover="(e) => HandleDragOver(e, index)"
+                                 @ondragover:preventDefault="true"
+                                 @ondragleave="HandleDragLeave"
+                                 @ondrop="() => HandleDrop(index)"
+                                 @ondragend="HandleDragEnd"
+                                 @onclick="() => SelectMaterialCategory(category)">
+                                <span class="category-title">
+                                    <span class="category-count">(@(category.Items?.Length ?? 0)件)</span>
+                                    <span class="category-name">@category.Title</span>
+                                </span>
+                                <div class="category-actions">
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✏️</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">ー</button>
+                                </div>
+                            </div>
+                        }
+                    } else {
+                        <div class="empty-state">
+                            <div>資料カテゴリがありません</div>
+                        </div>
+                    }
+                    <button class="add-category-btn" @onclick="ShowAddCategoryModal">+ カテゴリを追加</button>
+                </div>
+            } else {
+                <div class="sidebar-header" @onclick="BackToProjectList">
+                    &lt; 一覧に戻る
+                </div>
+                <div class="category-view">
+                    <div class="category-item" @onclick='() => SelectCategory("writing")'>
+                        執筆
+                    </div>
+                    <div class="category-item" @onclick='() => SelectCategory("structure")'>
+                        構成
+                    </div>
+                    <div class="category-item @(_currentCategory == "materials" ? "active" : "")" @onclick='() => SelectCategory("materials")'>
+                        資料
+                    </div>
+                </div>
+            }
+            @if (!_sidebarCollapsed) {
+                <button class="sidebar-toggle" @onclick="ToggleSidebar">◀</button>
+            }
+        </div>
+
+        <!-- 中央パネル：資料リスト -->
+        @if (_showCategoryView && _selectedCategory != null) {
+            <div class="material-list-panel">
+                <div class="material-list-header">
+                    資料一覧
+                </div>
+                <div class="material-view">
+                    @if (_selectedCategory.Items != null) {
+                        @for (int i = 0; i < _selectedCategory.Items.Length; i++) {
+                            var item = _selectedCategory.Items[i];
+                            var index = i;
+                            <div class="material-item @(item == _selectedMaterial ? "active" : "") @GetMaterialDragClass(index)"
+                                 draggable="true"
+                                 @ondragstart="() => HandleMaterialDragStart(index)"
+                                 @ondragover="(e) => HandleMaterialDragOver(e, index)"
+                                 @ondragover:preventDefault="true"
+                                 @ondragleave="HandleMaterialDragLeave"
+                                 @ondrop="() => HandleMaterialDrop(index)"
+                                 @ondragend="HandleMaterialDragEnd"
+                                 @onclick="() => SelectMaterial(item)">
+                                <span class="material-title">@item.Title</span>
+                                <div class="material-actions">
+                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✏️</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">ー</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    <button class="add-material-btn" @onclick="ShowAddMaterialModal">+ 資料を追加</button>
+                </div>
+            </div>
+        }
+
+        <!-- 右側エディタエリア -->
+        <div class="editor-area">
+            @if (_showCategoryView && _selectedMaterial != null) {
+                <div class="editor-header">
+                    <input type="text" class="editor-title-input" placeholder="資料のタイトル" @bind="_selectedMaterial.Title" @bind:event="oninput" />
+                </div>
+                <div class="editor-content">
+                    <textarea class="editor-textarea" placeholder="資料の内容をここに入力してください..." @bind="_selectedMaterial.Text" @bind:event="oninput"></textarea>
+                </div>
+            } else if (_showCategoryView && _selectedCategory != null) {
+                <div class="empty-state">
+                    <div>資料を選択してください</div>
+                </div>
+            } else {
+                <div class="empty-state">
+                    <div>カテゴリを選択してください</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- モバイルビュー -->
+    <div class="mobile-view">
+        @if (_mobileShowEditor) {
+            <div class="mobile-editor">
+                <div class="mobile-editor-header">
+                    <button class="back-btn" @onclick="BackToMaterialList">&lt;</button>
+                    <div class="mobile-editor-title">@(_selectedMaterial?.Title ?? "資料")</div>
+                </div>
+                <div class="mobile-editor-content">
+                    @if (_selectedMaterial != null) {
+                        <input type="text" class="mobile-title-input" placeholder="資料のタイトル" @bind="_selectedMaterial.Title" @bind:event="oninput" />
+                        <textarea class="mobile-textarea" placeholder="資料の内容をここに入力してください..." @bind="_selectedMaterial.Text" @bind:event="oninput"></textarea>
+                    }
+                </div>
+            </div>
+        } else if (_mobileShowMaterialList) {
+            <div class="mobile-list">
+                <div class="mobile-header">
+                    <button class="back-btn" @onclick="BackToCategoryListMobile">&lt;</button>
+                    <div class="mobile-title">カテゴリ: @(_selectedCategory?.Title ?? "資料")</div>
+                </div>
+                <div class="mobile-material-list">
+                    @if (_selectedCategory?.Items != null) {
+                        @for (int i = 0; i < _selectedCategory.Items.Length; i++) {
+                            var item = _selectedCategory.Items[i];
+                            var index = i;
+                            <div class="mobile-material-item @GetMaterialDragClass(index)"
+                                 draggable="true"
+                                 @ondragstart="() => HandleMaterialDragStart(index)"
+                                 @ondragover="(e) => HandleMaterialDragOver(e, index)"
+                                 @ondragover:preventDefault="true"
+                                 @ondragleave="HandleMaterialDragLeave"
+                                 @ondrop="() => HandleMaterialDrop(index)"
+                                 @ondragend="HandleMaterialDragEnd"
+                                 @onclick="() => SelectMaterialMobile(item)">
+                                <span>@item.Title</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✏️</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">ー</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    <button class="add-material-btn" @onclick="ShowAddMaterialModal">+ 資料を追加</button>
+                </div>
             </div>
         } else {
-            <div class="sidebar-header" @onclick="BackToProjectList">
-                &lt; 一覧に戻る
-            </div>
-            <div class="category-view">
-                <div class="category-item" @onclick='() => SelectCategory("writing")'>
-                    執筆
+            <div class="mobile-list">
+                <div class="mobile-header">
+                    <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
+                    <div class="mobile-title">資料</div>
                 </div>
-                <div class="category-item" @onclick='() => SelectCategory("structure")'>
-                    構成
-                </div>
-                <div class="category-item @(_currentCategory == "materials" ? "active" : "")" @onclick='() => SelectCategory("materials")'>
-                    資料
+                <div class="mobile-category-list">
+                    @if (_project.ProjectDataObject?.Material?.Category != null) {
+                        @for (int i = 0; i < _project.ProjectDataObject.Material.Category.Length; i++) {
+                            var category = _project.ProjectDataObject.Material.Category[i];
+                            var index = i;
+                            <div class="mobile-category-item @GetDragClass(index)"
+                                 draggable="true"
+                                 @ondragstart="() => HandleDragStart(index)"
+                                 @ondragover="(e) => HandleDragOver(e, index)"
+                                 @ondragover:preventDefault="true"
+                                 @ondragleave="HandleDragLeave"
+                                 @ondrop="() => HandleDrop(index)"
+                                 @ondragend="HandleDragEnd"
+                                 @onclick="() => SelectMaterialCategoryMobile(category)">
+                                <div class="category-title">
+                                    <div class="category-count">(@(category.Items?.Length ?? 0)件)</div>
+                                    <div class="category-name">@category.Title</div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✏️</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">ー</button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    <button class="add-category-btn" @onclick="ShowAddCategoryModal">+ カテゴリを追加</button>
                 </div>
             </div>
         }
     </div>
+
+    <!-- カテゴリ追加/編集モーダル -->
+    @if (_showCategoryModal) {
+        <div class="modal-overlay" @onclick="CloseCategoryModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">@(_isEditingCategory ? "カテゴリ名を編集" : "新しいカテゴリ")</div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" placeholder="カテゴリ名を入力" @bind="_categoryModalTitle" @bind:event="oninput" @onkeydown="HandleCategoryModalKeyDown" />
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" @onclick="CloseCategoryModal">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="SaveCategory">保存</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- 資料追加/編集モーダル -->
+    @if (_showMaterialModal) {
+        <div class="modal-overlay" @onclick="CloseMaterialModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">@(_isEditingMaterial ? "資料名を編集" : "新しい資料")</div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" placeholder="資料名を入力" @bind="_materialModalTitle" @bind:event="oninput" @onkeydown="HandleMaterialModalKeyDown" />
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" @onclick="CloseMaterialModal">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="SaveMaterial">保存</button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -97,6 +971,29 @@
     private Project? _project;
     private string _currentCategory = "materials";
     private bool _showCategoryView = true;
+    private bool _showMaterialView = false;
+    private bool _mobileShowEditor = false;
+    private bool _mobileShowMaterialList = false;
+    private MaterialCategory? _selectedCategory;
+    private MaterialItem? _selectedMaterial;
+
+    // モーダル関連
+    private bool _showCategoryModal = false;
+    private bool _showMaterialModal = false;
+    private string _categoryModalTitle = "";
+    private string _materialModalTitle = "";
+    private bool _isEditingCategory = false;
+    private bool _isEditingMaterial = false;
+    private MaterialCategory? _editingCategory;
+    private MaterialItem? _editingMaterial;
+
+    // サイドバー
+    private bool _sidebarCollapsed = false;
+
+    // デスクトップ/モバイル判定
+    private bool _isMobile = false;
+    private string? _lastPcContent = null;
+    private string? _lastMobileContent = null;
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -113,29 +1010,90 @@
 
         if (_project == null) {
             Nav.NavigateTo("/projects");
+            return;
+        }
+
+        // MaterialDataの初期化
+        if (_project.ProjectDataObject.Material == null) {
+            _project.ProjectDataObject.Material = new MaterialData();
+        }
+
+        if (_project.ProjectDataObject.Material.Category == null) {
+            _project.ProjectDataObject.Material.Category = Array.Empty<MaterialCategory>();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            _isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
+
+            if (_isMobile) {
+                _lastMobileContent = _selectedMaterial?.Text ?? "";
+            } else {
+                _lastPcContent = _selectedMaterial?.Text ?? "";
+            }
+
+            StateHasChanged();
+        } else {
+            bool currentIsMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
+
+            if (_isMobile != currentIsMobile) {
+                if (currentIsMobile && !_isMobile) {
+                    // PCからモバイルへ
+                    _lastMobileContent = _lastPcContent;
+                    if (_selectedMaterial != null) {
+                        _selectedMaterial.Text = _lastMobileContent ?? "";
+                    }
+                } else if (!currentIsMobile && _isMobile) {
+                    // モバイルからPCへ
+                    _lastPcContent = _lastMobileContent;
+                    if (_selectedMaterial != null) {
+                        _selectedMaterial.Text = _lastPcContent ?? "";
+                    }
+                }
+
+                _isMobile = currentIsMobile;
+                StateHasChanged();
+            } else {
+                if (_isMobile) {
+                    _lastMobileContent = _selectedMaterial?.Text ?? "";
+                } else {
+                    _lastPcContent = _selectedMaterial?.Text ?? "";
+                }
+            }
         }
     }
 
     private async Task BackToCategoryView() {
+        await SaveProject();
         _showCategoryView = false;
-
+        _selectedCategory = null;
+        _selectedMaterial = null;
         StateHasChanged();
     }
 
     private async Task BackToProjectList() {
-        await using var db = DbFactory.CreateDbContext();
-        db.Projects.Update(_project);
-        await db.SaveChangesAsync();   // ← ここで確定
-
+        await SaveProject();
         Nav.NavigateTo("/projects");
+    }
+
+    private async Task SaveProject() {
+        if (_project != null && _project.ProjectDataObject != null) {
+            _project.UpdatedAt = DateTime.UtcNow;
+            await using var db = DbFactory.CreateDbContext();
+            db.Projects.Update(_project);
+            await db.SaveChangesAsync();
+        }
     }
 
     private async Task SelectCategory(string category) {
         _currentCategory = category;
         if (category == "writing") {
-            NavigateToWriting(id);
+            await SaveProject();
+            Nav.NavigateTo($"/projects/edit/{id}");
         } else if (category == "structure") {
-            NavigateToStructure(id);
+            await SaveProject();
+            Nav.NavigateTo($"/projects/edit/{id}/structure");
         } else if (category == "materials") {
             _showCategoryView = true;
         }
@@ -143,11 +1101,349 @@
         StateHasChanged();
     }
 
-    private void NavigateToWriting(int id) {
-        Nav.NavigateTo($"/projects/edit/{id}");
+    private void SelectMaterialCategory(MaterialCategory category) {
+        _selectedCategory = category;
+        _selectedMaterial = category.Items?.FirstOrDefault();
+        StateHasChanged();
     }
 
-    private void NavigateToStructure(int id) {
-        Nav.NavigateTo($"/projects/edit/{id}/structure");
+    private void SelectMaterial(MaterialItem material) {
+        _selectedMaterial = material;
+        StateHasChanged();
+    }
+
+    // モバイル用
+    private void SelectMaterialCategoryMobile(MaterialCategory category) {
+        _selectedCategory = category;
+        _mobileShowMaterialList = true;
+        StateHasChanged();
+    }
+
+    private void SelectMaterialMobile(MaterialItem material) {
+        _selectedMaterial = material;
+        _mobileShowEditor = true;
+        StateHasChanged();
+    }
+
+    private void BackToCategoryListMobile() {
+        _mobileShowMaterialList = false;
+        _selectedCategory = null;
+        StateHasChanged();
+    }
+
+    private void BackToMaterialList() {
+        _mobileShowEditor = false;
+        _selectedMaterial = null;
+        StateHasChanged();
+    }
+
+    // カテゴリ追加モーダル
+    private void ShowAddCategoryModal() {
+        _categoryModalTitle = "";
+        _isEditingCategory = false;
+        _editingCategory = null;
+        _showCategoryModal = true;
+    }
+
+    private void ShowRenameCategoryModal(MaterialCategory category) {
+        _categoryModalTitle = category.Title;
+        _isEditingCategory = true;
+        _editingCategory = category;
+        _showCategoryModal = true;
+    }
+
+    private void CloseCategoryModal() {
+        _showCategoryModal = false;
+        _categoryModalTitle = "";
+        _isEditingCategory = false;
+        _editingCategory = null;
+    }
+
+    private async Task HandleCategoryModalKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await SaveCategory();
+        } else if (e.Key == "Escape") {
+            CloseCategoryModal();
+        }
+    }
+
+    private async Task SaveCategory() {
+        if (string.IsNullOrWhiteSpace(_categoryModalTitle)) {
+            return;
+        }
+
+        if (_isEditingCategory && _editingCategory != null) {
+            _editingCategory.Title = _categoryModalTitle;
+        } else {
+            var newCategory = new MaterialCategory {
+                Title = _categoryModalTitle,
+                Items = Array.Empty<MaterialItem>()
+            };
+
+            var categories = _project.ProjectDataObject.Material.Category?.ToList() ?? new List<MaterialCategory>();
+            categories.Add(newCategory);
+            _project.ProjectDataObject.Material.Category = categories.ToArray();
+        }
+
+        await SaveProject();
+        CloseCategoryModal();
+        StateHasChanged();
+    }
+
+    private async Task DeleteCategory(MaterialCategory category) {
+        if (_project.ProjectDataObject?.Material?.Category != null) {
+            var categories = _project.ProjectDataObject.Material.Category.ToList();
+            categories.Remove(category);
+            _project.ProjectDataObject.Material.Category = categories.ToArray();
+
+            if (_selectedCategory == category) {
+                _selectedCategory = null;
+                _selectedMaterial = null;
+                _showMaterialView = false;
+            }
+
+            await SaveProject();
+            StateHasChanged();
+        }
+    }
+
+    // 資料追加モーダル
+    private void ShowAddMaterialModal() {
+        _materialModalTitle = "";
+        _isEditingMaterial = false;
+        _editingMaterial = null;
+        _showMaterialModal = true;
+    }
+
+    private void ShowRenameMaterialModal(MaterialItem material) {
+        _materialModalTitle = material.Title;
+        _isEditingMaterial = true;
+        _editingMaterial = material;
+        _showMaterialModal = true;
+    }
+
+    private void CloseMaterialModal() {
+        _showMaterialModal = false;
+        _materialModalTitle = "";
+        _isEditingMaterial = false;
+        _editingMaterial = null;
+    }
+
+    private async Task HandleMaterialModalKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await SaveMaterial();
+        } else if (e.Key == "Escape") {
+            CloseMaterialModal();
+        }
+    }
+
+    private async Task SaveMaterial() {
+        if (string.IsNullOrWhiteSpace(_materialModalTitle)) {
+            return;
+        }
+
+        if (_isEditingMaterial && _editingMaterial != null) {
+            _editingMaterial.Title = _materialModalTitle;
+        } else {
+            if (_selectedCategory != null) {
+                var newMaterial = new MaterialItem {
+                    Title = _materialModalTitle,
+                    Text = ""
+                };
+
+                var items = _selectedCategory.Items?.ToList() ?? new List<MaterialItem>();
+                items.Add(newMaterial);
+                _selectedCategory.Items = items.ToArray();
+                _selectedMaterial = newMaterial;
+            }
+        }
+
+        await SaveProject();
+        CloseMaterialModal();
+        StateHasChanged();
+    }
+
+    private async Task DeleteMaterial(MaterialItem material) {
+        if (_selectedCategory?.Items != null) {
+            var items = _selectedCategory.Items.ToList();
+            items.Remove(material);
+            _selectedCategory.Items = items.ToArray();
+
+            if (_selectedMaterial == material) {
+                _selectedMaterial = _selectedCategory.Items?.FirstOrDefault();
+            }
+
+            await SaveProject();
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleSidebar() {
+        _sidebarCollapsed = !_sidebarCollapsed;
+    }
+
+    // ドラッグアンドドロップ用の変数を追加
+    private int _dragSourceIndex = -1;
+    private int _dragOverIndex = -1;
+    private bool _dragOverBottom = false;
+
+    // ドラッグアンドドロップ用のメソッドを追加
+    private void HandleDragStart(int index) {
+        _dragSourceIndex = index;
+    }
+
+    private void HandleDragEnd() {
+        _dragSourceIndex = -1;
+        _dragOverIndex = -1;
+        _dragOverBottom = false;
+    }
+
+    private void HandleDragOver(DragEventArgs e, int index) {
+        _dragOverIndex = index;
+        // 要素の高さの半分より下にマウスがある場合は下に挿入
+        _dragOverBottom = e.OffsetY > 20;
+    }
+
+    private void HandleDragLeave() {
+        _dragOverIndex = -1;
+        _dragOverBottom = false;
+    }
+
+    private string GetDragClass(int index) {
+        if (_dragSourceIndex == index) {
+            return "dragging";
+        }
+
+        if (_dragOverIndex == index) {
+            return _dragOverBottom ? "drag-over-bottom" : "drag-over-top";
+        }
+
+        return "";
+    }
+
+    private async Task HandleDrop(int targetIndex) {
+        if (_dragSourceIndex == -1 || _dragSourceIndex == targetIndex) {
+            HandleDragEnd();
+            return;
+        }
+
+        if (_project?.ProjectDataObject?.Material?.Category == null) {
+            HandleDragEnd();
+            return;
+        }
+
+        var categories = _project.ProjectDataObject.Material.Category.ToList();
+        var draggedCategory = categories[_dragSourceIndex];
+
+        // 元の位置から削除
+        categories.RemoveAt(_dragSourceIndex);
+
+        // 新しい位置に挿入
+        int insertIndex = targetIndex;
+
+        // ドラッグ元より前の要素にドロップした場合
+        if (_dragSourceIndex > targetIndex) {
+            // 上半分なら手前に、下半分なら後ろに挿入
+            if (_dragOverBottom) {
+                insertIndex++;
+            }
+        }
+        // ドラッグ元より後の要素にドロップした場合
+        else {
+            // 削除によってインデックスが1つ減っているので調整
+            insertIndex--;
+
+            // 下半分なら後ろに挿入
+            if (_dragOverBottom) {
+                insertIndex++;
+            }
+        }
+
+        // インデックスの範囲チェック
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > categories.Count) insertIndex = categories.Count;
+
+        categories.Insert(insertIndex, draggedCategory);
+        _project.ProjectDataObject.Material.Category = categories.ToArray();
+
+        await SaveProject();
+        HandleDragEnd();
+        StateHasChanged();
+    }
+
+    private int _dragSourceMaterialIndex = -1;
+    private int _dragOverMaterialIndex = -1;
+    private bool _dragOverMaterialBottom = false;
+
+    private void HandleMaterialDragStart(int index) {
+        _dragSourceMaterialIndex = index;
+    }
+
+    private void HandleMaterialDragEnd() {
+        _dragSourceMaterialIndex = -1;
+        _dragOverMaterialIndex = -1;
+        _dragOverMaterialBottom = false;
+    }
+
+    private void HandleMaterialDragOver(DragEventArgs e, int index) {
+        _dragOverMaterialIndex = index;
+        _dragOverMaterialBottom = e.OffsetY > 20;
+    }
+
+    private void HandleMaterialDragLeave() {
+        _dragOverMaterialIndex = -1;
+        _dragOverMaterialBottom = false;
+    }
+
+    private string GetMaterialDragClass(int index) {
+        if (_dragSourceMaterialIndex == index) {
+            return "dragging";
+        }
+
+        if (_dragOverMaterialIndex == index) {
+            return _dragOverMaterialBottom ? "drag-over-bottom" : "drag-over-top";
+        }
+
+        return "";
+    }
+
+    private async Task HandleMaterialDrop(int targetIndex) {
+        if (_dragSourceMaterialIndex == -1 || _dragSourceMaterialIndex == targetIndex) {
+            HandleMaterialDragEnd();
+            return;
+        }
+
+        if (_selectedCategory?.Items == null) {
+            HandleMaterialDragEnd();
+            return;
+        }
+
+        var materials = _selectedCategory.Items.ToList();
+        var draggedMaterial = materials[_dragSourceMaterialIndex];
+
+        materials.RemoveAt(_dragSourceMaterialIndex);
+
+        int insertIndex = targetIndex;
+
+        if (_dragSourceMaterialIndex > targetIndex) {
+            if (_dragOverMaterialBottom) {
+                insertIndex++;
+            }
+        } else {
+            insertIndex--;
+            if (_dragOverMaterialBottom) {
+                insertIndex++;
+            }
+        }
+
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > materials.Count) insertIndex = materials.Count;
+
+        materials.Insert(insertIndex, draggedMaterial);
+        _selectedCategory.Items = materials.ToArray();
+
+        await SaveProject();
+        HandleMaterialDragEnd();
+        StateHasChanged();
     }
 }
