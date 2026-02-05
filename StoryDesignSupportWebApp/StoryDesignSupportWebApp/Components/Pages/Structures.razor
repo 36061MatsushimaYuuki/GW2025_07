@@ -8,13 +8,16 @@
 @using Microsoft.EntityFrameworkCore
 @using StoryDesignSupportWebApp.Data
 @using StoryDesignSupportWebApp.Data.EditData
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject UserManager<ApplicationUser> UserManager
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
+@inject ProtectedSessionStorage SessionStorage
 
-<PageTitle>Materials</PageTitle>
+<PageTitle>Structure</PageTitle>
 
 <style>
     * {
@@ -35,6 +38,7 @@
         transition: height 0.3s ease;
     }
 
+    /* サイドバー */
     .sidebar {
         width: 300px;
         background-color: #fafbfc;
@@ -66,7 +70,6 @@
             background-color: #0550ae;
         }
 
-    /* サイドバー開閉ボタン */
     .sidebar-toggle {
         position: absolute;
         bottom: 15px;
@@ -120,7 +123,7 @@
             box-shadow: 3px 0 15px rgba(9, 105, 218, 0.35);
         }
 
-    .category-view, .chapter-view {
+    .category-view {
         flex: 1;
         overflow-y: auto;
     }
@@ -146,6 +149,446 @@
             font-weight: 600;
         }
 
+    /* エディタエリア */
+    .editor-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff;
+        overflow: hidden;
+    }
+
+    .editor-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #f6f8fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .editor-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #24292f;
+    }
+
+    .editor-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+    }
+
+    /* プロット編集用スタイル */
+    .plot-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        height: 100%;
+    }
+
+    .plot-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+    }
+
+    .plot-column-header {
+        font-size: 18px;
+        font-weight: 600;
+        padding: 12px 16px;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        text-align: center;
+        color: #24292f;
+        border: 2px solid #d0d7de;
+    }
+
+    .plot-items {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 100px;
+    }
+
+    .plot-item {
+        background: white;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 12px;
+        cursor: move;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+        .plot-item:hover {
+            border-color: #0969da;
+            box-shadow: 0 2px 8px rgba(9, 105, 218, 0.15);
+        }
+
+        .plot-item.dragging {
+            opacity: 0.5;
+        }
+
+        .plot-item.drag-over {
+            border-color: #0969da;
+            border-width: 2px;
+            background-color: #ddf4ff;
+        }
+
+    .plot-item-textarea {
+        width: 100%;
+        border: none;
+        outline: none;
+        resize: none;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 60px;
+        font-family: inherit;
+    }
+
+    .plot-item-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .plot-item:hover .plot-item-actions {
+        opacity: 1;
+    }
+
+    .plot-item-delete-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .plot-item-delete-btn:hover {
+            background: #c82333;
+        }
+
+    .add-plot-btn {
+        padding: 10px;
+        background-color: #0969da;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+
+        .add-plot-btn:hover {
+            background-color: #0550ae;
+        }
+
+    /* 時系列編集用スタイル */
+    .timeline-container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        padding: 40px;
+        min-height: 100%;
+    }
+
+    .timeline-item {
+        background: white;
+        border: 2px solid #d0d7de;
+        border-radius: 8px;
+        padding: 16px 20px;
+        cursor: move;
+        transition: all 0.2s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+        .timeline-item:hover {
+            border-color: #0969da;
+            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.15);
+        }
+
+        .timeline-item.chapter {
+            background-color: #f6f8fa;
+            font-weight: 600;
+            font-size: 16px;
+            border-color: #0969da;
+        }
+
+        .timeline-item.section {
+            margin-left: 40px;
+        }
+
+        .timeline-item.dragging {
+            opacity: 0.5;
+        }
+
+        .timeline-item.drag-over-top::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #0969da;
+            border-radius: 2px;
+        }
+
+        .timeline-item.drag-over-bottom::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #0969da;
+            border-radius: 2px;
+        }
+
+    .timeline-drag-handle {
+        font-size: 20px;
+        color: #656d76;
+        cursor: move;
+    }
+
+    .timeline-content {
+        flex: 1;
+    }
+
+    .timeline-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .chapter-flow-section {
+        background: #f6f8fa;
+        border: 2px solid #0969da;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .chapter-sections-content {
+        max-height: 2000px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+        opacity: 1;
+    }
+
+        .chapter-sections-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+    .chapter-flow-header {
+        background: #0969da;
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .chapter-title-text {
+        flex: 1;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chapter-drag-handle {
+        font-size: 24px;
+        cursor: move;
+    }
+
+    .chapter-toggle-icon {
+        font-size: 14px;
+        transition: transform 0.3s ease;
+        margin-right: 8px;
+    }
+
+        .chapter-toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+    .flow-diagram {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: relative;
+    }
+
+    .flow-row {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        align-items: flex-start;
+        position: relative;
+    }
+
+    .flow-node {
+        background: white;
+        border: 2px solid #0969da;
+        border-radius: 8px;
+        padding: 16px 20px;
+        min-width: 200px;
+        max-width: 300px;
+        cursor: move;
+        transition: all 0.2s ease;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.15);
+    }
+
+        .flow-node:hover {
+            box-shadow: 0 4px 16px rgba(9, 105, 218, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .flow-node.dragging {
+            opacity: 0.5;
+        }
+
+        .flow-node.drag-over {
+            border-color: #30b84f;
+            border-width: 3px;
+            background-color: #e6f7ea;
+        }
+
+    .flow-node-content {
+        font-size: 15px;
+        color: #24292f;
+        word-wrap: break-word;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        max-height: 3em;
+        line-height: 1.5;
+    }
+
+    .flow-arrow {
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 12px solid #0969da;
+        margin: 0 auto;
+    }
+
+    .branch-controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .add-branch-row-btn {
+        padding: 8px 16px;
+        background-color: #30b84f;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+
+        .add-branch-row-btn:hover {
+            background-color: #269e41;
+        }
+
+    .remove-branch-btn {
+        padding: 6px 12px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s ease;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .flow-row:hover .remove-branch-btn {
+        opacity: 1;
+    }
+
+    .remove-branch-btn:hover {
+        background-color: #c82333;
+    }
+
+    .chapter-flow-section.dragging {
+        opacity: 0.5;
+    }
+
+    .chapter-flow-section.drag-over-top::before {
+        content: '';
+        position: absolute;
+        top: -17px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: #30b84f;
+        border-radius: 2px;
+        z-index: 10;
+    }
+
+    .chapter-flow-section.drag-over-bottom::after {
+        content: '';
+        position: absolute;
+        bottom: -17px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: #30b84f;
+        border-radius: 2px;
+        z-index: 10;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #8c959f;
+        font-size: 16px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -170,6 +613,36 @@
         gap: 10px;
     }
 
+    .back-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .mobile-title {
+        flex: 1;
+        font-size: 18px;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-category-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e1e4e8;
+        cursor: pointer;
+        background-color: white;
+        transition: background-color 0.2s ease;
+    }
+
+        .mobile-category-item:hover {
+            background-color: #f6f8fa;
+        }
+
     .mobile-editor {
         height: calc(100vh - 5.5rem);
         display: flex;
@@ -187,23 +660,88 @@
         gap: 10px;
     }
 
-    .back-btn {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 18px;
-        cursor: pointer;
-        padding: 0;
-    }
-
     .mobile-editor-title {
         flex: 1;
         font-size: 18px;
         font-weight: bold;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    }
+
+    .mobile-editor-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .mobile-plot-column {
+        margin-bottom: 30px;
+    }
+
+    .mobile-plot-header {
+        font-size: 20px;
+        font-weight: 600;
+        padding: 12px 16px;
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        text-align: center;
+        color: #24292f;
+        border: 2px solid #d0d7de;
+        margin-bottom: 15px;
+    }
+
+    .mobile-add-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: #0969da;
+        color: white;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(9, 105, 218, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        z-index: 100;
+    }
+
+        .mobile-add-btn:hover {
+            background-color: #0550ae;
+            transform: scale(1.1);
+        }
+
+    .mobile-column-selector {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 99;
+    }
+
+    .mobile-column-btn {
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
         white-space: nowrap;
     }
+
+        .mobile-column-btn:hover {
+            background-color: #f6f8fa;
+            border-color: #0969da;
+        }
 
     /* レスポンシブ */
     @@media (max-width: 768px) {
@@ -221,11 +759,58 @@
             display: none;
         }
 
-        .sidebar.collapsed {
-            margin-left: 0;
-            width: 300px;
+        .plot-container {
+            grid-template-columns: 1fr;
         }
     }
+
+    .mobile-category-ui {
+        position: sticky;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 0;
+    }
+
+    .category-select-button {
+        width: 64px;
+        height: 64px;
+        cursor: pointer;
+        line-height: 64px;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        background-color: lightgrey;
+        border: solid;
+        border-color: grey;
+    }
+
+        .category-select-button + .category-select-button {
+            border-left: none;
+        }
+
+        .category-select-button:first-child {
+            border-top-left-radius: 10%;
+            border-bottom-left-radius: 10%;
+        }
+
+        .category-select-button:last-child {
+            border-top-right-radius: 10%;
+            border-bottom-right-radius: 10%;
+        }
+
+        .category-select-button:hover {
+            background-color: grey;
+        }
+
+        .category-select-button.active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+            .category-select-button.active:hover {
+                background-color: #0052a3;
+            }
 </style>
 
 @if (_project == null) {
@@ -233,7 +818,6 @@
 } else {
     <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
-        <!-- サイドバー開くボタン（サイドバーが閉じているときのみ表示） -->
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
@@ -243,7 +827,13 @@
                 <div class="sidebar-header" @onclick="BackToCategoryView">
                     &lt; カテゴリ選択に戻る
                 </div>
-                <div class="structure-view">
+                <div class="category-view">
+                    <div class="category-item @(_structureMode == "plot" ? "active" : "")" @onclick='() => SelectStructureMode("plot")'>
+                        プロット
+                    </div>
+                    <div class="category-item @(_structureMode == "timeline" ? "active" : "")" @onclick='() => SelectStructureMode("timeline")'>
+                        時系列
+                    </div>
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
@@ -261,9 +851,198 @@
                     </div>
                 </div>
             }
-            <!-- サイドバー閉じるボタン（サイドバーが開いているときのみ表示） -->
             @if (!_sidebarCollapsed) {
                 <button class="sidebar-toggle" @onclick="ToggleSidebar">◀</button>
+            }
+        </div>
+
+        <!-- エディタエリア -->
+        <div class="editor-area">
+            @if (_showCategoryView && _structureMode == "plot") {
+                <div class="editor-header">
+                    <div class="editor-title">プロット編集</div>
+                </div>
+                <div class="editor-content">
+                    <div class="plot-container">
+                        <!-- 起 -->
+                        <div class="plot-column">
+                            <div class="plot-column-header">起</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ki != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ki.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ki[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ki", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
+                        </div>
+
+                        <!-- 承 -->
+                        <div class="plot-column">
+                            <div class="plot-column-header">承</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Shou != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Shou.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Shou[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("shou", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
+                        </div>
+
+                        <!-- 転 -->
+                        <div class="plot-column">
+                            <div class="plot-column-header">転</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ten != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ten.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ten[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ten", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
+                        </div>
+
+                        <!-- 結 -->
+                        <div class="plot-column">
+                            <div class="plot-column-header">結</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ketsu != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ketsu.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ketsu[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ketsu", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ketsu")'>+ 結を追加</button>
+                        </div>
+                    </div>
+                </div>
+            } else if (_showCategoryView && _structureMode == "timeline") {
+                <div class="editor-header">
+                    <div class="editor-title">時系列編集 - フロー図</div>
+                </div>
+                <div class="editor-content">
+                    <div class="timeline-container">
+                        @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
+                            @for (int chIdx = 0; chIdx < _project.ProjectDataObject.Scenario.Chapters.Length; chIdx++) {
+                                var chapter = _project.ProjectDataObject.Scenario.Chapters[chIdx];
+                                var chapterIndex = chIdx;
+                                var isCollapsed = _collapsedChapters.Contains(chapterIndex);
+
+                                <div class="chapter-flow-section @GetChapterDragClass(chapterIndex)"
+                                     @ondragover="(e) => HandleChapterDragOver(e, chapterIndex)"
+                                     @ondragover:preventDefault="true"
+                                     @ondragleave="HandleChapterDragLeave"
+                                     @ondrop="() => HandleChapterDrop(chapterIndex)">
+                                    <div class="chapter-flow-header"
+                                         draggable="true"
+                                         @ondragstart="() => HandleChapterDragStart(chapterIndex)"
+                                         @ondragstart:stopPropagation="true"
+                                         @ondragend="HandleChapterDragEnd"
+                                         @onclick="() => ToggleChapter(chapterIndex)">
+                                        <span class="chapter-drag-handle" @onclick:stopPropagation="true">☰</span>
+                                        <span class="chapter-toggle-icon @(isCollapsed ? "collapsed" : "")">▼</span>
+                                        <span class="chapter-title-text">@(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)</span>
+                                    </div>
+
+                                    <div class="chapter-sections-content @(isCollapsed ? "collapsed" : "")">
+                                        @if (chapter.Sections != null && chapter.Sections.Length > 0) {
+                                            <div class="flow-diagram">
+                                                @{
+                                                    var flowStructure = GetFlowStructure(chapterIndex);
+                                                    for (int rowIdx = 0; rowIdx < flowStructure.Count; rowIdx++) {
+                                                        var row = flowStructure[rowIdx];
+                                                        var rowIndex = rowIdx;
+                                                        <div class="flow-row" style="position: relative;">
+                                                            @if (row.Count > 1) {
+                                                                <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
+                                                            }
+                                                            @foreach (var sectionIdx in row) {
+                                                                var section = chapter.Sections[sectionIdx];
+                                                                <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
+                                                                     draggable="true"
+                                                                     @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex)"
+                                                                     @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex)"
+                                                                     @ondragover:preventDefault="true"
+                                                                     @ondragleave="HandleSectionDragLeave"
+                                                                     @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex)"
+                                                                     @ondragend="HandleSectionDragEnd">
+                                                                    <div class="flow-node-content">
+                                                                        @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        @if (rowIndex < flowStructure.Count - 1) {
+                                                            <div class="flow-arrow"></div>
+                                                        }
+                                                    }
+                                                }
+                                                <div class="branch-controls">
+                                                    <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 分岐行を追加</button>
+                                                </div>
+                                            </div>
+                                        } else {
+                                            <div class="empty-state" style="padding: 20px;">
+                                                <div>この章には話がありません</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        } else {
+                            <div class="empty-state">
+                                <div>章と話を追加すると時系列が表示されます</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            } else {
+                @if (_showCategoryView) {
+                    <div class="empty-state">
+                        構成モードを選択してください
+                    </div>
+                } else {
+                    <div class="empty-state">
+                        左のサイドバーからカテゴリーを選択してください
+                    </div>
+                }
             }
         </div>
     </div>
@@ -271,13 +1050,203 @@
     <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
+            @if (_structureMode == "plot") {
+                <div class="mobile-editor">
+                    <div class="mobile-editor-header">
+                        <button class="back-btn" @onclick="BackToModeSelect">&lt;</button>
+                        <div class="mobile-editor-title">プロット編集</div>
+                    </div>
+                    <div class="mobile-editor-content">
+                        <!-- 起 -->
+                        <div class="mobile-plot-column">
+                            <div class="mobile-plot-header">起</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ki != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ki.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ki[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions" style="opacity: 1;">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ki", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
+                        </div>
 
+                        <!-- 承 -->
+                        <div class="mobile-plot-column">
+                            <div class="mobile-plot-header">承</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Shou != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Shou.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Shou[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions" style="opacity: 1;">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("shou", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
+                        </div>
+
+                        <!-- 転 -->
+                        <div class="mobile-plot-column">
+                            <div class="mobile-plot-header">転</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ten != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ten.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ten[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions" style="opacity: 1;">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ten", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
+                        </div>
+
+                        <!-- 結 -->
+                        <div class="mobile-plot-column">
+                            <div class="mobile-plot-header">結</div>
+                            <div class="plot-items">
+                                @if (_project.ProjectDataObject?.Structure?.Plots?.Ketsu != null) {
+                                    @for (int i = 0; i < _project.ProjectDataObject.Structure.Plots.Ketsu.Length; i++) {
+                                        var index = i;
+                                        <div class="plot-item">
+                                            <textarea class="plot-item-textarea"
+                                                      @bind="_project.ProjectDataObject.Structure.Plots.Ketsu[index]"
+                                                      @bind:event="oninput"
+                                                      placeholder="プロットを入力..."></textarea>
+                                            <div class="plot-item-actions" style="opacity: 1;">
+                                                <button class="plot-item-delete-btn" @onclick='(() => DeletePlotItem("ketsu", index))'>削除</button>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ketsu")'>+ 結を追加</button>
+                        </div>
+                    </div>
+                </div>
+            } else if (_structureMode == "timeline") {
+                <div class="mobile-editor">
+                    <div class="mobile-editor-header">
+                        <button class="back-btn" @onclick="BackToModeSelect">&lt;</button>
+                        <div class="mobile-editor-title">時系列編集</div>
+                    </div>
+                    <div class="mobile-editor-content">
+                        <div class="timeline-container" style="padding: 20px;">
+                            @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
+                                @for (int chIdx = 0; chIdx < _project.ProjectDataObject.Scenario.Chapters.Length; chIdx++) {
+                                    var chapter = _project.ProjectDataObject.Scenario.Chapters[chIdx];
+                                    var chapterIndex = chIdx;
+                                    var isCollapsed = _collapsedChapters.Contains(chapterIndex);
+
+                                    <div class="chapter-flow-section @GetChapterDragClass(chapterIndex)"
+                                         @ondragover="(e) => HandleChapterDragOver(e, chapterIndex)"
+                                         @ondragover:preventDefault="true"
+                                         @ondragleave="HandleChapterDragLeave"
+                                         @ondrop="() => HandleChapterDrop(chapterIndex)">
+                                        <div class="chapter-flow-header"
+                                             draggable="true"
+                                             @ondragstart="() => HandleChapterDragStart(chapterIndex)"
+                                             @ondragstart:stopPropagation="true"
+                                             @ondragend="HandleChapterDragEnd"
+                                             @onclick="() => ToggleChapter(chapterIndex)">
+                                            <span class="chapter-drag-handle" @onclick:stopPropagation="true">☰</span>
+                                            <span class="chapter-toggle-icon @(isCollapsed ? "collapsed" : "")">▼</span>
+                                            <span class="chapter-title-text">@(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)</span>
+                                        </div>
+
+                                        <div class="chapter-sections-content @(isCollapsed ? "collapsed" : "")">
+                                            @if (chapter.Sections != null && chapter.Sections.Length > 0) {
+                                                <div class="flow-diagram">
+                                                    @{
+                                                        var flowStructure = GetFlowStructure(chapterIndex);
+                                                        for (int rowIdx = 0; rowIdx < flowStructure.Count; rowIdx++) {
+                                                            var row = flowStructure[rowIdx];
+                                                            var rowIndex = rowIdx;
+                                                            <div class="flow-row" style="position: relative;">
+                                                                @if (row.Count > 1) {
+                                                                    <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
+                                                                }
+                                                                @foreach (var sectionIdx in row) {
+                                                                    var section = chapter.Sections[sectionIdx];
+                                                                    <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
+                                                                         draggable="true"
+                                                                         @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex)"
+                                                                         @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex)"
+                                                                         @ondragover:preventDefault="true"
+                                                                         @ondragleave="HandleSectionDragLeave"
+                                                                         @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex)"
+                                                                         @ondragend="HandleSectionDragEnd">
+                                                                        <div class="flow-node-content">
+                                                                            @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            @if (rowIndex < flowStructure.Count - 1) {
+                                                                <div class="flow-arrow"></div>
+                                                            }
+                                                        }
+                                                    }
+                                                    <div class="branch-controls">
+                                                        <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 分岐行を追加</button>
+                                                    </div>
+                                                </div>
+                                            } else {
+                                                <div class="empty-state" style="padding: 20px;">
+                                                    <div>この章には話がありません</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            } else {
+                                <div class="empty-state">
+                                    <div>章と話を追加すると時系列が表示されます</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
         } else {
             <div class="mobile-list">
                 <div class="mobile-header">
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
-                    <div class="mobile-editor-title">構成</div>
+                    <div class="mobile-title">プロジェクト一覧に戻る</div>
                 </div>
+                <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("plot")'>
+                    プロット
+                </div>
+                <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("timeline")'>
+                    時系列
+                </div>
+            </div>
+            <div class="mobile-category-ui">
+                <div class="category-select-button" @onclick='() => SelectCategory("writing")'>執筆</div>
+                <div class="category-select-button active" @onclick='() => SelectCategory("structure")'>構成</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("materials")'>資料</div>
             </div>
         }
     </div>
@@ -290,7 +1259,38 @@
     private Project? _project;
     private string _currentCategory = "structure";
     private bool _showCategoryView = true;
+    private string _structureMode = "";
     private bool _mobileShowEditor = false;
+    private bool _sidebarCollapsed = false;
+
+    // 時系列アイテム
+    private List<TimelineItem> _timelineItems = new();
+
+    // ドラッグアンドドロップ
+    private int _dragSourceTimelineIndex = -1;
+    private int _dragOverTimelineIndex = -1;
+    private bool _dragOverTimelineBottom = false;
+
+    // チャプタードラッグアンドドロップ用変数
+    private int _dragSourceChapterIndex = -1;
+    private int _dragOverChapterIndex = -1;
+    private bool _dragOverChapterBottom = false;
+
+    private HashSet<int> _collapsedChapters = new();
+
+    // セクションドラッグアンドドロップ用変数を修正
+    private int _dragSourceSectionChapter = -1;
+    private int _dragSourceSectionIndex = -1;
+    private int _dragSourceSectionRow = -1;
+    private int _dragOverSectionChapter = -1;
+    private int _dragOverSectionIndex = -1;
+    private int _dragOverSectionRow = -1;
+
+    // フロー構造用の変数
+    private Dictionary<int, List<List<int>>> _chapterFlowStructures = new();
+
+    // デスクトップ/モバイル判定
+    private bool _isMobile = false;
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -307,47 +1307,564 @@
 
         if (_project == null) {
             Nav.NavigateTo("/projects");
+            return;
+        }
+
+        // StructureDataの初期化
+        if (_project.ProjectDataObject.Structure == null) {
+            _project.ProjectDataObject.Structure = new StructureData();
+        }
+
+        // PlotDataの初期化
+        if (_project.ProjectDataObject.Structure.Plots == null) {
+            _project.ProjectDataObject.Structure.Plots = new PlotData {
+                Ki = Array.Empty<string>(),
+                Shou = Array.Empty<string>(),
+                Ten = Array.Empty<string>(),
+                Ketsu = Array.Empty<string>()
+            };
+        }
+
+        // TimeLineDataの初期化
+        if (_project.ProjectDataObject.Structure.Timeline == null) {
+            _project.ProjectDataObject.Structure.Timeline = new TimeLineData {
+                ChapterIndex = Array.Empty<int>(),
+                SectionIndex = Array.Empty<int>(),
+                NextTimeLineIndex = Array.Empty<int>()
+            };
+        }
+
+        // ScenarioDataの初期化（時系列用）
+        if (_project.ProjectDataObject.Scenario == null) {
+            _project.ProjectDataObject.Scenario = new ScenarioData {
+                Chapters = Array.Empty<Chapter>()
+            };
         }
     }
 
-    private async Task BackToCategoryView() {
-        _showCategoryView = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            _isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
+            StateHasChanged();
+        }
+    }
 
+    private List<List<int>> BuildFlowStructure(int chapterIndex) {
+        if (_chapterFlowStructures.ContainsKey(chapterIndex)) {
+            return _chapterFlowStructures[chapterIndex];
+        }
+
+        var chapter = _project.ProjectDataObject.Scenario.Chapters[chapterIndex];
+        if (chapter.Sections == null || chapter.Sections.Length == 0) {
+            return new List<List<int>>();
+        }
+
+        // デフォルトは1列のフロー
+        var flowStructure = new List<List<int>>();
+        for (int i = 0; i < chapter.Sections.Length; i++) {
+            flowStructure.Add(new List<int> { i });
+        }
+
+        _chapterFlowStructures[chapterIndex] = flowStructure;
+        return flowStructure;
+    }
+
+    private List<List<int>> GetFlowStructure(int chapterIndex) {
+        if (!_chapterFlowStructures.ContainsKey(chapterIndex)) {
+            var chapter = _project.ProjectDataObject.Scenario.Chapters[chapterIndex];
+            if (chapter.Sections == null || chapter.Sections.Length == 0) {
+                _chapterFlowStructures[chapterIndex] = new List<List<int>>();
+            } else {
+                // デフォルトは1列のフロー
+                var flowStructure = new List<List<int>>();
+                for (int i = 0; i < chapter.Sections.Length; i++) {
+                    flowStructure.Add(new List<int> { i });
+                }
+                _chapterFlowStructures[chapterIndex] = flowStructure;
+            }
+        }
+        return _chapterFlowStructures[chapterIndex];
+    }
+
+    private void ToggleChapter(int chapterIndex) {
+        if (_collapsedChapters.Contains(chapterIndex)) {
+            _collapsedChapters.Remove(chapterIndex);
+        } else {
+            _collapsedChapters.Add(chapterIndex);
+        }
+    }
+
+    // チャプタードラッグアンドドロップメソッド
+    private void HandleChapterDragStart(int index) {
+        _dragSourceChapterIndex = index;
+    }
+
+    private void HandleChapterDragEnd() {
+        _dragSourceChapterIndex = -1;
+        _dragOverChapterIndex = -1;
+        _dragOverChapterBottom = false;
+    }
+
+    private void HandleChapterDragOver(DragEventArgs e, int index) {
+        if (_dragSourceChapterIndex == -1) return;
+
+        _dragOverChapterIndex = index;
+
+        _dragOverChapterBottom = e.OffsetY > 70;
+    }
+
+    private void HandleChapterDragLeave() {
+        _dragOverChapterIndex = -1;
+        _dragOverChapterBottom = false;
+    }
+
+    private string GetChapterDragClass(int index) {
+        if (_dragSourceChapterIndex == index) {
+            return "dragging";
+        }
+
+        if (_dragOverChapterIndex == index) {
+            return _dragOverChapterBottom ? "drag-over-bottom" : "drag-over-top";
+        }
+
+        return "";
+    }
+
+    private async Task HandleChapterDrop(int targetIndex) {
+        if (_dragSourceChapterIndex == -1) {
+            HandleChapterDragEnd();
+            return;
+        }
+
+        // 同じ位置へのドロップは無視
+        if (_dragSourceChapterIndex == targetIndex && !_dragOverChapterBottom) {
+            HandleChapterDragEnd();
+            return;
+        }
+
+        var chapters = _project.ProjectDataObject.Scenario.Chapters.ToList();
+        var draggedChapter = chapters[_dragSourceChapterIndex];
+
+        // フロー構造も一緒に移動
+        var draggedFlow = _chapterFlowStructures.ContainsKey(_dragSourceChapterIndex)
+            ? _chapterFlowStructures[_dragSourceChapterIndex]
+            : null;
+
+        chapters.RemoveAt(_dragSourceChapterIndex);
+
+        int insertIndex = targetIndex;
+
+        // インデックス計算を修正
+        if (_dragSourceChapterIndex < targetIndex) {
+            // 下に移動する場合
+            if (_dragOverChapterBottom) {
+                insertIndex = targetIndex; // targetIndexの後ろ
+            } else {
+                insertIndex = targetIndex - 1; // targetIndexの前（削除後のインデックス）
+            }
+        } else {
+            // 上に移動する場合
+            if (_dragOverChapterBottom) {
+                insertIndex = targetIndex + 1; // targetIndexの後ろ
+            } else {
+                insertIndex = targetIndex; // targetIndexの前
+            }
+        }
+
+        // 範囲チェック
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > chapters.Count) insertIndex = chapters.Count;
+
+        chapters.Insert(insertIndex, draggedChapter);
+        _project.ProjectDataObject.Scenario.Chapters = chapters.ToArray();
+
+        // フロー構造のインデックスを更新
+        var newFlowStructures = new Dictionary<int, List<List<int>>>();
+        for (int i = 0; i < chapters.Count; i++) {
+            if (i == insertIndex && draggedFlow != null) {
+                newFlowStructures[i] = draggedFlow;
+            } else {
+                int oldIndex;
+                if (i < insertIndex) {
+                    oldIndex = i < _dragSourceChapterIndex ? i : i + 1;
+                } else {
+                    oldIndex = i <= _dragSourceChapterIndex ? i : i - 1;
+                }
+
+                if (_chapterFlowStructures.ContainsKey(oldIndex)) {
+                    newFlowStructures[i] = _chapterFlowStructures[oldIndex];
+                }
+            }
+        }
+        _chapterFlowStructures = newFlowStructures;
+
+        // 折りたたみ状態も更新
+        var newCollapsed = new HashSet<int>();
+        foreach (var oldIdx in _collapsedChapters) {
+            int newIdx;
+            if (oldIdx == _dragSourceChapterIndex) {
+                newIdx = insertIndex;
+            } else if (oldIdx < _dragSourceChapterIndex && oldIdx < insertIndex) {
+                newIdx = oldIdx;
+            } else if (oldIdx > _dragSourceChapterIndex && oldIdx > insertIndex) {
+                newIdx = oldIdx;
+            } else if (oldIdx < _dragSourceChapterIndex) {
+                newIdx = oldIdx + 1;
+            } else {
+                newIdx = oldIdx - 1;
+            }
+            newCollapsed.Add(newIdx);
+        }
+        _collapsedChapters = newCollapsed;
+
+        await SaveProject();
+        HandleChapterDragEnd();
+        StateHasChanged();
+    }
+
+    // セクションドラッグアンドドロップメソッド
+    private void HandleSectionDragStart(int chapterIndex, int sectionIndex, int rowIndex) {
+        _dragSourceSectionChapter = chapterIndex;
+        _dragSourceSectionIndex = sectionIndex;
+        _dragSourceSectionRow = rowIndex;
+    }
+
+    private void HandleSectionDragEnd() {
+        _dragSourceSectionChapter = -1;
+        _dragSourceSectionIndex = -1;
+        _dragSourceSectionRow = -1;
+        _dragOverSectionChapter = -1;
+        _dragOverSectionIndex = -1;
+        _dragOverSectionRow = -1;
+    }
+
+    private void HandleSectionDragOver(DragEventArgs e, int chapterIndex, int sectionIndex, int rowIndex) {
+        // 同じ章内でのみドラッグ可能
+        if (_dragSourceSectionChapter == chapterIndex) {
+            _dragOverSectionChapter = chapterIndex;
+            _dragOverSectionIndex = sectionIndex;
+            _dragOverSectionRow = rowIndex;
+        }
+    }
+
+    private void HandleSectionDragLeave() {
+        _dragOverSectionChapter = -1;
+        _dragOverSectionIndex = -1;
+    }
+
+    private string GetSectionDragClass(int chapterIndex, int sectionIndex) {
+        if (_dragSourceSectionChapter == chapterIndex && _dragSourceSectionIndex == sectionIndex) {
+            return "dragging";
+        }
+
+        if (_dragOverSectionChapter == chapterIndex && _dragOverSectionIndex == sectionIndex) {
+            return "drag-over";
+        }
+
+        return "";
+    }
+
+    private async Task HandleSectionDrop(int targetChapter, int targetSection, int targetRow) {
+        // 章をまたいだ移動は禁止
+        if (_dragSourceSectionChapter != targetChapter || _dragSourceSectionChapter == -1) {
+            HandleSectionDragEnd();
+            return;
+        }
+
+        if (_dragSourceSectionIndex == targetSection && _dragSourceSectionRow == targetRow) {
+            HandleSectionDragEnd();
+            return;
+        }
+
+        var flowStructure = GetFlowStructure(targetChapter);
+
+        // ドラッグ元から削除
+        var sourceRow = flowStructure[_dragSourceSectionRow];
+        sourceRow.Remove(_dragSourceSectionIndex);
+
+        // 空になった行を削除
+        if (sourceRow.Count == 0) {
+            flowStructure.RemoveAt(_dragSourceSectionRow);
+            // ターゲット行のインデックスを調整
+            if (_dragSourceSectionRow < targetRow) {
+                targetRow--;
+            }
+        }
+
+        // ターゲット行に追加
+        if (targetRow >= 0 && targetRow < flowStructure.Count) {
+            var targetRowList = flowStructure[targetRow];
+
+            // 同じ行内での位置を決定
+            int insertPos = targetRowList.IndexOf(targetSection);
+            if (insertPos == -1) {
+                targetRowList.Add(_dragSourceSectionIndex);
+            } else {
+                targetRowList.Insert(insertPos, _dragSourceSectionIndex);
+            }
+        }
+
+        await SaveProject();
+        HandleSectionDragEnd();
+        StateHasChanged();
+    }
+
+    // 分岐行を追加するメソッド
+    private async Task AddBranchRow(int chapterIndex) {
+        var chapter = _project.ProjectDataObject.Scenario.Chapters[chapterIndex];
+        if (chapter.Sections == null || chapter.Sections.Length == 0) return;
+
+        var flowStructure = GetFlowStructure(chapterIndex);
+
+        // 新しい空の行を追加
+        flowStructure.Add(new List<int>());
+
+        await SaveProject();
+        StateHasChanged();
+    }
+
+    // 分岐行を削除するメソッド
+    private async Task RemoveBranchRow(int chapterIndex, int rowIndex) {
+        var flowStructure = GetFlowStructure(chapterIndex);
+
+        if (rowIndex >= 0 && rowIndex < flowStructure.Count) {
+            // その行のセクションを最後の行に移動
+            var sectionsToMove = flowStructure[rowIndex];
+            flowStructure.RemoveAt(rowIndex);
+
+            if (sectionsToMove.Count > 0 && flowStructure.Count > 0) {
+                flowStructure[flowStructure.Count - 1].AddRange(sectionsToMove);
+            } else if (sectionsToMove.Count > 0) {
+                // 最後の行がない場合は新しい行を作成
+                flowStructure.Add(sectionsToMove);
+            }
+
+            await SaveProject();
+            StateHasChanged();
+        }
+    }
+
+    private void SaveTimelineData() {
+        if (_project?.ProjectDataObject?.Structure?.Timeline == null) return;
+
+        var chapterIndices = new List<int>();
+        var sectionIndices = new List<int>();
+
+        foreach (var item in _timelineItems) {
+            chapterIndices.Add(item.ChapterIndex);
+            sectionIndices.Add(item.SectionIndex);
+        }
+
+        _project.ProjectDataObject.Structure.Timeline.ChapterIndex = chapterIndices.ToArray();
+        _project.ProjectDataObject.Structure.Timeline.SectionIndex = sectionIndices.ToArray();
+    }
+
+    private async Task BackToCategoryView() {
+        await SaveProject();
+        _showCategoryView = false;
+        _structureMode = "";
         StateHasChanged();
     }
 
     private async Task BackToProjectList() {
-        await using var db = DbFactory.CreateDbContext();
-        db.Projects.Update(_project);
-        await db.SaveChangesAsync();   // ← ここで確定
-
+        await SaveProject();
         Nav.NavigateTo("/projects");
+    }
+
+    private async Task SaveProject() {
+        if (_project != null && _project.ProjectDataObject != null) {
+            _project.UpdatedAt = DateTime.UtcNow;
+            await using var db = DbFactory.CreateDbContext();
+            db.Projects.Update(_project);
+            await db.SaveChangesAsync();
+        }
     }
 
     private async Task SelectCategory(string category) {
         _currentCategory = category;
         if (category == "writing") {
-            NavigateToWriting(id);
+            await SaveProject();
+            Nav.NavigateTo($"/projects/edit/{id}");
         } else if (category == "structure") {
             _showCategoryView = true;
         } else if (category == "materials") {
-            NavigateToMaterials(id);
+            await SaveProject();
+            Nav.NavigateTo($"/projects/edit/{id}/materials");
         }
 
         StateHasChanged();
     }
 
-    private void NavigateToWriting(int id) {
-        Nav.NavigateTo($"/projects/edit/{id}");
+    private void SelectStructureMode(string mode) {
+        _structureMode = mode;
+        if (mode == "timeline") {
+
+        }
+        StateHasChanged();
     }
 
-    private void NavigateToMaterials(int id) {
-        Nav.NavigateTo($"/projects/edit/{id}/materials");
+    private void SelectStructureModeMobile(string mode) {
+        _structureMode = mode;
+        _mobileShowEditor = true;
+        if (mode == "timeline") {
+
+        }
+        StateHasChanged();
     }
 
-    private bool _sidebarCollapsed = false;
+    private void BackToModeSelect() {
+        _mobileShowEditor = false;
+        StateHasChanged();
+    }
 
     private void ToggleSidebar() {
         _sidebarCollapsed = !_sidebarCollapsed;
+    }
+
+    // プロット編集メソッド
+    private async Task AddPlotItem(string column) {
+        if (_project?.ProjectDataObject?.Structure?.Plots == null) return;
+
+        var plots = _project.ProjectDataObject.Structure.Plots;
+
+        switch (column.ToLower()) {
+            case "ki":
+                var kiList = plots.Ki?.ToList() ?? new List<string>();
+                kiList.Add("");
+                plots.Ki = kiList.ToArray();
+                break;
+            case "shou":
+                var shouList = plots.Shou?.ToList() ?? new List<string>();
+                shouList.Add("");
+                plots.Shou = shouList.ToArray();
+                break;
+            case "ten":
+                var tenList = plots.Ten?.ToList() ?? new List<string>();
+                tenList.Add("");
+                plots.Ten = tenList.ToArray();
+                break;
+            case "ketsu":
+                var ketsuList = plots.Ketsu?.ToList() ?? new List<string>();
+                ketsuList.Add("");
+                plots.Ketsu = ketsuList.ToArray();
+                break;
+        }
+
+        await SaveProject();
+        StateHasChanged();
+    }
+
+    private async Task DeletePlotItem(string column, int index) {
+        if (_project?.ProjectDataObject?.Structure?.Plots == null) return;
+
+        var plots = _project.ProjectDataObject.Structure.Plots;
+
+        switch (column.ToLower()) {
+            case "ki":
+                if (plots.Ki != null && index >= 0 && index < plots.Ki.Length) {
+                    var kiList = plots.Ki.ToList();
+                    kiList.RemoveAt(index);
+                    plots.Ki = kiList.ToArray();
+                }
+                break;
+            case "shou":
+                if (plots.Shou != null && index >= 0 && index < plots.Shou.Length) {
+                    var shouList = plots.Shou.ToList();
+                    shouList.RemoveAt(index);
+                    plots.Shou = shouList.ToArray();
+                }
+                break;
+            case "ten":
+                if (plots.Ten != null && index >= 0 && index < plots.Ten.Length) {
+                    var tenList = plots.Ten.ToList();
+                    tenList.RemoveAt(index);
+                    plots.Ten = tenList.ToArray();
+                }
+                break;
+            case "ketsu":
+                if (plots.Ketsu != null && index >= 0 && index < plots.Ketsu.Length) {
+                    var ketsuList = plots.Ketsu.ToList();
+                    ketsuList.RemoveAt(index);
+                    plots.Ketsu = ketsuList.ToArray();
+                }
+                break;
+        }
+
+        await SaveProject();
+        StateHasChanged();
+    }
+
+    // 時系列ドラッグアンドドロップメソッド
+    private void HandleTimelineDragStart(int index) {
+        _dragSourceTimelineIndex = index;
+    }
+
+    private void HandleTimelineDragEnd() {
+        _dragSourceTimelineIndex = -1;
+        _dragOverTimelineIndex = -1;
+        _dragOverTimelineBottom = false;
+    }
+
+    private void HandleTimelineDragOver(DragEventArgs e, int index) {
+        _dragOverTimelineIndex = index;
+        _dragOverTimelineBottom = e.OffsetY > 30;
+    }
+
+    private void HandleTimelineDragLeave() {
+        _dragOverTimelineIndex = -1;
+        _dragOverTimelineBottom = false;
+    }
+
+    private string GetTimelineDragClass(int index) {
+        if (_dragSourceTimelineIndex == index) {
+            return "dragging";
+        }
+
+        if (_dragOverTimelineIndex == index) {
+            return _dragOverTimelineBottom ? "drag-over-bottom" : "drag-over-top";
+        }
+
+        return "";
+    }
+
+    private async Task HandleTimelineDrop(int targetIndex) {
+        if (_dragSourceTimelineIndex == -1 || _dragSourceTimelineIndex == targetIndex) {
+            HandleTimelineDragEnd();
+            return;
+        }
+
+        var draggedItem = _timelineItems[_dragSourceTimelineIndex];
+        _timelineItems.RemoveAt(_dragSourceTimelineIndex);
+
+        int insertIndex = targetIndex;
+
+        if (_dragSourceTimelineIndex > targetIndex) {
+            if (_dragOverTimelineBottom) {
+                insertIndex++;
+            }
+        } else {
+            insertIndex--;
+            if (_dragOverTimelineBottom) {
+                insertIndex++;
+            }
+        }
+
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > _timelineItems.Count) insertIndex = _timelineItems.Count;
+
+        _timelineItems.Insert(insertIndex, draggedItem);
+
+        SaveTimelineData();
+        await SaveProject();
+        HandleTimelineDragEnd();
+        StateHasChanged();
+    }
+
+    // 時系列アイテムクラス
+    private class TimelineItem {
+        public int ChapterIndex { get; set; }
+        public int SectionIndex { get; set; }
+        public string Title { get; set; } = "";
+        public bool IsChapter { get; set; }
     }
 }

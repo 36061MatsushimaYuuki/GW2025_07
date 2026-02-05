@@ -822,6 +822,16 @@
             margin-bottom: 0;
         }
 
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #8c959f;
+        font-size: 16px;
+    }
+
     /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
@@ -887,6 +897,54 @@
             max-width: calc(100vw - 20px);
         }
     }
+
+    .mobile-category-ui {
+        position: sticky;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 0;
+    }
+
+    .category-select-button {
+        width: 64px;
+        height: 64px;
+        cursor: pointer;
+        line-height: 64px;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        background-color: lightgrey;
+        border: solid;
+        border-color: grey;
+    }
+
+        .category-select-button + .category-select-button {
+            border-left: none;
+        }
+
+        .category-select-button:first-child {
+            border-top-left-radius: 10%;
+            border-bottom-left-radius: 10%;
+        }
+
+        .category-select-button:last-child {
+            border-top-right-radius: 10%;
+            border-bottom-right-radius: 10%;
+        }
+
+        .category-select-button:hover {
+            background-color: grey;
+        }
+
+        .category-select-button.active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+            .category-select-button.active:hover {
+                background-color: #0052a3;
+            }
 
     #char-counter {
         position: fixed;
@@ -1217,11 +1275,11 @@
             } else {
                 <div class="editor-content">
                     @if (_showCategoryView) {
-                        <div class="empty-message" style="margin-top: 50px;">
-                            左のサイドバーから編集する話を選択してください
+                        <div class="empty-state">
+                            編集する話を選択してください
                         </div>
                     } else {
-                        <div class="empty-message" style="margin-top: 50px;">
+                        <div class="empty-state">
                             左のサイドバーからカテゴリーを選択してください
                         </div>
                     }
@@ -1330,7 +1388,7 @@
             <div class="mobile-list">
                 <div class="mobile-header">
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
-                    <div class="mobile-editor-title">執筆</div>
+                    <div class="mobile-editor-title">プロジェクト一覧に戻る</div>
                 </div>
                 <div class="mobile-chapter-view">
                     @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
@@ -1380,6 +1438,11 @@
                     }
                     <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
                 </div>
+            </div>
+            <div class="mobile-category-ui">
+                <div class="category-select-button active" @onclick='() => SelectCategory("writing")'>執筆</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("structure")'>構成</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("materials")'>資料</div>
             </div>
         }
     </div>

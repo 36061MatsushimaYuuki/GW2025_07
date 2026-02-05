@@ -750,6 +750,54 @@
             width: 300px;
         }
     }
+
+    .mobile-category-ui {
+        position: sticky;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 0;
+    }
+
+    .category-select-button {
+        width: 64px;
+        height: 64px;
+        cursor: pointer;
+        line-height: 64px;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        background-color: lightgrey;
+        border: solid;
+        border-color: grey;
+    }
+
+        .category-select-button + .category-select-button {
+            border-left: none;
+        }
+
+        .category-select-button:first-child {
+            border-top-left-radius: 10%;
+            border-bottom-left-radius: 10%;
+        }
+
+        .category-select-button:last-child {
+            border-top-right-radius: 10%;
+            border-bottom-right-radius: 10%;
+        }
+
+        .category-select-button:hover {
+            background-color: grey;
+        }
+
+        .category-select-button.active {
+            background-color: #0066cc;
+            color: white;
+        }
+
+            .category-select-button.active:hover {
+                background-color: #0052a3;
+            }
 </style>
 
 @if (_project == null) {
@@ -871,9 +919,15 @@
                     <div>資料を選択してください</div>
                 </div>
             } else {
-                <div class="empty-state">
-                    <div>カテゴリを選択してください</div>
-                </div>
+                @if (_showCategoryView) {
+                    <div class="empty-state">
+                        資料カテゴリを選択してください
+                    </div>
+                } else {
+                    <div class="empty-state">
+                        左のサイドバーからカテゴリーを選択してください
+                    </div>
+                }
             }
         </div>
     </div>
@@ -932,7 +986,7 @@
             <div class="mobile-list">
                 <div class="mobile-header">
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
-                    <div class="mobile-title">資料</div>
+                    <div class="mobile-title">プロジェクト一覧に戻る</div>
                 </div>
                 <div class="mobile-category-list">
                     @if (_project.ProjectDataObject?.Material?.Category != null && _project.ProjectDataObject.Material.Category.Length > 0) {
@@ -965,6 +1019,13 @@
                     }
                     <button class="add-category-btn" @onclick="ShowAddCategoryModal">+ カテゴリを追加</button>
                 </div>
+            </div>
+        }
+        @if (!_mobileShowEditor) {
+            <div class="mobile-category-ui">
+                <div class="category-select-button" @onclick='() => SelectCategory("writing")'>執筆</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("structure")'>構成</div>
+                <div class="category-select-button active" @onclick='() => SelectCategory("materials")'>資料</div>
             </div>
         }
     </div>
@@ -1009,7 +1070,6 @@
     private Project? _project;
     private string _currentCategory = "materials";
     private bool _showCategoryView = true;
-    private bool _showMaterialView = false;
     private bool _mobileShowEditor = false;
     private bool _mobileShowMaterialList = false;
     private MaterialCategory? _selectedCategory;
@@ -1238,7 +1298,6 @@
             if (_selectedCategory == category) {
                 _selectedCategory = null;
                 _selectedMaterial = null;
-                _showMaterialView = false;
             }
 
             await SaveProject();
