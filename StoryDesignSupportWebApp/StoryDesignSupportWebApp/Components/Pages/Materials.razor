@@ -205,7 +205,7 @@
     .icon-btn {
         background: none;
         border: none;
-        color: #0066cc;
+        color: #666;
         cursor: pointer;
         font-size: 14px;
         padding: 4px;
@@ -213,11 +213,12 @@
     }
 
         .icon-btn:hover {
-            color: #0052a3;
+            color: #333;
         }
 
         .icon-btn.delete {
             background: none;
+            padding: 0 8px;
             border: none;
             cursor: pointer;
             font-size: 14px;
@@ -344,6 +345,9 @@
         transition: all 0.2s ease;
         color: #24292f;
         font-size: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* エディタエリア */
@@ -381,22 +385,25 @@
 
     .editor-content {
         flex: 1;
-        overflow-y: auto;
+        overflow: hidden;
         padding: 30px 0 30px 30px;
     }
 
     .editor-textarea {
         width: 100%;
         min-height: 400px;
+        height: 100%;
         border: 1px solid #d0d7de;
         border-radius: 6px;
         padding: 12px;
-        font-size: 14px;
+        font-size: 16px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
         line-height: 1.6;
-        resize: vertical;
+        resize: none;
         outline: none;
         transition: border-color 0.2s ease;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
         .editor-textarea:focus {
@@ -413,6 +420,22 @@
         color: #8c959f;
         font-size: 16px;
     }
+
+        .empty-state.category-bar {
+            padding: 16px 20px;
+            height: fit-content;
+            border-bottom: 1px solid #e1e4e8;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .empty-state.material-bar {
+            padding: 16px 20px;
+            height: fit-content;
+            border-bottom: 1px solid #e1e4e8;
+            justify-content: space-between;
+            align-items: center;
+        }
 
     .empty-icon {
         font-size: 48px;
@@ -668,7 +691,7 @@
 
     .mobile-editor-content {
         flex: 1;
-        overflow-y: auto;
+        overflow: hidden;
         padding: 20px;
     }
 
@@ -689,14 +712,17 @@
 
     .mobile-textarea {
         width: 100%;
+        height: 90%;
         min-height: 300px;
         border: 1px solid #d0d7de;
         border-radius: 6px;
         padding: 12px;
         font-size: 14px;
         line-height: 1.6;
-        resize: vertical;
+        resize: none;
         outline: none;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
         .mobile-textarea:focus {
@@ -761,13 +787,13 @@
                                     <span class="category-name">@category.Title</span>
                                 </span>
                                 <div class="category-actions">
-                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✏️</button>
-                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">ー</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✎</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">−</button>
                                 </div>
                             </div>
                         }
                     } else {
-                        <div class="empty-state">
+                        <div class="empty-state category-bar">
                             <div>資料カテゴリがありません</div>
                         </div>
                     }
@@ -798,10 +824,10 @@
         @if (_showCategoryView && _selectedCategory != null) {
             <div class="material-list-panel">
                 <div class="material-list-header">
-                    資料一覧
+                    資料一覧: @(_selectedCategory.Title ?? "")
                 </div>
                 <div class="material-view">
-                    @if (_selectedCategory.Items != null) {
+                    @if (_selectedCategory.Items != null && _selectedCategory.Items.Length > 0) {
                         @for (int i = 0; i < _selectedCategory.Items.Length; i++) {
                             var item = _selectedCategory.Items[i];
                             var index = i;
@@ -816,11 +842,15 @@
                                  @onclick="() => SelectMaterial(item)">
                                 <span class="material-title">@item.Title</span>
                                 <div class="material-actions">
-                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✏️</button>
-                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">ー</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✎</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">−</button>
                                 </div>
                             </div>
                         }
+                    } else {
+                        <div class="empty-state material-bar">
+                            <div>資料がありません</div>
+                        </div>
                     }
                     <button class="add-material-btn" @onclick="ShowAddMaterialModal">+ 資料を追加</button>
                 </div>
@@ -854,7 +884,7 @@
             <div class="mobile-editor">
                 <div class="mobile-editor-header">
                     <button class="back-btn" @onclick="BackToMaterialList">&lt;</button>
-                    <div class="mobile-editor-title">@(_selectedMaterial?.Title ?? "資料")</div>
+                    <div class="mobile-editor-title">カテゴリ: @(_selectedCategory?.Title ?? "資料")</div>
                 </div>
                 <div class="mobile-editor-content">
                     @if (_selectedMaterial != null) {
@@ -870,7 +900,7 @@
                     <div class="mobile-title">カテゴリ: @(_selectedCategory?.Title ?? "資料")</div>
                 </div>
                 <div class="mobile-material-list">
-                    @if (_selectedCategory?.Items != null) {
+                    @if (_selectedCategory?.Items != null && _selectedCategory.Items.Length > 0) {
                         @for (int i = 0; i < _selectedCategory.Items.Length; i++) {
                             var item = _selectedCategory.Items[i];
                             var index = i;
@@ -885,11 +915,15 @@
                                  @onclick="() => SelectMaterialMobile(item)">
                                 <span>@item.Title</span>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✏️</button>
-                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">ー</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true">✎</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteMaterial(item)" @onclick:stopPropagation="true">−</button>
                                 </div>
                             </div>
                         }
+                    } else {
+                        <div class="empty-state material-bar">
+                            <div>資料がありません</div>
+                        </div>
                     }
                     <button class="add-material-btn" @onclick="ShowAddMaterialModal">+ 資料を追加</button>
                 </div>
@@ -901,7 +935,7 @@
                     <div class="mobile-title">資料</div>
                 </div>
                 <div class="mobile-category-list">
-                    @if (_project.ProjectDataObject?.Material?.Category != null) {
+                    @if (_project.ProjectDataObject?.Material?.Category != null && _project.ProjectDataObject.Material.Category.Length > 0) {
                         @for (int i = 0; i < _project.ProjectDataObject.Material.Category.Length; i++) {
                             var category = _project.ProjectDataObject.Material.Category[i];
                             var index = i;
@@ -919,11 +953,15 @@
                                     <div class="category-name">@category.Title</div>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✏️</button>
-                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">ー</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✎</button>
+                                    <button class="icon-btn delete" @onclick="() => DeleteCategory(category)" @onclick:stopPropagation="true">−</button>
                                 </div>
                             </div>
                         }
+                    } else {
+                        <div class="empty-state category-bar">
+                            <div>資料カテゴリがありません</div>
+                        </div>
                     }
                     <button class="add-category-btn" @onclick="ShowAddCategoryModal">+ カテゴリを追加</button>
                 </div>
@@ -1139,7 +1177,8 @@
 
     // カテゴリ追加モーダル
     private void ShowAddCategoryModal() {
-        _categoryModalTitle = "";
+        var categoryCount = _project?.ProjectDataObject?.Material?.Category?.Length ?? 0;
+        _categoryModalTitle = $"カテゴリ{categoryCount + 1}";
         _isEditingCategory = false;
         _editingCategory = null;
         _showCategoryModal = true;
@@ -1209,7 +1248,8 @@
 
     // 資料追加モーダル
     private void ShowAddMaterialModal() {
-        _materialModalTitle = "";
+        var itemCount = _selectedCategory?.Items?.Length ?? 0;
+        _materialModalTitle = $"資料{itemCount + 1}";
         _isEditingMaterial = false;
         _editingMaterial = null;
         _showMaterialModal = true;

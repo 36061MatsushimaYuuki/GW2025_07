@@ -13,6 +13,7 @@
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ProtectedSessionStorage SessionStorage
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Projects</PageTitle>
 
@@ -67,11 +68,11 @@
                 background: #0056b3;
             }
 
-    .filter-button img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-    }
+        .filter-button img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
 
     .search-box {
         flex: 1;
@@ -162,9 +163,9 @@
                 transition: transform 0.3s;
             }
 
-            .filter-section h4 .expand-icon.expanded {
-                transform: rotate(90deg);
-            }
+                .filter-section h4 .expand-icon.expanded {
+                    transform: rotate(90deg);
+                }
 
     .sort-controls {
         display: flex;
@@ -337,25 +338,25 @@
             color: #333;
         }
 
-        .required {
-            color: red;
-        }
+    .required {
+        color: red;
+    }
 
-        .form-group input[type="text"],
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
+    .form-group input[type="text"],
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
 
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-            font-family: inherit;
-        }
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+    }
 
     .genre-input-container {
         display: flex;
@@ -621,10 +622,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 5;
         -webkit-box-orient: vertical;
         line-height: 1.5;
-        height: 84px;
+        height: 105px;
         flex-shrink: 0;
     }
 
@@ -673,6 +674,35 @@
         color: #666;
         font-size: 16px;
     }
+
+    .project-add-button {
+        border: none;
+        position: sticky;
+        bottom: 3%;
+        left: 95%;
+        width: 56px;
+        height: 56px;
+        border-radius: 100%;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        background-color: #007bff;
+        font-size: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+        z-index: 100;
+    }
+
+        .project-add-button:hover {
+            background: #0056b3;
+        }
+
+        .project-add-button.show {
+            opacity: 1;
+            visibility: visible;
+        }
 </style>
 
 <div class="projects-container">
@@ -680,10 +710,10 @@
         <h3 style="margin-top: 0;">プロジェクト一覧</h3>
 
         <div class="search-filter-row">
-            <button class="filter-button @(HasActiveFilters ? "active" : "")" 
-                    @onclick="OpenFilterModal" 
+            <button class="filter-button @(HasActiveFilters ? "active" : "")"
+                    @onclick="OpenFilterModal"
                     title="ソート・フィルター">
-                <img src="/images/filter-icon.png"/>
+                <img src="/images/filter-icon.png" />
             </button>
 
             <div class="search-box">
@@ -754,6 +784,8 @@
                 </div>
             }
         </div>
+
+        <button class="project-add-button @(isVisible ? "show" : "")" @onclick="OpenAddModal">+</button>
     }
 </div>
 
@@ -772,11 +804,11 @@
                     <option value="created">作成日</option>
                     <option value="updated">更新日</option>
                 </select>
-                <button class="sort-order-btn @(sortOrder == "desc" ? "active" : "")" 
+                <button class="sort-order-btn @(sortOrder == "desc" ? "active" : "")"
                         @onclick="@(() => sortOrder = "desc")">
                     新しい順
                 </button>
-                <button class="sort-order-btn @(sortOrder == "asc" ? "active" : "")" 
+                <button class="sort-order-btn @(sortOrder == "asc" ? "active" : "")"
                         @onclick="@(() => sortOrder = "asc")">
                     古い順
                 </button>
@@ -951,6 +983,20 @@
     private bool showDeleteModal = false;
     private int? deleteTargetId = null;
     private string deleteTargetProjectName = "";
+
+    private bool isVisible = false;
+    private DotNetObjectReference<Projects>? _dotNetHelper;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            var dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("initializeScrollListener", dotNetHelper);
+        }
+    }
+
+    public void Dispose() {
+        _dotNetHelper?.Dispose();
+    }
 
     private IEnumerable<ProjectListItem> FilteredProjects {
         get {
@@ -1284,4 +1330,31 @@
         if (diff.TotalDays < 365) return $"{(int)(diff.TotalDays / 30)}ヶ月前";
         return $"{(int)(diff.TotalDays / 365)}年前";
     }
+
+    [JSInvokable("OnScrollPositionChanged")]
+    public void OnScrollPositionChanged(double scrollY) {
+        // 300px以上スクロールしたら表示
+        bool newVisibility = scrollY > 190;
+        if (isVisible != newVisibility) {
+            isVisible = newVisibility;
+            StateHasChanged(); // 再レンダリング
+        }
+    }
 }
+
+<script>
+    window.initializeScrollListener = function(dotNetHelper) {
+        if (window.scrollListenerInitialized) return;
+        window.scrollListenerInitialized = true;
+
+        window.addEventListener('scroll', function() {
+            const scrollY = window.scrollY || window.pageYOffset;
+
+            try {
+                dotNetHelper.invokeMethodAsync('OnScrollPositionChanged', scrollY);
+            } catch (err) {
+                console.warn('Scroll listener failed:', err);
+            }
+        });
+    };
+</script>

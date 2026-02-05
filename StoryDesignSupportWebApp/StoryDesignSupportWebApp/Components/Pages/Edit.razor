@@ -785,6 +785,19 @@
             color: #333;
         }
 
+    .desktop-btn {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .chapter-header:hover .desktop-btn {
+        opacity: 1;
+    }
+
+    .section-item:hover .desktop-btn {
+        opacity: 1;
+    }
+
     .delete-section-btn {
         background: none;
         border: none;
@@ -1057,8 +1070,10 @@
                                     <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                         @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
                                     </span>
-                                    <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
-                                    <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
+                                    <div class="desktop-btn">
+                                        <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
+                                        <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
+                                    </div>
                                 </div>
                                 <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
                                     @if (chapter.Sections == null || chapter.Sections.Length == 0) {
@@ -1080,7 +1095,9 @@
                                                 <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSection(chapterIndex, sectionIndex)">
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </span>
-                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                <div class="desktop-btn">
+                                                    <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                </div>
                                             </div>
                                         }
                                     }
