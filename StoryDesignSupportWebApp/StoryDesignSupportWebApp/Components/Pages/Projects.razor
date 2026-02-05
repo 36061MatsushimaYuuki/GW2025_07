@@ -989,8 +989,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
-            var dotNetHelper = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("initializeScrollListener", dotNetHelper);
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("initializeScrollListener", _dotNetHelper);
+
+            // 初期スクロール位置をチェック
+            await Task.Delay(100); // DOMの準備を待つ
+            try {
+                var scrollY = await JSRuntime.InvokeAsync<double>("eval", "window.scrollY || window.pageYOffset");
+                OnScrollPositionChanged(scrollY);
+            }
+            catch {
+                // エラーは無視
+            }
         }
     }
 
@@ -1062,6 +1072,8 @@
                 UpdatedAt = p.UpdatedAt
             })
             .ToListAsync();
+
+        isVisible = false;
     }
 
     // ソート・フィルターモーダル
@@ -1337,17 +1349,19 @@
         bool newVisibility = scrollY > 190;
         if (isVisible != newVisibility) {
             isVisible = newVisibility;
-            StateHasChanged(); // 再レンダリング
+            InvokeAsync(StateHasChanged); // InvokeAsyncでラップ
         }
     }
 }
 
 <script>
     window.initializeScrollListener = function(dotNetHelper) {
-        if (window.scrollListenerInitialized) return;
-        window.scrollListenerInitialized = true;
+        // 既存のリスナーをクリーンアップ
+        if (window.scrollListenerHandler) {
+            window.removeEventListener('scroll', window.scrollListenerHandler);
+        }
 
-        window.addEventListener('scroll', function() {
+        window.scrollListenerHandler = function() {
             const scrollY = window.scrollY || window.pageYOffset;
 
             try {
@@ -1355,6 +1369,18 @@
             } catch (err) {
                 console.warn('Scroll listener failed:', err);
             }
-        });
+        };
+
+        window.addEventListener('scroll', window.scrollListenerHandler);
+
+        // 初期状態を即座にチェック
+        setTimeout(() => {
+            const scrollY = window.scrollY || window.pageYOffset;
+            try {
+                dotNetHelper.invokeMethodAsync('OnScrollPositionChanged', scrollY);
+            } catch (err) {
+                console.warn('Initial scroll check failed:', err);
+            }
+        }, 100);
     };
 </script>
