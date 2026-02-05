@@ -90,9 +90,8 @@
     private string? ReturnUrl { get; set; }
 
     private string? Message => identityErrors is null ? null : $"エラー: {string.Join(", ", identityErrors.Select(error => error.Description))}";
-    
-    public async Task RegisterUser(EditContext editContext)
-    {
+
+    public async Task RegisterUser(EditContext editContext) {
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
@@ -100,8 +99,7 @@
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
         var result = await UserManager.CreateAsync(user, Input.Password);
 
-        if (!result.Succeeded)
-        {
+        if (!result.Succeeded) {
             identityErrors = result.Errors;
             return;
         }
@@ -117,8 +115,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        if (UserManager.Options.SignIn.RequireConfirmedAccount)
-        {
+        if (UserManager.Options.SignIn.RequireConfirmedAccount) {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
@@ -128,30 +125,24 @@
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
-    private ApplicationUser CreateUser()
-    {
-        try
-        {
+    private ApplicationUser CreateUser() {
+        try {
             return Activator.CreateInstance<ApplicationUser>();
         }
-        catch
-        {
+        catch {
             throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
                 $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 
-    private IUserEmailStore<ApplicationUser> GetEmailStore()
-    {
-        if (!UserManager.SupportsUserEmail)
-        {
+    private IUserEmailStore<ApplicationUser> GetEmailStore() {
+        if (!UserManager.SupportsUserEmail) {
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 
-    private sealed class InputModel
-    {
+    private sealed class InputModel {
         [Required(ErrorMessage = "メールアドレスを入力してください。")]
         [EmailAddress(ErrorMessage = "有効なメールアドレスを入力してください。")]
         [Display(Name = "メールアドレス")]
