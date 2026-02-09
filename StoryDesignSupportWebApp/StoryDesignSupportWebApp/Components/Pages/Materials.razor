@@ -243,6 +243,14 @@
         box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
     }
 
+        .add-category-btn.mobile {
+            padding: 0px;
+            height: 48px;
+            width: 48px;
+            font-size: 22px;
+            text-align: center;
+        }
+
         .add-category-btn:hover {
             background-color: #0550ae;
             transform: translateY(-1px);
@@ -317,6 +325,14 @@
         transition: all 0.2s ease;
         box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
     }
+
+        .add-material-btn.mobile {
+            padding: 0px;
+            height: 48px;
+            width: 48px;
+            font-size: 22px;
+            text-align: center;
+        }
 
         .add-material-btn:hover {
             background-color: #0550ae;
@@ -981,7 +997,7 @@
                             <div>資料がありません</div>
                         </div>
                     }
-                    <button class="add-material-btn" @onclick="ShowAddMaterialModal">+ 資料を追加</button>
+                    <button class="add-material-btn mobile" @onclick="ShowAddMaterialModal">+</button>
                 </div>
             </div>
         } else {
@@ -1019,7 +1035,7 @@
                             <div>資料カテゴリがありません</div>
                         </div>
                     }
-                    <button class="add-category-btn" @onclick="ShowAddCategoryModal">+ カテゴリを追加</button>
+                    <button class="add-category-btn mobile" @onclick="ShowAddCategoryModal">+</button>
                 </div>
             </div>
         }
@@ -1162,6 +1178,7 @@
                 }
             }
         }
+        await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
 
     private async Task BackToCategoryView() {
@@ -1548,3 +1565,25 @@
         StateHasChanged();
     }
 }
+
+<script>
+    function adjustContainerHeight() {
+        const topRow = document.querySelector('.top-row');
+        const desktopContainer = document.querySelector('.edit-container.desktop-view');
+        const mobileContainer = document.querySelector('.mobile-view');
+        const mobileView = document.querySelector('.mobile-list');
+        const mobileEditor = document.querySelector('.mobile-editor');
+
+        if (topRow) {
+            const isCollapsed = topRow.classList.contains('collapsed');
+            const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
+
+            if (desktopContainer) desktopContainer.style.height = height;
+            if (mobileContainer) mobileContainer.style.height = height;
+            if (mobileView) mobileView.style.height = height;
+            if (mobileEditor) mobileEditor.style.height = height;
+        }
+    }
+
+    window.adjustContainerHeight = adjustContainerHeight;
+</script>

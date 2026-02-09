@@ -176,23 +176,27 @@
     .editor-content {
         flex: 1;
         overflow-y: auto;
-        padding: 30px;
+        padding: 30px 30px 20px 30px;
     }
 
     /* プロット編集用スタイル */
     .plot-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
         height: 100%;
     }
 
     .plot-column {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
         min-height: 0;
     }
+
+        .plot-column:not(:last-child) {
+            border-right: lightgray solid;
+        }
 
     .plot-column-header {
         font-size: 18px;
@@ -203,6 +207,7 @@
         text-align: center;
         color: #24292f;
         border: 2px solid #d0d7de;
+        margin-bottom: 10px;
     }
 
     .plot-items {
@@ -241,6 +246,7 @@
 
     .plot-item-textarea {
         width: 100%;
+        height: 150px;
         border: none;
         outline: none;
         resize: none;
@@ -252,9 +258,11 @@
 
     .plot-item-actions {
         display: flex;
+        position: absolute;
         justify-content: flex-end;
         gap: 8px;
-        margin-top: 8px;
+        margin-top: -24px;
+        right: 12px;
         opacity: 0;
         transition: opacity 0.2s ease;
     }
@@ -271,6 +279,9 @@
         padding: 4px 12px;
         font-size: 12px;
         cursor: pointer;
+        max-width: max-content;
+        max-height: max-content;
+        position: relative;
         transition: background 0.2s ease;
     }
 
@@ -288,6 +299,7 @@
         font-weight: 500;
         transition: all 0.2s ease;
         font-size: 14px;
+        margin-top: 10px;
     }
 
         .add-plot-btn:hover {
@@ -448,6 +460,13 @@
         position: relative;
     }
 
+    .flow-row-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
     .flow-node {
         background: white;
         border: 2px solid #0969da;
@@ -475,6 +494,27 @@
             border-width: 3px;
             background-color: #e6f7ea;
         }
+
+        .flow-node.empty {
+            background: #f6f8fa;
+            border: 2px dashed #d0d7de;
+            color: #8c959f;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .flow-node.empty:hover {
+                border-color: #0969da;
+                background-color: #ddf4ff;
+            }
+
+            .flow-node.empty.drag-over {
+                border-color: #30b84f;
+                border-style: solid;
+                background-color: #e6f7ea;
+            }
 
     .flow-node-content {
         font-size: 15px;
@@ -505,6 +545,28 @@
         gap: 10px;
         margin-top: 10px;
     }
+
+    .add-branch-btn {
+        padding: 6px 12px;
+        background-color: #30b84f;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        margin: 0 auto;
+    }
+
+        .add-branch-btn:hover {
+            background-color: #269e41;
+            transform: scale(1.1);
+        }
 
     .add-branch-row-btn {
         padding: 8px 16px;
@@ -672,8 +734,13 @@
         padding: 20px;
     }
 
-    .mobile-plot-column {
-        margin-bottom: 30px;
+    .mobile-plot-column:not(:last-child) {
+        margin-bottom: 15px;
+        border-bottom: lightgray solid;
+    }
+
+    .mobile-plot-column .add-plot-btn {
+        margin-bottom: 15px;
     }
 
     .mobile-plot-header {
@@ -991,38 +1058,55 @@
                                                     for (int rowIdx = 0; rowIdx < flowStructure.Count; rowIdx++) {
                                                         var row = flowStructure[rowIdx];
                                                         var rowIndex = rowIdx;
-                                                        <div class="flow-row" style="position: relative;">
-                                                            @if (row.Count > 1) {
-                                                                <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
-                                                            }
-                                                            @foreach (var sectionIdx in row) {
-                                                                var section = chapter.Sections[sectionIdx];
-                                                                <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
-                                                                     draggable="true"
-                                                                     @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex)"
-                                                                     @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex)"
-                                                                     @ondragover:preventDefault="true"
-                                                                     @ondragleave="HandleSectionDragLeave"
-                                                                     @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex)"
-                                                                     @ondragend="HandleSectionDragEnd">
-                                                                    <div class="flow-node-content">
-                                                                        @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
-                                                                    </div>
-                                                                </div>
+                                                        <div class="flow-row-wrapper">
+                                                            <div class="flow-row" style="position: relative;">
+                                                                @if (row.Count > 1) {
+                                                                    <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
+                                                                }
+                                                                @for (int nodeIdx = 0; nodeIdx < row.Count; nodeIdx++) {
+                                                                    var sectionIdx = row[nodeIdx];
+                                                                    var nodeIndex = nodeIdx;
+
+                                                                    @if (sectionIdx == -1) {
+                                                                        <!-- 空ノード -->
+                                                                        <div class="flow-node empty @GetEmptyNodeDragClass(chapterIndex, rowIndex, nodeIndex)"
+                                                                             @ondragover="(e) => HandleEmptyNodeDragOver(e, chapterIndex, rowIndex, nodeIndex)"
+                                                                             @ondragover:preventDefault="true"
+                                                                             @ondragleave="HandleSectionDragLeave"
+                                                                             @ondrop="() => HandleEmptyNodeDrop(chapterIndex, rowIndex, nodeIndex)"
+                                                                             @ondragend="HandleSectionDragEnd">
+                                                                            <div class="flow-node-content">ここにドラッグ</div>
+                                                                        </div>
+                                                                    } else {
+                                                                        <!-- 通常のノード -->
+                                                                        var section = chapter.Sections[sectionIdx];
+                                                                        <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
+                                                                             draggable="true"
+                                                                             @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                             @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                             @ondragover:preventDefault="true"
+                                                                             @ondragleave="HandleSectionDragLeave"
+                                                                             @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                             @ondragend="HandleSectionDragEnd">
+                                                                            <div class="flow-node-content">
+                                                                                @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
+                                                                            </div>
+                                                                        </div>
+                                                                    }
+                                                                }
+                                                            </div>
+                                                            <!-- この行に分岐を追加するボタン -->
+                                                            <button class="add-branch-btn" @onclick="() => AddBranchToRow(chapterIndex, rowIndex)" title="この階層に分岐を追加">+</button>
+
+                                                            @if (rowIndex < flowStructure.Count - 1) {
+                                                                <div class="flow-arrow"></div>
                                                             }
                                                         </div>
-                                                        @if (rowIndex < flowStructure.Count - 1) {
-                                                            <div class="flow-arrow"></div>
-                                                        }
                                                     }
                                                 }
                                                 <div class="branch-controls">
-                                                    <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 分岐行を追加</button>
+                                                    <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 行を追加</button>
                                                 </div>
-                                            </div>
-                                        } else {
-                                            <div class="empty-state" style="padding: 20px;">
-                                                <div>この章には話がありません</div>
                                             </div>
                                         }
                                     </div>
@@ -1144,7 +1228,7 @@
                                     }
                                 }
                             </div>
-                            <button class="add-plot-btn" @onclick='() => AddPlotItem("ketsu")'>+ 結を追加</button>
+                            <button class="add-plot-btn" style="margin-bottom: 0;" @onclick='() => AddPlotItem("ketsu")'>+ 結を追加</button>
                         </div>
                     </div>
                 </div>
@@ -1186,38 +1270,55 @@
                                                         for (int rowIdx = 0; rowIdx < flowStructure.Count; rowIdx++) {
                                                             var row = flowStructure[rowIdx];
                                                             var rowIndex = rowIdx;
-                                                            <div class="flow-row" style="position: relative;">
-                                                                @if (row.Count > 1) {
-                                                                    <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
-                                                                }
-                                                                @foreach (var sectionIdx in row) {
-                                                                    var section = chapter.Sections[sectionIdx];
-                                                                    <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
-                                                                         draggable="true"
-                                                                         @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex)"
-                                                                         @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex)"
-                                                                         @ondragover:preventDefault="true"
-                                                                         @ondragleave="HandleSectionDragLeave"
-                                                                         @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex)"
-                                                                         @ondragend="HandleSectionDragEnd">
-                                                                        <div class="flow-node-content">
-                                                                            @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
-                                                                        </div>
-                                                                    </div>
+                                                            <div class="flow-row-wrapper">
+                                                                <div class="flow-row" style="position: relative;">
+                                                                    @if (row.Count > 1) {
+                                                                        <button class="remove-branch-btn" @onclick="() => RemoveBranchRow(chapterIndex, rowIndex)">行削除</button>
+                                                                    }
+                                                                    @for (int nodeIdx = 0; nodeIdx < row.Count; nodeIdx++) {
+                                                                        var sectionIdx = row[nodeIdx];
+                                                                        var nodeIndex = nodeIdx;
+
+                                                                        @if (sectionIdx == -1) {
+                                                                            <!-- 空ノード -->
+                                                                            <div class="flow-node empty @GetEmptyNodeDragClass(chapterIndex, rowIndex, nodeIndex)"
+                                                                                 @ondragover="(e) => HandleEmptyNodeDragOver(e, chapterIndex, rowIndex, nodeIndex)"
+                                                                                 @ondragover:preventDefault="true"
+                                                                                 @ondragleave="HandleSectionDragLeave"
+                                                                                 @ondrop="() => HandleEmptyNodeDrop(chapterIndex, rowIndex, nodeIndex)"
+                                                                                 @ondragend="HandleSectionDragEnd">
+                                                                                <div class="flow-node-content">ここにドラッグ</div>
+                                                                            </div>
+                                                                        } else {
+                                                                            <!-- 通常のノード -->
+                                                                            var section = chapter.Sections[sectionIdx];
+                                                                            <div class="flow-node @GetSectionDragClass(chapterIndex, sectionIdx)"
+                                                                                 draggable="true"
+                                                                                 @ondragstart="() => HandleSectionDragStart(chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                                 @ondragover="(e) => HandleSectionDragOver(e, chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                                 @ondragover:preventDefault="true"
+                                                                                 @ondragleave="HandleSectionDragLeave"
+                                                                                 @ondrop="() => HandleSectionDrop(chapterIndex, sectionIdx, rowIndex, nodeIndex)"
+                                                                                 @ondragend="HandleSectionDragEnd">
+                                                                                <div class="flow-node-content">
+                                                                                    @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIdx + 1}" : section.Title)
+                                                                                </div>
+                                                                            </div>
+                                                                        }
+                                                                    }
+                                                                </div>
+                                                                <!-- この行に分岐を追加するボタン -->
+                                                                <button class="add-branch-btn" @onclick="() => AddBranchToRow(chapterIndex, rowIndex)" title="この階層に分岐を追加">+</button>
+
+                                                                @if (rowIndex < flowStructure.Count - 1) {
+                                                                    <div class="flow-arrow"></div>
                                                                 }
                                                             </div>
-                                                            @if (rowIndex < flowStructure.Count - 1) {
-                                                                <div class="flow-arrow"></div>
-                                                            }
                                                         }
                                                     }
                                                     <div class="branch-controls">
-                                                        <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 分岐行を追加</button>
+                                                        <button class="add-branch-row-btn" @onclick="() => AddBranchRow(chapterIndex)">+ 行を追加</button>
                                                     </div>
-                                                </div>
-                                            } else {
-                                                <div class="empty-state" style="padding: 20px;">
-                                                    <div>この章には話がありません</div>
                                                 </div>
                                             }
                                         </div>
@@ -1284,9 +1385,16 @@
     private int _dragSourceSectionChapter = -1;
     private int _dragSourceSectionIndex = -1;
     private int _dragSourceSectionRow = -1;
+    private int _dragSourceSectionNode = -1;
     private int _dragOverSectionChapter = -1;
     private int _dragOverSectionIndex = -1;
     private int _dragOverSectionRow = -1;
+    private int _dragOverSectionNode = -1;
+
+    // 空ノードドラッグオーバー用
+    private int _dragOverEmptyChapter = -1;
+    private int _dragOverEmptyRow = -1;
+    private int _dragOverEmptyNode = -1;
 
     // フロー構造用の変数
     private Dictionary<int, List<List<int>>> _chapterFlowStructures = new();
@@ -1342,6 +1450,125 @@
                 Chapters = Array.Empty<Chapter>()
             };
         }
+
+        // 時系列データとフロー構造をロード
+        LoadTimelineData();
+    }
+
+    private void LoadTimelineData() {
+        var timeline = _project.ProjectDataObject.Structure.Timeline;
+        var chapters = _project.ProjectDataObject.Scenario?.Chapters;
+
+        if (chapters == null || chapters.Length == 0) {
+            // 章がない場合
+            _chapterFlowStructures.Clear();
+            return;
+        }
+
+        // 保存されているフロー構造データをロード
+        if (!string.IsNullOrEmpty(timeline.FlowStructureJson)) {
+            try {
+                var loadedStructures = JsonSerializer.Deserialize<Dictionary<int, List<List<int>>>>(timeline.FlowStructureJson);
+                if (loadedStructures != null) {
+                    _chapterFlowStructures = ValidateAndFixFlowStructures(loadedStructures, chapters);
+                    return;
+                }
+            }
+            catch {
+                // デシリアライズ失敗時は新規生成
+            }
+        }
+
+        // 保存データがない場合は新規生成
+        GenerateDefaultFlowStructures(chapters);
+    }
+
+    private Dictionary<int, List<List<int>>> ValidateAndFixFlowStructures(
+    Dictionary<int, List<List<int>>> savedStructures,
+    Chapter[] chapters) {
+
+        var validatedStructures = new Dictionary<int, List<List<int>>>();
+
+        for (int chIdx = 0; chIdx < chapters.Length; chIdx++) {
+            var chapter = chapters[chIdx];
+
+            if (!savedStructures.ContainsKey(chIdx)) {
+                // 新しい章が追加された場合
+                validatedStructures[chIdx] = GenerateDefaultFlowForChapter(chapter, chIdx);
+                continue;
+            }
+
+            var savedFlow = savedStructures[chIdx];
+            var currentSectionCount = chapter.Sections?.Length ?? 0;
+
+            if (currentSectionCount == 0) {
+                // 章に話がない場合
+                validatedStructures[chIdx] = new List<List<int>>();
+                continue;
+            }
+
+            // 保存されているフロー内のセクションインデックスを収集
+            var usedSections = new HashSet<int>();
+            foreach (var row in savedFlow) {
+                foreach (var sectionIdx in row) {
+                    if (sectionIdx >= 0) {
+                        usedSections.Add(sectionIdx);
+                    }
+                }
+            }
+
+            // 現在存在するセクションインデックス
+            var currentSections = new HashSet<int>(Enumerable.Range(0, currentSectionCount));
+
+            // セクション数が同じで、すべてのセクションが存在する場合
+            if (usedSections.SetEquals(currentSections)) {
+                validatedStructures[chIdx] = savedFlow;
+            }
+            // セクションが増えた場合
+            else if (currentSections.IsSupersetOf(usedSections)) {
+                var fixedFlow = new List<List<int>>(savedFlow);
+                // 新しいセクションを最後の行に追加
+                var newSections = currentSections.Except(usedSections).OrderBy(x => x).ToList();
+
+                if (fixedFlow.Count == 0) {
+                    fixedFlow.Add(new List<int>());
+                }
+
+                foreach (var newSectionIdx in newSections) {
+                    fixedFlow[fixedFlow.Count - 1].Add(newSectionIdx);
+                }
+
+                validatedStructures[chIdx] = fixedFlow;
+            }
+            // セクションが減った場合、または不整合がある場合
+            else {
+                // その章だけデフォルトに戻す
+                validatedStructures[chIdx] = GenerateDefaultFlowForChapter(chapter, chIdx);
+            }
+        }
+
+        // 削除された章のデータを除外（新しいインデックスのみ保持）
+        return validatedStructures;
+    }
+
+    private void GenerateDefaultFlowStructures(Chapter[] chapters) {
+        _chapterFlowStructures.Clear();
+
+        for (int chIdx = 0; chIdx < chapters.Length; chIdx++) {
+            _chapterFlowStructures[chIdx] = GenerateDefaultFlowForChapter(chapters[chIdx], chIdx);
+        }
+    }
+
+    private List<List<int>> GenerateDefaultFlowForChapter(Chapter chapter, int chapterIndex) {
+        var flowStructure = new List<List<int>>();
+
+        if (chapter.Sections != null && chapter.Sections.Length > 0) {
+            for (int i = 0; i < chapter.Sections.Length; i++) {
+                flowStructure.Add(new List<int> { i });
+            }
+        }
+
+        return flowStructure;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
@@ -1349,6 +1576,7 @@
             _isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
             StateHasChanged();
         }
+        await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
 
     private List<List<int>> BuildFlowStructure(int chapterIndex) {
@@ -1373,16 +1601,11 @@
 
     private List<List<int>> GetFlowStructure(int chapterIndex) {
         if (!_chapterFlowStructures.ContainsKey(chapterIndex)) {
-            var chapter = _project.ProjectDataObject.Scenario.Chapters[chapterIndex];
-            if (chapter.Sections == null || chapter.Sections.Length == 0) {
-                _chapterFlowStructures[chapterIndex] = new List<List<int>>();
+            var chapters = _project.ProjectDataObject.Scenario?.Chapters;
+            if (chapters != null && chapterIndex >= 0 && chapterIndex < chapters.Length) {
+                _chapterFlowStructures[chapterIndex] = GenerateDefaultFlowForChapter(chapters[chapterIndex], chapterIndex);
             } else {
-                // デフォルトは1列のフロー
-                var flowStructure = new List<List<int>>();
-                for (int i = 0; i < chapter.Sections.Length; i++) {
-                    flowStructure.Add(new List<int> { i });
-                }
-                _chapterFlowStructures[chapterIndex] = flowStructure;
+                _chapterFlowStructures[chapterIndex] = new List<List<int>>();
             }
         }
         return _chapterFlowStructures[chapterIndex];
@@ -1438,66 +1661,94 @@
             return;
         }
 
-        // 同じ位置へのドロップは無視
-        if (_dragSourceChapterIndex == targetIndex && !_dragOverChapterBottom) {
+        var chapters = _project.ProjectDataObject.Scenario.Chapters;
+        if (chapters == null || _dragSourceChapterIndex >= chapters.Length) {
             HandleChapterDragEnd();
             return;
         }
 
-        var chapters = _project.ProjectDataObject.Scenario.Chapters.ToList();
-        var draggedChapter = chapters[_dragSourceChapterIndex];
+        var chaptersList = chapters.ToList();
+        var draggedChapter = chaptersList[_dragSourceChapterIndex];
 
         // フロー構造も一緒に移動
         var draggedFlow = _chapterFlowStructures.ContainsKey(_dragSourceChapterIndex)
-            ? _chapterFlowStructures[_dragSourceChapterIndex]
+            ? new List<List<int>>(_chapterFlowStructures[_dragSourceChapterIndex].Select(r => new List<int>(r)))
             : null;
 
-        chapters.RemoveAt(_dragSourceChapterIndex);
+        chaptersList.RemoveAt(_dragSourceChapterIndex);
 
-        int insertIndex = targetIndex;
+        int insertIndex;
 
-        // インデックス計算を修正
-        if (_dragSourceChapterIndex < targetIndex) {
-            // 下に移動する場合
+        // 同じ位置の場合
+        if (_dragSourceChapterIndex == targetIndex) {
             if (_dragOverChapterBottom) {
-                insertIndex = targetIndex; // targetIndexの後ろ
+                insertIndex = _dragSourceChapterIndex; // 元の位置の後ろ = 元の位置
             } else {
-                insertIndex = targetIndex - 1; // targetIndexの前（削除後のインデックス）
+                HandleChapterDragEnd();
+                return; // 移動なし
             }
-        } else {
-            // 上に移動する場合
+        }
+        // 上から下への移動
+        else if (_dragSourceChapterIndex < targetIndex) {
             if (_dragOverChapterBottom) {
-                insertIndex = targetIndex + 1; // targetIndexの後ろ
+                insertIndex = targetIndex; // targetの後ろ（削除済みなのでtargetがそのまま）
             } else {
-                insertIndex = targetIndex; // targetIndexの前
+                insertIndex = targetIndex - 1; // targetの前（削除済みなので-1）
+            }
+        }
+        // 下から上への移動
+        else {
+            if (_dragOverChapterBottom) {
+                insertIndex = targetIndex + 1; // targetの後ろ
+            } else {
+                insertIndex = targetIndex; // targetの前
             }
         }
 
         // 範囲チェック
-        if (insertIndex < 0) insertIndex = 0;
-        if (insertIndex > chapters.Count) insertIndex = chapters.Count;
+        insertIndex = Math.Max(0, Math.Min(insertIndex, chaptersList.Count));
 
-        chapters.Insert(insertIndex, draggedChapter);
-        _project.ProjectDataObject.Scenario.Chapters = chapters.ToArray();
+        chaptersList.Insert(insertIndex, draggedChapter);
+        _project.ProjectDataObject.Scenario.Chapters = chaptersList.ToArray();
 
         // フロー構造のインデックスを更新
         var newFlowStructures = new Dictionary<int, List<List<int>>>();
-        for (int i = 0; i < chapters.Count; i++) {
-            if (i == insertIndex && draggedFlow != null) {
-                newFlowStructures[i] = draggedFlow;
-            } else {
-                int oldIndex;
-                if (i < insertIndex) {
-                    oldIndex = i < _dragSourceChapterIndex ? i : i + 1;
-                } else {
-                    oldIndex = i <= _dragSourceChapterIndex ? i : i - 1;
-                }
 
-                if (_chapterFlowStructures.ContainsKey(oldIndex)) {
-                    newFlowStructures[i] = _chapterFlowStructures[oldIndex];
+        for (int i = 0; i < chaptersList.Count; i++) {
+            int oldIndex;
+
+            if (i == insertIndex) {
+                if (draggedFlow != null) {
+                    newFlowStructures[i] = draggedFlow;
+                }
+                continue;
+            }
+
+            if (_dragSourceChapterIndex < insertIndex) {
+                // 上から下への移動
+                if (i < _dragSourceChapterIndex) {
+                    oldIndex = i;
+                } else if (i <= insertIndex) {
+                    oldIndex = i + 1;
+                } else {
+                    oldIndex = i;
+                }
+            } else {
+                // 下から上への移動
+                if (i < insertIndex) {
+                    oldIndex = i;
+                } else if (i < _dragSourceChapterIndex) {
+                    oldIndex = i - 1;
+                } else {
+                    oldIndex = i;
                 }
             }
+
+            if (_chapterFlowStructures.ContainsKey(oldIndex)) {
+                newFlowStructures[i] = _chapterFlowStructures[oldIndex];
+            }
         }
+
         _chapterFlowStructures = newFlowStructures;
 
         // 折りたたみ状態も更新
@@ -1506,14 +1757,18 @@
             int newIdx;
             if (oldIdx == _dragSourceChapterIndex) {
                 newIdx = insertIndex;
-            } else if (oldIdx < _dragSourceChapterIndex && oldIdx < insertIndex) {
-                newIdx = oldIdx;
-            } else if (oldIdx > _dragSourceChapterIndex && oldIdx > insertIndex) {
-                newIdx = oldIdx;
-            } else if (oldIdx < _dragSourceChapterIndex) {
-                newIdx = oldIdx + 1;
+            } else if (_dragSourceChapterIndex < insertIndex) {
+                if (oldIdx < _dragSourceChapterIndex || oldIdx > insertIndex) {
+                    newIdx = oldIdx;
+                } else {
+                    newIdx = oldIdx - 1;
+                }
             } else {
-                newIdx = oldIdx - 1;
+                if (oldIdx > _dragSourceChapterIndex || oldIdx < insertIndex) {
+                    newIdx = oldIdx;
+                } else {
+                    newIdx = oldIdx + 1;
+                }
             }
             newCollapsed.Add(newIdx);
         }
@@ -1525,27 +1780,33 @@
     }
 
     // セクションドラッグアンドドロップメソッド
-    private void HandleSectionDragStart(int chapterIndex, int sectionIndex, int rowIndex) {
+    private void HandleSectionDragStart(int chapterIndex, int sectionIndex, int rowIndex, int nodeIndex) {
         _dragSourceSectionChapter = chapterIndex;
         _dragSourceSectionIndex = sectionIndex;
         _dragSourceSectionRow = rowIndex;
+        _dragSourceSectionNode = nodeIndex;
     }
 
     private void HandleSectionDragEnd() {
         _dragSourceSectionChapter = -1;
         _dragSourceSectionIndex = -1;
         _dragSourceSectionRow = -1;
+        _dragSourceSectionNode = -1;
         _dragOverSectionChapter = -1;
         _dragOverSectionIndex = -1;
         _dragOverSectionRow = -1;
+        _dragOverSectionNode = -1;
+        _dragOverEmptyChapter = -1;
+        _dragOverEmptyRow = -1;
+        _dragOverEmptyNode = -1;
     }
 
-    private void HandleSectionDragOver(DragEventArgs e, int chapterIndex, int sectionIndex, int rowIndex) {
-        // 同じ章内でのみドラッグ可能
+    private void HandleSectionDragOver(DragEventArgs e, int chapterIndex, int sectionIndex, int rowIndex, int nodeIndex) {
         if (_dragSourceSectionChapter == chapterIndex) {
             _dragOverSectionChapter = chapterIndex;
             _dragOverSectionIndex = sectionIndex;
             _dragOverSectionRow = rowIndex;
+            _dragOverSectionNode = nodeIndex;
         }
     }
 
@@ -1566,8 +1827,7 @@
         return "";
     }
 
-    private async Task HandleSectionDrop(int targetChapter, int targetSection, int targetRow) {
-        // 章をまたいだ移動は禁止
+    private async Task HandleSectionDrop(int targetChapter, int targetSection, int targetRow, int targetNode) {
         if (_dragSourceSectionChapter != targetChapter || _dragSourceSectionChapter == -1) {
             HandleSectionDragEnd();
             return;
@@ -1580,31 +1840,50 @@
 
         var flowStructure = GetFlowStructure(targetChapter);
 
+        // 入れ替え処理
+        var sourceRow = flowStructure[_dragSourceSectionRow];
+        var targetRowList = flowStructure[targetRow];
+
+        var temp = sourceRow[_dragSourceSectionNode];
+        sourceRow[_dragSourceSectionNode] = targetRowList[targetNode];
+        targetRowList[targetNode] = temp;
+
+        await SaveProject();
+        HandleSectionDragEnd();
+        StateHasChanged();
+    }
+
+    private void HandleEmptyNodeDragOver(DragEventArgs e, int chapterIndex, int rowIndex, int nodeIndex) {
+        if (_dragSourceSectionChapter == chapterIndex) {
+            _dragOverEmptyChapter = chapterIndex;
+            _dragOverEmptyRow = rowIndex;
+            _dragOverEmptyNode = nodeIndex;
+        }
+    }
+
+    private string GetEmptyNodeDragClass(int chapterIndex, int rowIndex, int nodeIndex) {
+        if (_dragOverEmptyChapter == chapterIndex && _dragOverEmptyRow == rowIndex && _dragOverEmptyNode == nodeIndex) {
+            return "drag-over";
+        }
+        return "";
+    }
+
+    private async Task HandleEmptyNodeDrop(int targetChapter, int targetRow, int targetNode) {
+        if (_dragSourceSectionChapter != targetChapter || _dragSourceSectionChapter == -1) {
+            HandleSectionDragEnd();
+            return;
+        }
+
+        var flowStructure = GetFlowStructure(targetChapter);
+
         // ドラッグ元から削除
         var sourceRow = flowStructure[_dragSourceSectionRow];
-        sourceRow.Remove(_dragSourceSectionIndex);
+        var movedSection = sourceRow[_dragSourceSectionNode];
+        sourceRow[_dragSourceSectionNode] = -1; // 空にする
 
-        // 空になった行を削除
-        if (sourceRow.Count == 0) {
-            flowStructure.RemoveAt(_dragSourceSectionRow);
-            // ターゲット行のインデックスを調整
-            if (_dragSourceSectionRow < targetRow) {
-                targetRow--;
-            }
-        }
-
-        // ターゲット行に追加
-        if (targetRow >= 0 && targetRow < flowStructure.Count) {
-            var targetRowList = flowStructure[targetRow];
-
-            // 同じ行内での位置を決定
-            int insertPos = targetRowList.IndexOf(targetSection);
-            if (insertPos == -1) {
-                targetRowList.Add(_dragSourceSectionIndex);
-            } else {
-                targetRowList.Insert(insertPos, _dragSourceSectionIndex);
-            }
-        }
+        // ターゲットに配置
+        var targetRowList = flowStructure[targetRow];
+        targetRowList[targetNode] = movedSection;
 
         await SaveProject();
         HandleSectionDragEnd();
@@ -1618,11 +1897,23 @@
 
         var flowStructure = GetFlowStructure(chapterIndex);
 
-        // 新しい空の行を追加
-        flowStructure.Add(new List<int>());
+        // 空ノード（-1）を1つ持つ新しい行を追加
+        flowStructure.Add(new List<int> { -1 });
 
         await SaveProject();
         StateHasChanged();
+    }
+
+    private async Task AddBranchToRow(int chapterIndex, int rowIndex) {
+        var flowStructure = GetFlowStructure(chapterIndex);
+
+        if (rowIndex >= 0 && rowIndex < flowStructure.Count) {
+            // その行に空ノードを追加
+            flowStructure[rowIndex].Add(-1);
+
+            await SaveProject();
+            StateHasChanged();
+        }
     }
 
     // 分岐行を削除するメソッド
@@ -1630,16 +1921,7 @@
         var flowStructure = GetFlowStructure(chapterIndex);
 
         if (rowIndex >= 0 && rowIndex < flowStructure.Count) {
-            // その行のセクションを最後の行に移動
-            var sectionsToMove = flowStructure[rowIndex];
             flowStructure.RemoveAt(rowIndex);
-
-            if (sectionsToMove.Count > 0 && flowStructure.Count > 0) {
-                flowStructure[flowStructure.Count - 1].AddRange(sectionsToMove);
-            } else if (sectionsToMove.Count > 0) {
-                // 最後の行がない場合は新しい行を作成
-                flowStructure.Add(sectionsToMove);
-            }
 
             await SaveProject();
             StateHasChanged();
@@ -1675,7 +1957,17 @@
 
     private async Task SaveProject() {
         if (_project != null && _project.ProjectDataObject != null) {
-            _project.UpdatedAt = DateTime.UtcNow;
+            // フロー構造をJSONとして保存
+            if (_project.ProjectDataObject.Structure?.Timeline != null) {
+                try {
+                    var flowJson = JsonSerializer.Serialize(_chapterFlowStructures);
+                    _project.ProjectDataObject.Structure.Timeline.FlowStructureJson = flowJson;
+                }
+                catch {
+                    // シリアライズ失敗時は空文字列
+                    _project.ProjectDataObject.Structure.Timeline.FlowStructureJson = "";
+                }
+            }
             await using var db = DbFactory.CreateDbContext();
             db.Projects.Update(_project);
             await db.SaveChangesAsync();
@@ -1870,3 +2162,25 @@
         public bool IsChapter { get; set; }
     }
 }
+
+<script>
+    function adjustContainerHeight() {
+        const topRow = document.querySelector('.top-row');
+        const desktopContainer = document.querySelector('.edit-container.desktop-view');
+        const mobileContainer = document.querySelector('.mobile-view');
+        const mobileView = document.querySelector('.mobile-list');
+        const mobileEditor = document.querySelector('.mobile-editor');
+
+        if (topRow) {
+            const isCollapsed = topRow.classList.contains('collapsed');
+            const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
+
+            if (desktopContainer) desktopContainer.style.height = height;
+            if (mobileContainer) mobileContainer.style.height = height;
+            if (mobileView) mobileView.style.height = height;
+            if (mobileEditor) mobileEditor.style.height = height;
+        }
+    }
+
+    window.adjustContainerHeight = adjustContainerHeight;
+</script>
