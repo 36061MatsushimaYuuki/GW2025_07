@@ -279,6 +279,14 @@
         box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
     }
 
+        .add-chapter-btn.mobile {
+            padding: 0px;
+            height: 48px;
+            width: 48px;
+            font-size: 22px;
+            text-align: center;
+        }
+
         .add-chapter-btn:hover {
             background-color: #0550ae;
             transform: translateY(-1px);
@@ -290,6 +298,18 @@
         text-align: center;
         color: #999;
     }
+
+        .empty-message:first-child {
+            border-top: 1px solid #e1e4e8;
+        }
+
+        .empty-message.chapter-bar {
+            padding: 16px 20px;
+            height: fit-content;
+            border-bottom: 1px solid #e1e4e8;
+            justify-content: space-between;
+            align-items: center;
+        }
 
     /* 編集エリア */
     .editor-area {
@@ -1117,7 +1137,7 @@
                 </div>
                 <div class="chapter-view">
                     @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
-                        <div class="empty-message">章がありません</div>
+                        <div class="empty-message chapter-bar">章がありません</div>
                     } else {
                         @for (int i = 0; i < _project.ProjectDataObject.Scenario.Chapters.Length; i++) {
                             var chapterIndex = i;
@@ -1394,7 +1414,7 @@
                 </div>
                 <div class="mobile-chapter-view">
                     @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
-                        <div class="empty-message">章がありません</div>
+                        <div class="empty-message chapter-bar">章がありません</div>
                     } else {
                         @for (int i = 0; i < _project.ProjectDataObject.Scenario.Chapters.Length; i++) {
                             var chapterIndex = i;
@@ -1438,7 +1458,7 @@
                             </div>
                         }
                     }
-                    <button class="add-chapter-btn" @onclick="ShowAddChapterModal">+ 章を追加</button>
+                    <button class="add-chapter-btn mobile" @onclick="ShowAddChapterModal">+</button>
                 </div>
             </div>
             <div class="mobile-category-ui">
