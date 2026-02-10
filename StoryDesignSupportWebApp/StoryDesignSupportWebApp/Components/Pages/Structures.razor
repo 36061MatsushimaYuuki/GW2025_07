@@ -594,6 +594,9 @@
                     <div class="category-item @(_currentCategory == "structure" ? "active" : "")" @onclick='() => SelectCategory("structure")'>
                         構成
                     </div>
+                    <div class="category-item" @onclick='() => SelectCategory("characters")'>
+                        人物
+                    </div>
                     <div class="category-item" @onclick='() => SelectCategory("materials")'>
                         資料
                     </div>
@@ -708,7 +711,7 @@
                 <div class="editor-content">
                     <div class="timeline-container">
                         @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
-                            
+
                         } else {
                             <div class="empty-state">
                                 <div>章と話を追加すると時系列が表示されます</div>
@@ -838,7 +841,7 @@
                     <div class="mobile-editor-content">
                         <div class="timeline-container" style="padding: 20px;">
                             @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
-                                
+
                             } else {
                                 <div class="empty-state">
                                     <div>章と話を追加すると時系列が表示されます</div>
@@ -864,6 +867,7 @@
             <div class="mobile-category-ui">
                 <div class="category-select-button" @onclick='() => SelectCategory("writing")'>執筆</div>
                 <div class="category-select-button active" @onclick='() => SelectCategory("structure")'>構成</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("characters")'>人物</div>
                 <div class="category-select-button" @onclick='() => SelectCategory("materials")'>資料</div>
             </div>
         }
@@ -955,6 +959,7 @@
 
     private async Task SaveProject() {
         if (_project != null && _project.ProjectDataObject != null) {
+            _project.UpdatedAt = DateTime.UtcNow;
             await using var db = DbFactory.CreateDbContext();
             db.Projects.Update(_project);
             await db.SaveChangesAsync();
@@ -968,6 +973,9 @@
             Nav.NavigateTo($"/projects/edit/{id}");
         } else if (category == "structure") {
             _showCategoryView = true;
+        } else if (category == "characters") {
+            await SaveProject();
+            Nav.NavigateTo($"/projects/edit/{id}/characters");
         } else if (category == "materials") {
             await SaveProject();
             Nav.NavigateTo($"/projects/edit/{id}/materials");

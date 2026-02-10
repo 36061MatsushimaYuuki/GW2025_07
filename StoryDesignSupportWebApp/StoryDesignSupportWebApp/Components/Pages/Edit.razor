@@ -1198,6 +1198,9 @@
                     <div class="category-item" @onclick='() => SelectCategory("structure")'>
                         構成
                     </div>
+                    <div class="category-item" @onclick='() => SelectCategory("characters")'>
+                        人物
+                    </div>
                     <div class="category-item" @onclick='() => SelectCategory("materials")'>
                         資料
                     </div>
@@ -1464,6 +1467,7 @@
             <div class="mobile-category-ui">
                 <div class="category-select-button active" @onclick='() => SelectCategory("writing")'>執筆</div>
                 <div class="category-select-button" @onclick='() => SelectCategory("structure")'>構成</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("characters")'>人物</div>
                 <div class="category-select-button" @onclick='() => SelectCategory("materials")'>資料</div>
             </div>
         }
@@ -1701,6 +1705,8 @@
             _showCategoryView = true;
         } else if (category == "structure") {
             NavigateToStructure(id);
+        } else if (category == "characters") {
+            NavigateToCharacters(id);
         } else if (category == "materials") {
             NavigateToMaterials(id);
         }
@@ -1717,6 +1723,10 @@
 
     private void NavigateToStructure(int id) {
         Nav.NavigateTo($"/projects/edit/{id}/structure");
+    }
+
+    private void NavigateToCharacters(int id) {
+        Nav.NavigateTo($"/projects/edit/{id}/characters");
     }
 
     private void NavigateToMaterials(int id) {
