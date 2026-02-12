@@ -130,6 +130,7 @@
 
     .category-item {
         padding: 16px 20px;
+        height: 60px;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -284,6 +285,7 @@
 
     .character-item {
         padding: 16px 20px;
+        height: 60px;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -391,6 +393,52 @@
         white-space: nowrap;
     }
 
+    .character-thumbnail {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #e1e4e8;
+    }
+
+    .character-thumbnail-placeholder {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #e1e4e8;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #8c959f;
+    }
+
+    .character-item-info {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-left: 10px;
+    }
+
+    .character-item-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    .character-item-ruby {
+        font-size: 11px;
+        color: #8c959f;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     /* エディタエリア */
     .editor-area {
         flex: 1;
@@ -401,7 +449,7 @@
     }
 
     .editor-header {
-        padding: 20px 30px;
+        padding: 10px 15px;
         border-bottom: 1px solid #e1e4e8;
         background-color: #f6f8fa;
         display: flex;
@@ -449,33 +497,77 @@
 
     .character-editor-layout {
         display: flex;
-        gap: 20px;
+        gap: 24px;
         margin-bottom: 20px;
     }
 
     .character-image-section {
         flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
     }
 
-    .image-placeholder {
-        width: 200px;
-        height: 200px;
-        background-color: #f6f8fa;
+    .image-square {
+        width: 300px;
+        height: 300px;
         border: 2px dashed #d0d7de;
         border-radius: 8px;
+        background-color: #f6f8fa;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #656d76;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        overflow: hidden;
+        transition: border-color 0.2s ease;
     }
 
-        .image-placeholder:hover {
-            background-color: #eaeef2;
-            border-color: #0969da;
-            color: #0969da;
+        .image-square img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+    .image-square-placeholder {
+        color: #8c959f;
+        font-size: 13px;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .image-upload-label {
+        display: block;
+        padding: 5px 12px;
+        background-color: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #24292f;
+        transition: background-color 0.2s ease;
+        width: 100%;
+        text-align: center;
+    }
+
+        .image-upload-label:hover {
+            background-color: #e1e4e8;
+        }
+
+    .image-clear-btn {
+        padding: 5px 12px;
+        background-color: #fff0f0;
+        border: 1px solid #ffb3b3;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #dc3545;
+        transition: background-color 0.2s ease;
+        width: 100%;
+    }
+
+        .image-clear-btn:hover {
+            background-color: #ffe0e0;
         }
 
     .character-fields-section {
@@ -484,6 +576,33 @@
         flex-direction: column;
         gap: 12px;
     }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+        .field-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #57606a;
+        }
+
+    .field-input {
+        padding: 8px 10px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .field-input:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
 
     .field-row {
         display: flex;
@@ -495,48 +614,78 @@
         }
 
     .overview-section {
-        margin-top: 20px;
+        margin-top: 4px;
+    }
+
+    .overview-section {
+        margin-top: 4px;
     }
 
     .overview-toolbar {
         display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-        padding: 8px;
-        background-color: #f6f8fa;
-        border-radius: 6px 6px 0 0;
+        gap: 6px;
+        padding: 6px 10px;
+        background-color: #f0f4f8;
         border: 1px solid #d0d7de;
         border-bottom: none;
+        border-radius: 6px 6px 0 0;
     }
 
     .toolbar-btn {
-        padding: 4px 12px;
+        padding: 3px 10px;
         background-color: white;
         border: 1px solid #d0d7de;
         border-radius: 4px;
         cursor: pointer;
         font-size: 13px;
-        font-weight: 500;
-        transition: all 0.2s ease;
+        font-weight: 700;
+        line-height: 1.4;
+        height: 32px;
+        transition: all 0.15s ease;
+        user-select: none;
     }
 
         .toolbar-btn:hover {
-            background-color: #f6f8fa;
+            background-color: #ddf4ff;
             border-color: #0969da;
             color: #0969da;
         }
 
-    .overview-section textarea {
+    .overview-editor-wrap {
+        border: 1px solid #d0d7de;
         border-radius: 0 0 6px 6px;
-        border-top: none;
-        min-height: 300px;
+        min-height: 280px;
+        position: relative;
+        padding: 12px;
+        outline: none;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.8;
+        cursor: text;
+        background-color: white;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
-    .name-ruby {
-        font-size: 0.85em;
-        color: #656d76;
-        margin-left: 8px;
-    }
+        .overview-editor-wrap p {
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .overview-editor-wrap h1 {
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .overview-editor-wrap h2 {
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .overview-editor-wrap h3 {
+            line-height: 1.3;
+            margin: 0;
+        }
 
     /* モーダル */
     .modal-overlay {
@@ -668,6 +817,96 @@
             background-color: #5a6268;
         }
 
+    /* 画像トリミングモーダル */
+    .crop-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .crop-modal-content {
+        background: #1e1e2e;
+        border-radius: 12px;
+        padding: 24px;
+        width: 92vw;
+        max-width: 560px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+    }
+
+    .crop-modal-title {
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        align-self: flex-start;
+    }
+
+    .crop-viewport {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #111;
+        cursor: move;
+        touch-action: none;
+    }
+
+    .crop-image {
+        position: absolute;
+        transform-origin: center center;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+    }
+
+    .crop-grid {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
+        background-size: 33.33% 33.33%;
+        border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    .crop-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+        .crop-controls label {
+            color: #ccc;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+    .crop-slider {
+        flex: 1;
+        accent-color: #0969da;
+    }
+
+    .crop-buttons {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -718,6 +957,7 @@
 
     .mobile-category-item {
         padding: 16px 20px;
+        height: 60px;
         background-color: white;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
@@ -754,6 +994,7 @@
 
     .mobile-character-item {
         padding: 16px 20px;
+        height: 60px;
         background-color: white;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
@@ -834,6 +1075,11 @@
 
         .character-editor-layout {
             flex-direction: column;
+            align-items: center;
+        }
+
+        .character-fields-section {
+            width: 100%;
         }
 
         .image-placeholder {
@@ -844,6 +1090,11 @@
 
         .field-row {
             flex-direction: column;
+        }
+
+        .image-square {
+            width: 140px;
+            height: 140px;
         }
     }
 
@@ -989,7 +1240,25 @@
                                  @ondrop="() => HandleCharacterDrop(index)"
                                  @ondragend="HandleCharacterDragEnd"
                                  @onclick="() => SelectCharacter(item)">
-                                <span class="character-name">@item.Name</span>
+                                @if (item.Image != null && item.Image.Length > 0) {
+                                    <img class="character-thumbnail"
+                                         src="data:image/jpeg;base64,@Convert.ToBase64String(item.Image)"
+                                         alt="@item.Name" />
+                                } else {
+                                    <div class="character-thumbnail-placeholder">👤</div>
+                                }
+                                <div class="character-item-info">
+                                    <span class="character-item-name">
+                                        @if (string.IsNullOrEmpty(item.Name)) {
+                                            <div style="color: gray">(名前未設定)</div>
+                                        } else {
+                                            @item.Name
+                                        }
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(item.NameRuby)) {
+                                        <span class="character-item-ruby">@item.NameRuby</span>
+                                    }
+                                </div>
                                 <div class="character-actions">
                                     <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">−</button>
                                 </div>
@@ -1008,83 +1277,109 @@
         <!-- 右側エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _selectedCharacter != null) {
-                <div class="editor-header">
-                    <div class="character-info">
-                        <h2>@_selectedCharacter.Name</h2>
-                        @if (!string.IsNullOrEmpty(_selectedCharacter.NameRuby)) {
-                            <span class="name-ruby">@_selectedCharacter.NameRuby</span>
-                        }
-                    </div>
-                    <div class="header-actions">
-                        <button class="icon-btn" @onclick="() => ShowDeleteCharacterConfirm(_selectedCharacter)">削除</button>
-                    </div>
-                </div>
-
                 <div class="editor-content">
                     <div class="character-editor-layout">
+                        <!-- 画像エリア -->
                         <div class="character-image-section">
-                            <div class="image-placeholder">
-                                <span>画像</span>
+                            <div class="image-square">
+                                @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
+                                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(_selectedCharacter.Image)"
+                                         alt="@_selectedCharacter.Name" />
+                                } else {
+                                    <div class="image-square-placeholder">
+                                        <div>画像なし</div>
+                                    </div>
+                                }
                             </div>
+                            <label class="image-upload-label">
+                                画像をアップロード
+                                <InputFile style="display:none" accept="image/*"
+                                           OnChange="HandleImageUpload" />
+                            </label>
+                            @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
+                                <button class="image-clear-btn" @onclick="ClearImage">画像を削除</button>
+                            }
                         </div>
 
+                        <!-- テキストフィールド -->
                         <div class="character-fields-section">
                             <div class="field-group">
                                 <label>名前</label>
-                                <input type="text" @bind="_selectedCharacter.Name" @bind:event="oninput" placeholder="キャラクター名" />
+                                <input type="text" class="field-input"
+                                       @bind="_selectedCharacter.Name" @bind:event="oninput"
+                                       placeholder="キャラクター名" />
                             </div>
-
                             <div class="field-group">
                                 <label>読み仮名</label>
-                                <input type="text" @bind="_selectedCharacter.NameRuby" @bind:event="oninput" placeholder="よみがな" />
+                                <input type="text" class="field-input"
+                                       @bind="_selectedCharacter.NameRuby" @bind:event="oninput"
+                                       placeholder="よみがな" />
                             </div>
-
                             <div class="field-group">
                                 <label>別名・通称</label>
-                                <input type="text" @bind="_selectedCharacter.Alias" @bind:event="oninput" placeholder="あだ名、通称など" />
+                                <input type="text" class="field-input"
+                                       @bind="_selectedCharacter.Alias" @bind:event="oninput"
+                                       placeholder="あだ名、通称など" />
                             </div>
-
                             <div class="field-row">
                                 <div class="field-group">
                                     <label>種族</label>
-                                    <input type="text" @bind="_selectedCharacter.Species" @bind:event="oninput" placeholder="人間" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Species" @bind:event="oninput"
+                                           placeholder="人間" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>年齢</label>
-                                    <input type="text" @bind="_selectedCharacter.Age" @bind:event="oninput" placeholder="年齢" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Age" @bind:event="oninput"
+                                           placeholder="例: 17" />
                                 </div>
                             </div>
-
                             <div class="field-row">
                                 <div class="field-group">
                                     <label>性別</label>
-                                    <input type="text" @bind="_selectedCharacter.Gender" @bind:event="oninput" placeholder="性別" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Gender" @bind:event="oninput"
+                                           placeholder="例: 女性" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>身長</label>
-                                    <input type="text" @bind="_selectedCharacter.Stature" @bind:event="oninput" placeholder="身長" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Stature" @bind:event="oninput"
+                                           placeholder="例: 162cm" />
                                 </div>
                             </div>
-
                             <div class="field-group">
                                 <label>体重</label>
-                                <input type="text" @bind="_selectedCharacter.Weight" @bind:event="oninput" placeholder="体重" />
+                                <input type="text" class="field-input"
+                                       @bind="_selectedCharacter.Weight" @bind:event="oninput"
+                                       placeholder="例: 50kg" />
                             </div>
                         </div>
                     </div>
 
-                    <div class="field-group overview-section">
-                        <label>概要</label>
+                    <!-- 概要エディタ -->
+                    <div class="overview-section">
                         <div class="overview-toolbar">
-                            <button class="toolbar-btn" @onclick='() => InsertMarkdown("# ")'>H1</button>
-                            <button class="toolbar-btn" @onclick='() => InsertMarkdown(" ## ")'>H2</button>
-                            <button class="toolbar-btn" @onclick='() => InsertMarkdown(" ### ")'>H3</button>
+                            <button class="toolbar-btn" title="大見出し"
+                                    @onclick="() => ApplyHeading(1)">
+                                H1
+                            </button>
+                            <button class="toolbar-btn" title="中見出し"
+                                    @onclick="() => ApplyHeading(2)">
+                                H2
+                            </button>
+                            <button class="toolbar-btn" title="小見出し"
+                                    @onclick="() => ApplyHeading(3)">
+                                H3
+                            </button>
+                            <button class="toolbar-btn" title="解除"
+                                    @onclick="() => ApplyHeading(0)">
+                                ×
+                            </button>
                         </div>
-                        <textarea @bind="_selectedCharacter.Overview" @bind:event="oninput"
-                                  placeholder="キャラクターの詳細な説明を入力してください。&#10;&#10;見出しは以下の書式で使用できます：&#10;# 大見出し&#10;## 中見出し&#10;### 小見出し"
-                                  rows="15"></textarea>
+                        <div class="overview-editor-wrap" id="overview-editor" @oninput="OnOverviewInput"
+                             contenteditable="true"></div>
                     </div>
                 </div>
             } else if (_showCategoryView && _selectedCategory != null) {
@@ -1117,64 +1412,85 @@
                     @if (_selectedCharacter != null) {
                         <div class="character-editor-layout">
                             <div class="character-image-section">
-                                <div class="image-placeholder">
-                                    <span>画像</span>
+                                <div class="image-square">
+                                    @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
+                                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(_selectedCharacter.Image)"
+                                             alt="@_selectedCharacter.Name" />
+                                    } else {
+                                        <div class="image-square-placeholder">
+                                            <div>画像なし</div>
+                                        </div>
+                                    }
                                 </div>
+                                <label class="image-upload-label">
+                                    画像をアップロード
+                                    <InputFile style="display:none" accept="image/*"
+                                               OnChange="HandleImageUpload" />
+                                </label>
+                                @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
+                                    <button class="image-clear-btn" @onclick="ClearImage">画像を削除</button>
+                                }
                             </div>
-
                             <div class="character-fields-section">
                                 <div class="field-group">
                                     <label>名前</label>
-                                    <input type="text" @bind="_selectedCharacter.Name" @bind:event="oninput" placeholder="キャラクター名" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Name" @bind:event="oninput"
+                                           placeholder="キャラクター名" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>読み仮名</label>
-                                    <input type="text" @bind="_selectedCharacter.NameRuby" @bind:event="oninput" placeholder="よみがな" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.NameRuby" @bind:event="oninput"
+                                           placeholder="よみがな" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>別名・通称</label>
-                                    <input type="text" @bind="_selectedCharacter.Alias" @bind:event="oninput" placeholder="あだ名、通称など" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Alias" @bind:event="oninput"
+                                           placeholder="あだ名、通称など" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>種族</label>
-                                    <input type="text" @bind="_selectedCharacter.Species" @bind:event="oninput" placeholder="人間" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Species" @bind:event="oninput"
+                                           placeholder="人間" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>年齢</label>
-                                    <input type="text" @bind="_selectedCharacter.Age" @bind:event="oninput" placeholder="年齢" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Age" @bind:event="oninput"
+                                           placeholder="例: 17" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>性別</label>
-                                    <input type="text" @bind="_selectedCharacter.Gender" @bind:event="oninput" placeholder="性別" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Gender" @bind:event="oninput"
+                                           placeholder="例: 女性" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>身長</label>
-                                    <input type="text" @bind="_selectedCharacter.Stature" @bind:event="oninput" placeholder="身長" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Stature" @bind:event="oninput"
+                                           placeholder="例: 162cm" />
                                 </div>
-
                                 <div class="field-group">
                                     <label>体重</label>
-                                    <input type="text" @bind="_selectedCharacter.Weight" @bind:event="oninput" placeholder="体重" />
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Weight" @bind:event="oninput"
+                                           placeholder="例: 50kg" />
                                 </div>
                             </div>
                         </div>
-
-                        <div class="field-group overview-section">
-                            <label>概要</label>
+                        <div class="overview-section">
                             <div class="overview-toolbar">
-                                <button class="toolbar-btn" @onclick='() => InsertMarkdown(" # ")'>H1</button>
-                                <button class="toolbar-btn" @onclick='() => InsertMarkdown("## ")'>H2</button>
-                                <button class="toolbar-btn" @onclick='() => InsertMarkdown("### ")'>H3</button>
+                                <button class="toolbar-btn" @onclick="() => ApplyHeading(1)">H1</button>
+                                <button class="toolbar-btn" @onclick="() => ApplyHeading(2)">H2</button>
+                                <button class="toolbar-btn" @onclick="() => ApplyHeading(3)">H3</button>
+                                <button class="toolbar-btn" @onclick="() => ApplyHeading(0)">×</button>
                             </div>
-                            <textarea @bind="_selectedCharacter.Overview" @bind:event="oninput"
-                                      placeholder="キャラクターの詳細な説明を入力してください。&#10;&#10;見出しは以下の書式で使用できます：&#10;# 大見出し&#10;## 中見出し&#10;### 小見出し"
-                                      rows="15"></textarea>
+                            <div class="overview-editor-wrap" id="overview-editor-mobile" @oninput="OnOverviewInput"
+                                 contenteditable="true"></div>
                         </div>
                     }
                 </div>
@@ -1199,7 +1515,23 @@
                                  @ondrop="() => HandleCharacterDrop(index)"
                                  @ondragend="HandleCharacterDragEnd"
                                  @onclick="() => SelectCharacterMobile(item)">
-                                <span>@item.Name</span>
+                                @if (item.Image != null && item.Image.Length > 0) {
+                                    <img class="character-thumbnail"
+                                         src="data:image/jpeg;base64,@Convert.ToBase64String(item.Image)"
+                                         alt="@item.Name" />
+                                } else {
+                                    <div class="character-thumbnail-placeholder">👤</div>
+                                }
+                                <div class="character-item-info">
+                                    @if (string.IsNullOrEmpty(item.Name)) {
+                                        <div style="color: gray;">(名前未設定)</div>
+                                    } else {
+                                        @item.Name
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.NameRuby)) {
+                                        <span class="character-item-ruby">@item.NameRuby</span>
+                                    }
+                                </div>
                                 <div style="display: flex; gap: 8px;">
                                     <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">−</button>
                                 </div>
@@ -1311,6 +1643,29 @@
             </div>
         </div>
     }
+
+    <!-- 画像トリミングモーダル -->
+    @if (_showCropModal) {
+        <div class="crop-modal-overlay">
+            <div class="crop-modal-content" @onclick:stopPropagation="true">
+                <div class="crop-modal-title">画像をトリミング</div>
+                <div class="crop-viewport" id="crop-viewport">
+                    <img class="crop-image" id="crop-image" src="" alt="" />
+                    <div class="crop-grid"></div>
+                </div>
+                <div class="crop-controls">
+                    <label>拡大縮小</label>
+                    <input type="range" class="crop-slider" id="crop-scale-slider"
+                           min="10" max="300" value="100"
+                           @oninput="OnCropSliderInput" />
+                </div>
+                <div class="crop-buttons">
+                    <button class="modal-btn modal-btn-cancel" @onclick="async () => await CancelCrop()">キャンセル</button>
+                    <button class="modal-btn modal-btn-primary" @onclick="ConfirmCrop">決定</button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -1324,6 +1679,16 @@
     private bool _mobileShowCharacterList = false;
     private CharacterCategory? _selectedCategory;
     private Character? _selectedCharacter;
+    private byte[]? _tempImage = null;
+    private string? _tempImageMime = null;
+    private static Dictionary<string, Characters> _instances = new Dictionary<string, Characters>();
+    private string _instanceId = Guid.NewGuid().ToString();
+
+    private Character? _lastRenderedCharacter = null;
+    private System.Threading.Timer? _overviewSaveTimer;
+    private bool _hasPendingContentSave = false;
+    private System.Threading.Timer? _autoSaveTimer;
+    private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
 
     // モーダル関連
     private bool _showCategoryModal = false;
@@ -1333,12 +1698,17 @@
     private bool _showDeleteCharacterConfirm = false;
     private CharacterCategory? _editingCategory;
     private Character? _editingCharacter;
+    // 画像トリミング
+    private bool _showCropModal = false;
+    private byte[]? _pendingImageBytes = null;
+    private string _pendingImageMime = "image/jpeg";
+    private int _cropScale = 100;
 
     // サイドバー
     private bool _sidebarCollapsed = false;
 
     // デスクトップ/モバイル判定
-    private bool _isMobile = false;
+    private bool _isResizing = false;
 
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -1368,22 +1738,136 @@
         }
     }
 
+    private DotNetObjectReference<Characters>? dotNetRef;
+
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
-
-        } else {
-
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("setCharactersComponent", dotNetRef);
+            await JSRuntime.InvokeVoidAsync("initializeEditorEventListeners", _instanceId);
         }
-        await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
+
+        bool needUpdate = (_selectedCharacter != _lastRenderedCharacter || _isResizing);
+
+        // デスクトップとモバイル間の同期
+        if (needUpdate && _selectedCharacter != null) {
+            await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor", _selectedCharacter.Overview ?? "");
+            await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor-mobile", _selectedCharacter.Overview ?? "");
+            await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
+            _lastRenderedCharacter = _selectedCharacter;
+            _isResizing = false;
+        }
+    }
+
+    private async Task OnOverviewInput() {
+        if (_selectedCharacter == null) return;
+        _hasPendingContentSave = true;
+
+        _overviewSaveTimer?.Dispose();
+
+        _overviewSaveTimer = new System.Threading.Timer(async _ => {
+            if (_hasPendingContentSave) {
+                await InvokeAsync(async () => {
+                    try {
+                        await SaveOverviewContent();
+                        ScheduleAutoSave();
+                        _hasPendingContentSave = false;
+                    }
+                    catch (Exception ex) {
+                        Console.WriteLine($"OnContentInput error: {ex.Message}");
+                    }
+                });
+            }
+        }, null, 500, Timeout.Infinite);
+    }
+
+    private void ScheduleAutoSave() {
+        _autoSaveTimer?.Dispose();
+        _autoSaveTimer = new System.Threading.Timer(async _ => {
+            await InvokeAsync(async () => {
+                await AutoSave();
+            });
+        }, null, 1000, Timeout.Infinite);
+    }
+
+    private async Task AutoSave() {
+        if (!await _saveSemaphore.WaitAsync(0)) {
+            return;
+        }
+
+        try {
+            if (_project != null) {
+                _project.UpdatedAt = DateTime.UtcNow;
+
+                // リトライロジック
+                int maxRetries = 3;
+                for (int i = 0; i < maxRetries; i++) {
+                    try {
+                        await using var db = DbFactory.CreateDbContext();
+                        db.Projects.Update(_project);
+                        await db.SaveChangesAsync();
+                        break; // 成功したらループを抜ける
+                    }
+                    catch (Exception ex) when (i < maxRetries - 1) {
+                        Console.WriteLine($"AutoSave attempt {i + 1} failed: {ex.Message}");
+                        await Task.Delay(500 * (i + 1)); // リトライ前に待機
+                    }
+                }
+            }
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"AutoSave error: {ex.Message}");
+        }
+        finally {
+            _saveSemaphore.Release();
+        }
+    }
+
+    private async Task SaveOverviewContent() {
+        if (_selectedCharacter == null) return;
+
+        var content = "";
+
+        try {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            // カテゴリを検索してキャラクターを更新
+            foreach (var category in _project.ProjectDataObject.Character.Category) {
+                var character = category.Characters?.FirstOrDefault(c => c == _selectedCharacter);
+                if (_mobileShowEditor) {
+                    content = await JSRuntime.InvokeAsync<string>("getOverviewContent", "overview-editor-mobile");
+                } else {
+                    content = await JSRuntime.InvokeAsync<string>("getOverviewContent", "overview-editor");
+                }
+                if (character != null) {
+                    if (character.Overview == content) {
+                        return;
+                    }
+                    character.Overview = content;
+                    break;
+                }
+            }
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Overview保存エラー: {ex.Message}");
+        }
     }
 
     private async Task BackToCategoryView() {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+        }
         await SaveProject();
         _showCategoryView = false;
+        _selectedCharacter = null;
+        _lastRenderedCharacter = null;
         StateHasChanged();
     }
 
     private async Task BackToProjectList() {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+        }
         await SaveProject();
         Nav.NavigateTo("/projects");
     }
@@ -1415,37 +1899,65 @@
         StateHasChanged();
     }
 
-    private void SelectCharacterCategory(CharacterCategory category) {
+    private async Task SelectCharacterCategory(CharacterCategory category) {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _selectedCategory = category;
         _selectedCharacter = category.Characters?.FirstOrDefault();
+        _lastRenderedCharacter = null;
         StateHasChanged();
     }
 
-    private void SelectCharacter(Character character) {
+    private async Task SelectCharacter(Character character) {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _selectedCharacter = character;
+        _lastRenderedCharacter = null;
         StateHasChanged();
     }
 
     // モバイル用
-    private void SelectCharacterCategoryMobile(CharacterCategory category) {
+    private async Task SelectCharacterCategoryMobile(CharacterCategory category) {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _selectedCategory = category;
         _mobileShowCharacterList = true;
+        _lastRenderedCharacter = null;
         StateHasChanged();
     }
 
-    private void SelectCharacterMobile(Character character) {
+    private async Task SelectCharacterMobile(Character character) {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _selectedCharacter = character;
         _mobileShowEditor = true;
+        _lastRenderedCharacter = null;
         StateHasChanged();
     }
 
-    private void BackToCategoryListMobile() {
+    private async Task BackToCategoryListMobile() {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _mobileShowCharacterList = false;
         _selectedCategory = null;
         StateHasChanged();
     }
 
-    private void BackToCharacterList() {
+    private async Task BackToCharacterList() {
+        if (_selectedCharacter != null) {
+            await SaveOverviewContent();
+            await SaveProject();
+        }
         _mobileShowEditor = false;
         _selectedCharacter = null;
         StateHasChanged();
@@ -1750,9 +2262,371 @@
             StateHasChanged();
         }
     }
+
+    // 画像アップロード（一時・保存なし）
+    private async Task HandleImageUpload(InputFileChangeEventArgs e) {
+        var file = e.File;
+        if (file == null) return;
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+        using var ms = new System.IO.MemoryStream();
+        await stream.CopyToAsync(ms);
+        _pendingImageBytes = ms.ToArray();
+        _pendingImageMime = file.ContentType;
+        _cropScale = 100;
+        _showCropModal = true;
+        StateHasChanged();
+
+        // モーダルが描画された後にJS側へ画像をセット
+        var base64 = Convert.ToBase64String(_pendingImageBytes);
+        await JSRuntime.InvokeVoidAsync("cropEditor.init",
+            "crop-viewport", "crop-image", "crop-scale-slider",
+            $"data:{_pendingImageMime};base64,{base64}");
+    }
+
+    private void OnCropSliderInput(ChangeEventArgs e) {
+        if (int.TryParse(e.Value?.ToString(), out var v)) {
+            _cropScale = v;
+            _ = JSRuntime.InvokeVoidAsync("cropEditor.setScale",
+                "crop-viewport", "crop-image", v);
+        }
+    }
+
+    private async Task CancelCrop() {
+        _showCropModal = false;
+        _pendingImageBytes = null;
+        await JSRuntime.InvokeVoidAsync("cropEditor.destroy");
+        StateHasChanged();
+    }
+
+    private async Task ConfirmCrop() {
+        if (_selectedCharacter == null || _pendingImageBytes == null) return;
+
+        var resultBase64 = await JSRuntime.InvokeAsync<string>(
+            "cropEditor.crop", "crop-viewport", "crop-image");
+
+        if (!string.IsNullOrEmpty(resultBase64)) {
+            // "data:image/webp;base64,XXXX" または "data:image/jpeg;base64,XXXX"
+            var comma = resultBase64.IndexOf(',');
+            var data = comma >= 0 ? resultBase64[(comma + 1)..] : resultBase64;
+            _selectedCharacter.Image = Convert.FromBase64String(data);
+        }
+
+        _showCropModal = false;
+        _pendingImageBytes = null;
+        await JSRuntime.InvokeVoidAsync("cropEditor.destroy");
+        StateHasChanged();
+    }
+
+    private void ClearImage() {
+        if (_selectedCharacter == null) return;
+        _selectedCharacter.Image = null;
+        StateHasChanged();
+    }
+
+    private async Task ApplyHeading(int level) {
+        if (_selectedCharacter == null) return;
+        var editorId = _mobileShowEditor ? "overview-editor-mobile" : "overview-editor";
+        var result = await JSRuntime.InvokeAsync<string>(
+            "overviewEditor.applyHeading", editorId, level);
+        _selectedCharacter.Overview = result;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnOverviewChanged(string content) {
+        if (_selectedCharacter == null) return;
+
+        _selectedCharacter.Overview = content;
+
+        await SaveProject();
+    }
+
+    public async ValueTask DisposeAsync() {
+        _overviewSaveTimer?.Dispose();
+
+        if (dotNetRef != null) {
+            try {
+                await JSRuntime.InvokeVoidAsync("clearCharactersComponent");
+            }
+            catch { }
+            dotNetRef.Dispose();
+        }
+    }
+
+    [JSInvokable("OnWindowResize")]
+    public static async Task OnWindowResize(string instanceId, int width) {
+        if (!_instances.TryGetValue(instanceId, out var instance)) return;
+
+        try {
+            await instance.InvokeAsync(async () => {
+                bool isMobile = width <= 768;
+
+                if (!isMobile && instance._mobileShowEditor) {
+                    await instance.SaveOverviewContent();
+                    instance._mobileShowEditor = false;
+                    instance._isResizing = true;
+                } else if (isMobile && !instance._mobileShowEditor &&
+                           (instance._selectedCharacter != null) && (instance._selectedCategory != null)) {
+                    await instance.SaveOverviewContent();
+                    instance._mobileShowEditor = true;
+                    instance._isResizing = true;
+                }
+                instance.StateHasChanged();
+            });
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"OnWindowResize error: {ex.Message}");
+        }
+    }
 }
 
 <script>
+    (function() {
+        window.initializeEditorEventListeners = function(instanceId) {
+            if (window['editorEventListenersRegistered_' + instanceId]) return;
+            window['editorEventListenersRegistered_' + instanceId] = true;
+            // リサイズ検知
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                if (!window.blazorConnected) return;
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (!window.blazorConnected) return;
+                    try {
+                        DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResize', instanceId, window.innerWidth);
+                    } catch (err) {
+                        console.warn('OnWindowResize failed:', err);
+                    }
+                }, 300);
+            });
+        };
+    })();
+
+    window.cropEditor = {
+        _state: {},
+
+        init: function (viewportId, imgId, sliderId, src) {
+            const vp = document.getElementById(viewportId);
+            const img = document.getElementById(imgId);
+            if (!vp || !img) return;
+
+            const st = window.cropEditor._state;
+            st.offsetX = 0;
+            st.offsetY = 0;
+            st.scale = 1.0;
+            st.dragging = false;
+            st.lastX = 0;
+            st.lastY = 0;
+            st.viewportId = viewportId;
+            st.imgId = imgId;
+            st.sliderId = sliderId;
+
+            img.onload = function () {
+                const vpSize = vp.getBoundingClientRect().width || 400;
+                const iw = img.naturalWidth;
+                const ih = img.naturalHeight;
+
+                // 短辺がビューポートと一致する初期スケール（はみ出さない最小値）
+                const minScale = vpSize / Math.min(iw, ih);
+                st.minScale = minScale;
+                st.scale = minScale;
+                st.baseScale = minScale;
+
+                // 画像を中央に配置
+                st.offsetX = (vpSize - iw * st.scale) / 2;
+                st.offsetY = (vpSize - ih * st.scale) / 2;
+                window.cropEditor._clampOffset();
+                window.cropEditor._apply();
+
+                const slider = document.getElementById(sliderId);
+                if (slider) {
+                    slider.min = 100;
+                    slider.max = 300;
+                    slider.value = 100;
+                }
+            };
+            img.src = src;
+
+            // マウスドラッグ
+            vp.onmousedown = function (e) {
+                st.dragging = true;
+                st.lastX = e.clientX;
+                st.lastY = e.clientY;
+                e.preventDefault();
+            };
+            // グローバルに登録（モーダルを跨いでもドラッグが続く）
+            window._cropMouseMove = function (e) {
+                if (!st.dragging) return;
+                st.offsetX += e.clientX - st.lastX;
+                st.offsetY += e.clientY - st.lastY;
+                st.lastX = e.clientX;
+                st.lastY = e.clientY;
+                window.cropEditor._clampOffset();
+                window.cropEditor._apply();
+            };
+            window._cropMouseUp = function () { st.dragging = false; };
+            window.addEventListener('mousemove', window._cropMouseMove);
+            window.addEventListener('mouseup', window._cropMouseUp);
+
+            // タッチ
+            vp.ontouchstart = function (e) {
+                if (e.touches.length === 1) {
+                    st.dragging = true;
+                    st.lastX = e.touches[0].clientX;
+                    st.lastY = e.touches[0].clientY;
+                }
+                e.preventDefault();
+            };
+            vp.ontouchmove = function (e) {
+                if (!st.dragging || e.touches.length !== 1) return;
+                st.offsetX += e.touches[0].clientX - st.lastX;
+                st.offsetY += e.touches[0].clientY - st.lastY;
+                st.lastX = e.touches[0].clientX;
+                st.lastY = e.touches[0].clientY;
+                window.cropEditor._clampOffset();
+                window.cropEditor._apply();
+                e.preventDefault();
+            };
+            vp.ontouchend = function () { st.dragging = false; };
+        },
+
+        setScale: function (viewportId, imgId, sliderVal) {
+            const st = window.cropEditor._state;
+            if (!st.baseScale) return;
+            const vp = document.getElementById(viewportId);
+            if (!vp) return;
+            const vpSize = vp.getBoundingClientRect().width || 400;
+            const img = document.getElementById(imgId);
+            if (!img) return;
+
+            // sliderVal 100 = minScale（短辺ぴったり）、300 = 3倍
+            const newScale = st.baseScale * (sliderVal / 100);
+
+            // ビューポート中心を固定点としてオフセットを再計算
+            const cx = vpSize / 2;
+            const cy = vpSize / 2;
+            const ratio = newScale / st.scale;
+            st.offsetX = cx + (st.offsetX - cx) * ratio;
+            st.offsetY = cy + (st.offsetY - cy) * ratio;
+            st.scale = newScale;
+            window.cropEditor._clampOffset();
+            window.cropEditor._apply();
+        },
+
+        // 画像がビューポートからはみ出さないようオフセットを制限
+        _clampOffset: function () {
+            const st = window.cropEditor._state;
+            const vp = document.getElementById(st.viewportId);
+            const img = document.getElementById(st.imgId);
+            if (!vp || !img) return;
+
+            const vpSize = vp.getBoundingClientRect().width || 400;
+            const scaledW = img.naturalWidth * st.scale;
+            const scaledH = img.naturalHeight * st.scale;
+
+            // X軸：画像右端がビューポート右端より左に来てはいけない
+            //      画像左端がビューポート左端より右に来てはいけない
+            const maxX = 0;
+            const minX = vpSize - scaledW;
+            st.offsetX = Math.min(maxX, Math.max(minX, st.offsetX));
+
+            const maxY = 0;
+            const minY = vpSize - scaledH;
+            st.offsetY = Math.min(maxY, Math.max(minY, st.offsetY));
+        },
+
+        _apply: function () {
+            const st = window.cropEditor._state;
+            const img = document.getElementById(st.imgId);
+            if (!img) return;
+            img.style.width  = (img.naturalWidth  * st.scale) + 'px';
+            img.style.height = (img.naturalHeight * st.scale) + 'px';
+            img.style.left   = st.offsetX + 'px';
+            img.style.top    = st.offsetY + 'px';
+        },
+
+        crop: function (viewportId, imgId) {
+            const vp = document.getElementById(viewportId);
+            const img = document.getElementById(imgId);
+            if (!vp || !img) return '';
+
+            const vpSize = vp.getBoundingClientRect().width || 400;
+            const st = window.cropEditor._state;
+
+            const canvas = document.createElement('canvas');
+            canvas.width  = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // ビューポート座標 → canvas(512x512) の変換比率
+            const drawScale = 512 / vpSize;
+
+            ctx.drawImage(
+                img,
+                0, 0, img.naturalWidth, img.naturalHeight,
+                st.offsetX * drawScale,
+                st.offsetY * drawScale,
+                img.naturalWidth  * st.scale * drawScale,
+                img.naturalHeight * st.scale * drawScale
+            );
+
+            // WebP 品質0.85で軽量化
+            const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+            const mime    = supportsWebP ? 'image/webp' : 'image/jpeg';
+            const quality = supportsWebP ? 0.85 : 0.88;
+            return canvas.toDataURL(mime, quality);
+        },
+
+        destroy: function () {
+            // モーダルを閉じる際にグローバルイベントを解除
+            if (window._cropMouseMove) {
+                window.removeEventListener('mousemove', window._cropMouseMove);
+                window._cropMouseMove = null;
+            }
+            if (window._cropMouseUp) {
+                window.removeEventListener('mouseup', window._cropMouseUp);
+                window._cropMouseUp = null;
+            }
+        }
+    };
+
+    window.setOverviewContent = function(elementId, content) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        if (element.innerHTML !== (content || '')) {
+            element.innerHTML = content || '';
+
+            const selection = window.getSelection();
+            const range = document.createRange();
+
+            if (element.childNodes.length > 0) {
+                range.setStart(element.childNodes[0], 0);
+                range.collapse(true);
+            } else {
+                range.selectNodeContents(element);
+                range.collapse(true);
+            }
+
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    };
+
+    window.getOverviewContent = function(elementId) {
+        const element = document.getElementById(elementId);
+        return element ? element.innerHTML : '';
+    };
+
+    window.setCharactersComponent = function(dotNetRef) {
+        window.charactersComponent = dotNetRef;
+    };
+
+    window.clearCharactersComponent = function() {
+        delete window.charactersComponent;
+    };
+
     function adjustContainerHeight() {
         const topRow = document.querySelector('.top-row');
         const desktopContainer = document.querySelector('.edit-container.desktop-view');

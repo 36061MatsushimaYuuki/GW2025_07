@@ -9,5 +9,6 @@
         public string Stature { get; set; } = "";
         public string Weight { get; set; } = "";
         public string Overview { get; set; } = "";
+        public byte[]? Image { get; set; }
     }
 }

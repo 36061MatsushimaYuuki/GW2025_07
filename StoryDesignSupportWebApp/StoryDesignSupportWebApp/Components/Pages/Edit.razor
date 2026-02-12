@@ -157,6 +157,7 @@
 
     .chapter-header {
         padding: 14px 20px 14px 15px;
+        height: 60px;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
@@ -327,8 +328,8 @@
 
     .editor-header {
         padding: 15px 20px;
-        border-bottom: 1px solid #ddd;
-        background-color: #fff;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #f6f8fa;
         overflow: hidden;
     }
 
@@ -348,7 +349,7 @@
         font-size: 16px;
         border: none;
         border-bottom: 2px solid #e1e4e8;
-        background: transparent;
+        background: white;
         outline: none;
         box-sizing: border-box;
     }
@@ -1232,9 +1233,9 @@
                                         ? $"Chapter {_selectedChapter + 1}"
                                         : _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                         )
+                    </div>
+                    <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
                 </div>
-                <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
-            </div>
 
                 <div class="editor-toolbar">
                     <button class="toolbar-btn undo" @onclick="Undo" title="Undo" disabled="@(!_canUndo)">⬅</button>
