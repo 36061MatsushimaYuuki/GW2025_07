@@ -8,10 +8,11 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Confirm email</PageTitle>
+<PageTitle>メール認証</PageTitle>
 
-<h1>Confirm email</h1>
+<h1>メール認証</h1>
 <StatusMessage Message="@statusMessage" />
+<a href="/Account/Login">ログインページへ戻る</a>
 
 @code {
     private string? statusMessage;
@@ -36,13 +37,13 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = $"Error loading user with ID {UserId}";
+            statusMessage = $"ユーザーIDの読み込みエラー: {UserId}";
         }
         else
         {
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
             var result = await UserManager.ConfirmEmailAsync(user, code);
-            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            statusMessage = result.Succeeded ? "認証が完了しました" : "認証に失敗しました";
         }
     }
 }
