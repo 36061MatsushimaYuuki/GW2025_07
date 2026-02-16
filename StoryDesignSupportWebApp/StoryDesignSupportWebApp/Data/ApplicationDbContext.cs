@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Reflection.Emit;
 using System.Text.Json;
 using System.Transactions;
 
@@ -11,6 +12,16 @@ namespace StoryDesignSupportWebApp.Data {
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);
+
+            foreach (var entity in modelBuilder.Model.GetEntityTypes()) {
+                foreach (var property in entity.GetProperties()) {
+                    if (property.ClrType == typeof(string)) {
+                        if (property.GetMaxLength() == null) {
+                            property.SetMaxLength(4000);
+                        }
+                    }
+                }
+            }
 
             // JSONシリアライズ設定（必要ならオプションを調整）
             var jsonOptions = new JsonSerializerOptions {
@@ -36,7 +47,7 @@ namespace StoryDesignSupportWebApp.Data {
             modelBuilder.Entity<Project>()
                 .Property(p => p.ProjectDataObject)
                 .HasConversion(dataConverter)
-                .HasColumnType("nvarchar(max)")   // SQL Server の場合
+                .HasColumnType("TEXT")   // SQL Server の場合
                 .HasAnnotation("Relational:ColumnOrder", 0) // 任意。列順を制御したいなら
                 .Metadata.SetValueComparer(dataComparer);
         }
