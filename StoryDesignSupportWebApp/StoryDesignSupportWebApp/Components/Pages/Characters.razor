@@ -1326,34 +1326,42 @@
                                     <label>種族</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Species" @bind:event="oninput"
-                                           placeholder="人間" />
+                                           placeholder="例: 人間" />
                                 </div>
+                                <div class="field-group">
+                                    <label>職業・役職</label>
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Job" @bind:event="oninput"
+                                           placeholder="例: 魔法使い" />
+                                </div>
+                            </div>
+                            <div class="field-row">
                                 <div class="field-group">
                                     <label>年齢</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Age" @bind:event="oninput"
-                                           placeholder="例: 17" />
+                                           placeholder="例: 17歳" />
                                 </div>
-                            </div>
-                            <div class="field-row">
                                 <div class="field-group">
                                     <label>性別</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Gender" @bind:event="oninput"
                                            placeholder="例: 女性" />
                                 </div>
+                            </div>
+                            <div class="field-row">
                                 <div class="field-group">
                                     <label>身長</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Stature" @bind:event="oninput"
                                            placeholder="例: 162cm" />
                                 </div>
-                            </div>
-                            <div class="field-group">
-                                <label>体重</label>
-                                <input type="text" class="field-input"
-                                       @bind="_selectedCharacter.Weight" @bind:event="oninput"
-                                       placeholder="例: 50kg" />
+                                <div class="field-group">
+                                    <label>体重</label>
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Weight" @bind:event="oninput"
+                                           placeholder="例: 50kg" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1454,13 +1462,19 @@
                                     <label>種族</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Species" @bind:event="oninput"
-                                           placeholder="人間" />
+                                           placeholder="例: 人間" />
+                                </div>
+                                <div class="field-group">
+                                    <label>職業・役職</label>
+                                    <input type="text" class="field-input"
+                                           @bind="_selectedCharacter.Job" @bind:event="oninput"
+                                           placeholder="例: 魔法使い" />
                                 </div>
                                 <div class="field-group">
                                     <label>年齢</label>
                                     <input type="text" class="field-input"
                                            @bind="_selectedCharacter.Age" @bind:event="oninput"
-                                           placeholder="例: 17" />
+                                           placeholder="例: 17歳" />
                                 </div>
                                 <div class="field-group">
                                     <label>性別</label>
