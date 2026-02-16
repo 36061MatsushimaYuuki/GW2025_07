@@ -1378,7 +1378,7 @@
                                 ×
                             </button>
                         </div>
-                        <div class="overview-editor-wrap" id="overview-editor" @oninput="OnOverviewInput"
+                        <div class="overview-editor-wrap" id="overview-editor" @key="@($"overview-{_selectedCharacter?.GetHashCode()}")" @oninput="OnOverviewInput"
                              contenteditable="true"></div>
                     </div>
                 </div>
@@ -1489,7 +1489,7 @@
                                 <button class="toolbar-btn" @onclick="() => ApplyHeading(3)">H3</button>
                                 <button class="toolbar-btn" @onclick="() => ApplyHeading(0)">×</button>
                             </div>
-                            <div class="overview-editor-wrap" id="overview-editor-mobile" @oninput="OnOverviewInput"
+                            <div class="overview-editor-wrap" id="overview-editor-mobile" @key="@($"overview-mobile-{_selectedCharacter?.GetHashCode()}")" @oninput="OnOverviewInput"
                                  contenteditable="true"></div>
                         </div>
                     }
@@ -1742,9 +1742,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
-            dotNetRef = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("setCharactersComponent", dotNetRef);
             await JSRuntime.InvokeVoidAsync("initializeEditorEventListeners", _instanceId);
+            await JSRuntime.InvokeVoidAsync("setBlazorInstance", DotNetObjectReference.Create(this));
         }
 
         bool needUpdate = (_selectedCharacter != _lastRenderedCharacter || _isResizing);
@@ -1759,8 +1758,12 @@
         }
     }
 
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        _instances[_instanceId] = this;
+    }
+
     private async Task OnOverviewInput() {
-        if (_selectedCharacter == null) return;
         _hasPendingContentSave = true;
 
         _overviewSaveTimer?.Dispose();
@@ -1824,7 +1827,6 @@
     }
 
     private async Task SaveOverviewContent() {
-        if (_selectedCharacter == null) return;
 
         var content = "";
 
@@ -2342,20 +2344,26 @@
         await SaveProject();
     }
 
-    public async ValueTask DisposeAsync() {
-        _overviewSaveTimer?.Dispose();
+    public void Dispose() {
+        try {
+            _overviewSaveTimer?.Dispose();
+            _autoSaveTimer?.Dispose();
+            _saveSemaphore?.Dispose();
 
-        if (dotNetRef != null) {
-            try {
-                await JSRuntime.InvokeVoidAsync("clearCharactersComponent");
-            }
-            catch { }
-            dotNetRef.Dispose();
+            JSRuntime.InvokeVoidAsync("eval", $@"
+            window.blazorConnected = false;
+            window['editorEventListenersRegistered_{_instanceId}'] = false;
+        ");
         }
+        catch {
+            // 既に切断されている場合は無視
+        }
+
+        _instances.Remove(_instanceId);
     }
 
-    [JSInvokable("OnWindowResize")]
-    public static async Task OnWindowResize(string instanceId, int width) {
+    [JSInvokable("OnWindowResizeCharacters")]
+    public static async Task OnWindowResizeCharacters(string instanceId, int width) {
         if (!_instances.TryGetValue(instanceId, out var instance)) return;
 
         try {
@@ -2376,14 +2384,28 @@
             });
         }
         catch (Exception ex) {
-            Console.WriteLine($"OnWindowResize error: {ex.Message}");
+            Console.WriteLine($"OnWindowResizeCharacters error: {ex.Message}");
         }
     }
 }
 
 <script>
     (function() {
+        // Blazor接続状態を追跡
+        let blazorConnected = true;
+
+        // Blazor切断検知
+        if (window.Blazor) {
+            Blazor.disconnect = new Proxy(Blazor.disconnect || (() => {}), {
+                apply: function(target, thisArg, args) {
+                    blazorConnected = false;
+                    return target.apply(thisArg, args);
+                }
+            });
+        }
+
         window.initializeEditorEventListeners = function(instanceId) {
+
             if (window['editorEventListenersRegistered_' + instanceId]) return;
             window['editorEventListenersRegistered_' + instanceId] = true;
             // リサイズ検知
@@ -2394,13 +2416,68 @@
                 resizeTimer = setTimeout(function() {
                     if (!window.blazorConnected) return;
                     try {
-                        DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResize', instanceId, window.innerWidth);
+                        DotNet.invokeMethodAsync('StoryDesignSupportWebApp', 'OnWindowResizeCharacters', instanceId, window.innerWidth);
                     } catch (err) {
-                        console.warn('OnWindowResize failed:', err);
+                        console.warn('OnWindowResizeCharacters failed:', err);
                     }
                 }, 300);
             });
+
+            // Blazor接続状態の初期化
+            window.blazorConnected = true;
         };
+
+        window.setBlazorInstance = function(instance) {
+            window.blazorInstance = instance;
+        };
+
+        window.setOverviewContent = function(elementId, content) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            if (element.innerHTML !== (content || '')) {
+                element.innerHTML = content || '';
+
+                const selection = window.getSelection();
+                const range = document.createRange();
+
+                if (element.childNodes.length > 0) {
+                    range.setStart(element.childNodes[0], 0);
+                    range.collapse(true);
+                } else {
+                    range.selectNodeContents(element);
+                    range.collapse(true);
+                }
+
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        };
+
+        window.getOverviewContent = function(elementId) {
+            const element = document.getElementById(elementId);
+            return element ? element.innerHTML : '';
+        };
+
+        function adjustContainerHeight() {
+            const topRow = document.querySelector('.top-row');
+            const desktopContainer = document.querySelector('.edit-container.desktop-view');
+            const mobileContainer = document.querySelector('.mobile-view');
+            const mobileView = document.querySelector('.mobile-list');
+            const mobileEditor = document.querySelector('.mobile-editor');
+
+            if (topRow) {
+                const isCollapsed = topRow.classList.contains('collapsed');
+                const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
+
+                if (desktopContainer) desktopContainer.style.height = height;
+                if (mobileContainer) mobileContainer.style.height = height;
+                if (mobileView) mobileView.style.height = height;
+                if (mobileEditor) mobileEditor.style.height = height;
+            }
+        }
+
+        window.adjustContainerHeight = adjustContainerHeight;
     })();
 
     window.cropEditor = {
@@ -2590,60 +2667,4 @@
             }
         }
     };
-
-    window.setOverviewContent = function(elementId, content) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        if (element.innerHTML !== (content || '')) {
-            element.innerHTML = content || '';
-
-            const selection = window.getSelection();
-            const range = document.createRange();
-
-            if (element.childNodes.length > 0) {
-                range.setStart(element.childNodes[0], 0);
-                range.collapse(true);
-            } else {
-                range.selectNodeContents(element);
-                range.collapse(true);
-            }
-
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    };
-
-    window.getOverviewContent = function(elementId) {
-        const element = document.getElementById(elementId);
-        return element ? element.innerHTML : '';
-    };
-
-    window.setCharactersComponent = function(dotNetRef) {
-        window.charactersComponent = dotNetRef;
-    };
-
-    window.clearCharactersComponent = function() {
-        delete window.charactersComponent;
-    };
-
-    function adjustContainerHeight() {
-        const topRow = document.querySelector('.top-row');
-        const desktopContainer = document.querySelector('.edit-container.desktop-view');
-        const mobileContainer = document.querySelector('.mobile-view');
-        const mobileView = document.querySelector('.mobile-list');
-        const mobileEditor = document.querySelector('.mobile-editor');
-
-        if (topRow) {
-            const isCollapsed = topRow.classList.contains('collapsed');
-            const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
-
-            if (desktopContainer) desktopContainer.style.height = height;
-            if (mobileContainer) mobileContainer.style.height = height;
-            if (mobileView) mobileView.style.height = height;
-            if (mobileEditor) mobileEditor.style.height = height;
-        }
-    }
-
-    window.adjustContainerHeight = adjustContainerHeight;
 </script>

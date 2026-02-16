@@ -3045,13 +3045,52 @@
                 currentFormat.italic = hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
                 currentFormat.underline = hasParentTag(parentElement, 'U');
             } else {
-                // 選択範囲がある場合
-                currentFormat.bold = document.queryCommandState('bold');
-                currentFormat.italic = document.queryCommandState('italic');
-                currentFormat.underline = document.queryCommandState('underline');
+                // 選択範囲がある場合 - 選択範囲内の全ノードをチェック
+                currentFormat.bold = checkFormatInRange(range, ['B', 'STRONG']);
+                currentFormat.italic = checkFormatInRange(range, ['I', 'EM']);
+                currentFormat.underline = checkFormatInRange(range, ['U']);
             }
 
             notifyFormatStates();
+        }
+
+        function checkFormatInRange(range, tagNames) {
+            // 選択範囲の開始ノードをチェック
+            let node = range.startContainer;
+            let element = node.nodeType === 3 ? node.parentElement : node;
+
+            // 開始位置が指定タグ内にあるかチェック
+            for (const tagName of tagNames) {
+                if (hasParentTag(element, tagName)) {
+                    return true;
+                }
+            }
+
+            // 選択範囲内のすべてのノードをチェック
+            const walker = document.createTreeWalker(
+                range.commonAncestorContainer,
+                NodeFilter.SHOW_ELEMENT,
+                {
+                    acceptNode: function(node) {
+                        // 選択範囲に含まれるかチェック
+                        if (range.intersectsNode(node)) {
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                        return NodeFilter.FILTER_SKIP;
+                    }
+                }
+            );
+
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                for (const tagName of tagNames) {
+                    if (currentNode.nodeName === tagName) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         function hasParentTag(element, tagName) {
