@@ -64,7 +64,7 @@ if (app.Environment.IsDevelopment()) {
     app.UseMigrationsEndPoint();
 } else {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+    //app.UseHsts();
 }
 
 // ★ 追加：Nginx の X-Forwarded-Proto を信頼する（UseAuthentication より前に必須）
