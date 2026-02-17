@@ -778,7 +778,7 @@
                     </div>
 
                     <div class="project-dates">
-                        <div>作成日: @p.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</div>
+                        <div>作成日: @ToLocalTime(p.CreatedAt).ToString("yyyy/MM/dd HH:mm")</div>
                         <div>更新日: @GetRelativeTime(p.UpdatedAt)</div>
                     </div>
                 </div>
@@ -987,10 +987,21 @@
     private bool isVisible = false;
     private DotNetObjectReference<Projects>? _dotNetHelper;
 
+    private TimeZoneInfo? _clientTimeZone;
+
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             _dotNetHelper = DotNetObjectReference.Create(this);
             await JSRuntime.InvokeVoidAsync("initializeScrollListener", _dotNetHelper);
+            try {
+                var tzId = await JSRuntime.InvokeAsync<string>(
+                    "eval", "Intl.DateTimeFormat().resolvedOptions().timeZone");
+                _clientTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+            }
+            catch {
+                _clientTimeZone = TimeZoneInfo.Utc;
+            }
+            StateHasChanged();
 
             // 初期スクロール位置をチェック
             await Task.Delay(100); // DOMの準備を待つ
@@ -1002,6 +1013,11 @@
                 // エラーは無視
             }
         }
+    }
+
+    private DateTime ToLocalTime(DateTime utc) {
+        if (_clientTimeZone == null) return utc;
+        return TimeZoneInfo.ConvertTimeFromUtc(utc, _clientTimeZone);
     }
 
     public void Dispose() {
@@ -1331,8 +1347,8 @@
     private string GetRelativeTime(DateTime? dateTime) {
         if (!dateTime.HasValue) return "未更新";
 
-        var localTime = dateTime.Value.ToLocalTime();
-        var now = DateTime.Now;
+        var localTime = ToLocalTime(dateTime.Value);
+        var now = ToLocalTime(DateTime.UtcNow);
         var diff = now - localTime;
 
         if (diff.TotalMinutes < 1) return "たった今";
