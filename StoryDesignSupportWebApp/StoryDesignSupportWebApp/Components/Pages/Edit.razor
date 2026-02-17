@@ -612,6 +612,569 @@
             font-size: 0.5em;
         }
 
+    /* 人物・資料参照ボタン */
+    .reference-btn {
+        background-color: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #24292f;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .reference-btn:hover {
+            background-color: #e1e4e8;
+            border-color: #0969da;
+        }
+
+    /* 参照パネル */
+    .reference-panel {
+        position: fixed;
+        top: 0;
+        right: -420px;
+        width: 420px;
+        height: 100vh;
+        background-color: white;
+        box-shadow: -4px 0 16px rgba(0, 0, 0, 0.15);
+        z-index: 1500;
+        transition: right 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .reference-panel.show {
+            right: 0;
+        }
+
+    .reference-panel-header {
+        padding: 16px 20px;
+        border-bottom: 2px solid #e1e4e8;
+        background-color: #f6f8fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .reference-panel-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #24292f;
+        }
+
+    .reference-close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #57606a;
+        padding: 4px 8px;
+        transition: color 0.2s ease;
+    }
+
+        .reference-close-btn:hover {
+            color: #24292f;
+        }
+
+    .reference-tabs {
+        display: flex;
+        border-bottom: 1px solid #e1e4e8;
+        background-color: #fafbfc;
+    }
+
+    .reference-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 14px;
+        font-weight: 500;
+        color: #57606a;
+        transition: all 0.2s ease;
+        border-bottom: 2px solid transparent;
+    }
+
+        .reference-tab:hover {
+            background-color: #f6f8fa;
+            color: #24292f;
+        }
+
+        .reference-tab.active {
+            color: #0969da;
+            border-bottom-color: #0969da;
+            background-color: white;
+        }
+
+    .reference-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+    }
+
+    .reference-search-section {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e1e4e8;
+    }
+
+    .reference-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .reference-search-input:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+    .reference-sort-section {
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .reference-sort-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #57606a;
+    }
+
+    .reference-sort-select {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 13px;
+        background-color: white;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .reference-sort-select:focus {
+            border-color: #0969da;
+        }
+
+    .reference-category {
+        margin-bottom: 12px;
+        border: 1px solid #e1e4e8;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+        .reference-category:last-child {
+            margin-bottom: 0;
+        }
+
+    .reference-category-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background-color: #f6f8fa;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid #e1e4e8;
+    }
+
+        .reference-category-header:hover {
+            background-color: #eaeef2;
+        }
+
+        .reference-category-header.collapsed {
+            border-bottom: none;
+        }
+
+    .reference-category-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .reference-category-toggle {
+        font-size: 12px;
+        color: #57606a;
+        transition: transform 0.2s ease;
+        display: inline-block;
+    }
+
+        .reference-category-toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+    .reference-category-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0969da;
+    }
+
+    .reference-category-count {
+        font-size: 12px;
+        color: #8c959f;
+        font-weight: 400;
+    }
+
+    .reference-category-items {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background-color: white;
+    }
+
+        .reference-category-items.expanded {
+            max-height: 2000px;
+        }
+
+    .reference-item {
+        padding: 10px 12px;
+        margin: 6px 8px;
+        background-color: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .reference-item:first-child {
+            margin-top: 8px;
+        }
+
+        .reference-item:last-child {
+            margin-bottom: 8px;
+        }
+
+        .reference-item:hover {
+            background-color: #ddf4ff;
+            border-color: #0969da;
+        }
+
+        .reference-item.expanded {
+            background-color: white;
+            border-color: #0969da;
+        }
+
+    .reference-item-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .reference-item-image {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #d0d7de;
+    }
+
+    .reference-item-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #e1e4e8;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #8c959f;
+    }
+
+    .reference-item-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #24292f;
+    }
+
+    .reference-item-ruby {
+        font-size: 11px;
+        color: #8c959f;
+        display: block;
+        margin-top: 2px;
+    }
+
+    .reference-item-details {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e1e4e8;
+        font-size: 13px;
+        color: #57606a;
+        line-height: 1.6;
+    }
+
+    .reference-field {
+        margin-bottom: 6px;
+    }
+
+        .reference-field:last-child {
+            margin-bottom: 0;
+        }
+
+    .reference-field-label {
+        font-weight: 600;
+        color: #24292f;
+        margin-right: 4px;
+    }
+
+    .reference-overview {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #f6f8fa;
+        border-radius: 4px;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .reference-material-content {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f6f8fa;
+        border-radius: 4px;
+        font-size: 13px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .reference-empty {
+        text-align: center;
+        color: #8c959f;
+        padding: 40px 20px;
+        font-size: 14px;
+    }
+
+    .reference-search-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .reference-search-input-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .reference-search-mode {
+        display: flex;
+        gap: 4px;
+    }
+
+    .search-mode-btn {
+        flex: 1;
+        padding: 4px 8px;
+        background-color: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 500;
+        color: #57606a;
+        transition: all 0.2s ease;
+    }
+
+        .search-mode-btn:hover {
+            background-color: #e1e4e8;
+        }
+
+        .search-mode-btn.active {
+            background-color: #0969da;
+            color: white;
+            border-color: #0969da;
+        }
+
+    .reference-filter-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        background-color: #6c757d;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        align-self: flex-end;
+    }
+
+        .reference-filter-btn:hover {
+            background-color: #5a6268;
+            border-color: #0969da;
+        }
+
+        .reference-filter-btn.active {
+            background-color: #007bff;
+            border-color: #0969da;
+        }
+
+            .reference-filter-btn.active:hover {
+                background-color: #0056b3;
+            }
+
+    .reference-filter-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .filter-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2500;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .filter-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.3s ease;
+    }
+
+    .filter-modal-header {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #24292f;
+    }
+
+    .filter-modal-section {
+        margin-bottom: 16px;
+    }
+
+        .filter-modal-section:last-of-type {
+            margin-bottom: 0;
+        }
+
+    .filter-modal-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #57606a;
+        margin-bottom: 6px;
+    }
+
+    .filter-modal-select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: white;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .filter-modal-select:focus {
+            border-color: #0969da;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+    .filter-modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: flex-end;
+    }
+
+    .filter-modal-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .filter-modal-btn-clear {
+        background-color: #f6f8fa;
+        color: #24292f;
+        border: 1px solid #d0d7de;
+    }
+
+        .filter-modal-btn-clear:hover {
+            background-color: #e1e4e8;
+        }
+
+    .filter-modal-btn-apply {
+        background-color: #0969da;
+        color: white;
+    }
+
+        .filter-modal-btn-apply:hover {
+            background-color: #0550ae;
+        }
+
+    .filter-category-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 8px;
+        background-color: #fafbfc;
+    }
+
+    .filter-category-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+
+        .filter-category-item:hover {
+            background-color: #f6f8fa;
+        }
+
+    .filter-category-checkbox {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #0969da;
+    }
+
+    .filter-category-label {
+        flex: 1;
+        font-size: 13px;
+        color: #24292f;
+        cursor: pointer;
+        user-select: none;
+    }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -916,6 +1479,16 @@
         .color-picker-dropdown {
             min-width: 280px;
             max-width: calc(100vw - 20px);
+        }
+
+        .reference-panel {
+            width: 100vw;
+            right: -100vw;
+        }
+
+        .reference-btn {
+            padding: 6px 10px;
+            font-size: 12px;
         }
     }
 
@@ -1233,9 +1806,9 @@
                                         ? $"Chapter {_selectedChapter + 1}"
                                         : _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Title
                                         )
-                    </div>
-                    <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
                 </div>
+                <input type="text" class="section-title-input" @bind="section.Title" @bind:event="oninput" @bind:after="AutoSave" placeholder="セクションタイトル" maxlength="90" />
+            </div>
 
                 <div class="editor-toolbar">
                     <button class="toolbar-btn undo" @onclick="Undo" title="Undo" disabled="@(!_canUndo)">⬅</button>
@@ -1284,6 +1857,10 @@
                     <button class="toolbar-btn" @onclick='() => InsertText("…")' title="三点リーダー">…</button>
                     <button class="toolbar-btn" @onclick='() => InsertText(" ")' title="半角スペース" style="font-weight: bold">␣</button>
                     <button class="toolbar-btn" @onclick='() => InsertText("—")' title="ダッシュ">―</button>
+                    <div class="toolbar-separator"></div>
+                    <button class="reference-btn" @onclick="ToggleReferencePanel" title="人物・資料を参照">
+                        📚 参照
+                    </button>
                     <div class="toolbar-separator"></div>
                     <button class="toolbar-btn" @onclick="ClearFormat" title="書式をクリア">✕ クリア</button>
                 </div>
@@ -1395,6 +1972,8 @@
                         <button class="toolbar-btn" @onclick='() => InsertText(" ")' title="半角スペース" style="font-weight: bold">␣</button>
                         <button class="toolbar-btn" @onclick='() => InsertText("—")' title="ダッシュ">―</button>
                         <div class="toolbar-separator"></div>
+                        <button class="reference-btn" @onclick="ToggleReferencePanel" title="参照">📚</button>
+                        <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick="ClearFormat" style="font-size: 11px;">✕</button>
                     </div>
 
@@ -1473,6 +2052,265 @@
             </div>
         }
     </div>
+
+    <!-- 人物・資料参照パネル -->
+    <div class="reference-panel @(_showReferencePanel ? "show" : "")">
+        <div class="reference-panel-header">
+            <h3>人物・資料</h3>
+            <button class="reference-close-btn" @onclick="ToggleReferencePanel">✕</button>
+        </div>
+        <div class="reference-tabs">
+            <button class="reference-tab @(_referenceTab == "characters" ? "active" : "")"
+                    @onclick='() => { _referenceTab = "characters"; _referenceSearchText = ""; }'>
+                人物
+            </button>
+            <button class="reference-tab @(_referenceTab == "materials" ? "active" : "")"
+                    @onclick='() => { _referenceTab = "materials"; _referenceSearchText = ""; }'>
+                資料
+            </button>
+        </div>
+        <div class="reference-content">
+            <!-- 検索 -->
+            <div class="reference-search-section">
+                <div class="reference-search-row">
+                    <div class="reference-search-input-wrapper">
+                        <div class="reference-search-mode">
+                            <button class="search-mode-btn @(_searchMode == "item" ? "active" : "")"
+                                    @onclick='() => _searchMode = "item"'>
+                                @(_referenceTab == "characters" ? "人物" : "資料")
+                            </button>
+                            <button class="search-mode-btn @(_searchMode == "category" ? "active" : "")"
+                                    @onclick='() => _searchMode = "category"'>
+                                カテゴリ
+                            </button>
+                        </div>
+                        <input type="text"
+                               class="reference-search-input"
+                               placeholder="@GetSearchPlaceholder()"
+                               @bind="_referenceSearchText"
+                               @bind:event="oninput" />
+                    </div>
+                    <button class="reference-filter-btn @(IsFilterActive() ? "active" : "")"
+                            @onclick="ShowFilterModal"
+                            title="フィルタ・並び順">
+                        <img src="/images/filter-icon.png" class="reference-filter-icon" alt="フィルタ" />
+                    </button>
+                </div>
+            </div>
+
+            @if (_referenceTab == "characters") {
+                @if (_project?.ProjectDataObject?.Character?.Category != null &&
+                        _project.ProjectDataObject.Character.Category.Length > 0) {
+                    var filteredCategories = GetFilteredCharacterCategories();
+                    @if (filteredCategories.Any()) {
+                        @foreach (var categoryData in filteredCategories) {
+                            var category = categoryData.Category;
+                            var characters = categoryData.Characters;
+                            var categoryKey = $"char-cat-{Array.IndexOf(_project.ProjectDataObject.Character.Category, category)}";
+
+                            <div class="reference-category">
+                                <div class="reference-category-header @(_collapsedCategories.Contains(categoryKey) ? "collapsed" : "")"
+                                     @onclick="() => ToggleCategory(categoryKey)">
+                                    <div class="reference-category-title-wrapper">
+                                        <span class="reference-category-toggle @(_collapsedCategories.Contains(categoryKey) ? "" : "expanded")">▶</span>
+                                        <span class="reference-category-title">@category.Title</span>
+                                        <span class="reference-category-count">(@characters.Count()件)</span>
+                                    </div>
+                                </div>
+                                <div class="reference-category-items @(_collapsedCategories.Contains(categoryKey) ? "" : "expanded")">
+                                    @foreach (var character in characters) {
+                                        <div class="reference-item @(_expandedReferenceItems.Contains(character) ? "expanded" : "")"
+                                             @onclick="() => ToggleReferenceItem(character)"
+                                             @onclick:stopPropagation="true">
+                                            <div class="reference-item-header">
+                                                @if (character.Image != null && character.Image.Length > 0) {
+                                                    <img class="reference-item-image"
+                                                         src="data:image/jpeg;base64,@Convert.ToBase64String(character.Image)"
+                                                         alt="@character.Name" />
+                                                } else {
+                                                    <div class="reference-item-placeholder">👤</div>
+                                                }
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div class="reference-item-name">@character.Name</div>
+                                                    @if (!string.IsNullOrEmpty(character.NameRuby)) {
+                                                        <span class="reference-item-ruby">@character.NameRuby</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                            @if (_expandedReferenceItems.Contains(character)) {
+                                                <div class="reference-item-details">
+                                                    @if (!string.IsNullOrEmpty(character.Alias)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">別名:</span>
+                                                            @character.Alias
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Species)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">種族:</span>
+                                                            @character.Species
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Age)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">年齢:</span>
+                                                            @character.Age
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Gender)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">性別:</span>
+                                                            @character.Gender
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Stature)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">身長:</span>
+                                                            @character.Stature
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Weight)) {
+                                                        <div class="reference-field">
+                                                            <span class="reference-field-label">体重:</span>
+                                                            @character.Weight
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(character.Overview)) {
+                                                        <div class="reference-overview">@character.Overview</div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    } else {
+                        <div class="reference-empty">検索条件に一致する人物が見つかりません</div>
+                    }
+                } else {
+                    <div class="reference-empty">人物が登録されていません</div>
+                }
+            } else {
+                @if (_project?.ProjectDataObject?.Material?.Category != null &&
+                        _project.ProjectDataObject.Material.Category.Length > 0) {
+                    var filteredCategories = GetFilteredMaterialCategories();
+                    @if (filteredCategories.Any()) {
+                        @foreach (var categoryData in filteredCategories) {
+                            var category = categoryData.Category;
+                            var items = categoryData.Items;
+                            var categoryKey = $"mat-cat-{Array.IndexOf(_project.ProjectDataObject.Material.Category, category)}";
+
+                            <div class="reference-category">
+                                <div class="reference-category-header @(_collapsedCategories.Contains(categoryKey) ? "collapsed" : "")"
+                                     @onclick="() => ToggleCategory(categoryKey)">
+                                    <div class="reference-category-title-wrapper">
+                                        <span class="reference-category-toggle @(_collapsedCategories.Contains(categoryKey) ? "" : "expanded")">▶</span>
+                                        <span class="reference-category-title">@category.Title</span>
+                                        <span class="reference-category-count">(@items.Count()件)</span>
+                                    </div>
+                                </div>
+                                <div class="reference-category-items @(_collapsedCategories.Contains(categoryKey) ? "" : "expanded")">
+                                    @foreach (var item in items) {
+                                        <div class="reference-item @(_expandedReferenceItems.Contains(item) ? "expanded" : "")"
+                                             @onclick="() => ToggleReferenceItem(item)"
+                                             @onclick:stopPropagation="true">
+                                            <div class="reference-item-header">
+                                                <div class="reference-item-name">@item.Title</div>
+                                            </div>
+                                            @if (_expandedReferenceItems.Contains(item)) {
+                                                <div class="reference-item-details">
+                                                    @if (!string.IsNullOrEmpty(item.Text)) {
+                                                        <div class="reference-material-content">@item.Text</div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    } else {
+                        <div class="reference-empty">検索条件に一致する資料が見つかりません</div>
+                    }
+                } else {
+                    <div class="reference-empty">資料が登録されていません</div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- フィルタ・ソートモーダル -->
+    @if (_showFilterModal) {
+        <div class="filter-modal-overlay" @onclick="CloseFilterModal">
+            <div class="filter-modal-content" @onclick:stopPropagation="true">
+                <div class="filter-modal-header">フィルタ・並び順</div>
+
+                <div class="filter-modal-section">
+                    <label class="filter-modal-label">並び順の項目</label>
+                    <select class="filter-modal-select" @bind="_tempSortField">
+                        <option value="default">デフォルト</option>
+                        <option value="name">名前</option>
+                        <option value="category">カテゴリ</option>
+                    </select>
+                </div>
+
+                <div class="filter-modal-section">
+                    <label class="filter-modal-label">並び順</label>
+                    <select class="filter-modal-select" @bind="_tempSortOrder" disabled="@(_tempSortField == "default")">
+                        <option value="asc">新しい順</option>
+                        <option value="desc">古い順</option>
+                    </select>
+                </div>
+
+                <div class="filter-modal-section">
+                    <label class="filter-modal-label">カテゴリフィルタ</label>
+                    <div class="filter-category-list">
+                        @if (_referenceTab == "characters") {
+                            @if (_project?.ProjectDataObject?.Character?.Category != null) {
+                                @foreach (var category in _project.ProjectDataObject.Character.Category) {
+                                    var isChecked = _tempFilteredCategories.Contains(category.Title);
+                                    <div class="filter-category-item"
+                                         @onclick="() => ToggleCategoryFilter(category.Title)">
+                                        <input type="checkbox"
+                                               class="filter-category-checkbox"
+                                               checked="@isChecked"
+                                               @onclick:stopPropagation="true"
+                                               @onchange="() => ToggleCategoryFilter(category.Title)" />
+                                        <span class="filter-category-label">@category.Title</span>
+                                    </div>
+                                }
+                            }
+                        } else {
+                            @if (_project?.ProjectDataObject?.Material?.Category != null) {
+                                @foreach (var category in _project.ProjectDataObject.Material.Category) {
+                                    var isChecked = _tempFilteredCategories.Contains(category.Title);
+                                    <div class="filter-category-item"
+                                         @onclick="() => ToggleCategoryFilter(category.Title)">
+                                        <input type="checkbox"
+                                               class="filter-category-checkbox"
+                                               checked="@isChecked"
+                                               @onclick:stopPropagation="true"
+                                               @onchange="() => ToggleCategoryFilter(category.Title)" />
+                                        <span class="filter-category-label">@category.Title</span>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="filter-modal-buttons">
+                    <button class="filter-modal-btn filter-modal-btn-clear" @onclick="ClearFilter">
+                        クリア
+                    </button>
+                    <button class="filter-modal-btn filter-modal-btn-apply" @onclick="ApplyFilter">
+                        適用
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -1685,6 +2523,7 @@
         }
 
         _showCategoryView = false;
+        _showReferencePanel = false;
         _selectedChapter = -1;
         _selectedSection = -1;
         _lastRenderedChapter = -1;
@@ -2112,6 +2951,23 @@
     private bool _isEditingRuby = false;
     private bool _hasSelectedText = false;
 
+    // 参照パネル
+    private bool _showReferencePanel = false;
+    private string _referenceTab = "characters";
+    private HashSet<object> _expandedReferenceItems = new HashSet<object>();
+    private HashSet<string> _collapsedCategories = new HashSet<string>();
+    private string _referenceSearchText = "";
+    private string _searchMode = "item"; // "item" or "category"
+
+    // フィルタ・ソート
+    private bool _showFilterModal = false;
+    private string _sortField = "default";
+    private string _sortOrder = "asc";
+    private string _tempSortField = "default";
+    private string _tempSortOrder = "asc";
+    private HashSet<string> _filteredCategories = new HashSet<string>();
+    private HashSet<string> _tempFilteredCategories = new HashSet<string>();
+
     // 章追加モーダル
     private void ShowAddChapterModal() {
         var chapterCount = _project?.ProjectDataObject?.Scenario?.Chapters?.Length ?? 0;
@@ -2529,6 +3385,223 @@
     public void UpdateFormatButtonState(bool isDisabled) {
         _isFormatButtonDisabled = isDisabled;
         StateHasChanged();
+    }
+
+    private void ToggleReferencePanel() {
+        _showReferencePanel = !_showReferencePanel;
+        StateHasChanged();
+    }
+
+    private void ToggleReferenceItem(object item) {
+        if (_expandedReferenceItems.Contains(item)) {
+            _expandedReferenceItems.Remove(item);
+        } else {
+            _expandedReferenceItems.Add(item);
+        }
+        StateHasChanged();
+    }
+
+    private void ToggleCategory(string categoryKey) {
+        if (_collapsedCategories.Contains(categoryKey)) {
+            _collapsedCategories.Remove(categoryKey);
+        } else {
+            _collapsedCategories.Add(categoryKey);
+        }
+        StateHasChanged();
+    }
+
+    private void ShowFilterModal() {
+        _tempSortField = _sortField;
+        _tempSortOrder = _sortOrder;
+        _tempFilteredCategories = new HashSet<string>(_filteredCategories);
+        _showFilterModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseFilterModal() {
+        _showFilterModal = false;
+        StateHasChanged();
+    }
+
+    private void ApplyFilter() {
+        _sortField = _tempSortField;
+        _sortOrder = _tempSortOrder;
+        _filteredCategories = new HashSet<string>(_tempFilteredCategories);
+        _showFilterModal = false;
+        StateHasChanged();
+    }
+
+    private void ClearFilter() {
+        _tempSortField = "default";
+        _tempSortOrder = "asc";
+        _tempFilteredCategories.Clear();
+        _sortField = "default";
+        _sortOrder = "asc";
+        _filteredCategories.Clear();
+        _showFilterModal = false;
+        StateHasChanged();
+    }
+
+    private bool IsFilterActive() {
+        return _sortField != "default" || _filteredCategories.Count > 0;
+    }
+
+    private void ToggleCategoryFilter(string categoryTitle) {
+        if (_tempFilteredCategories.Contains(categoryTitle)) {
+            _tempFilteredCategories.Remove(categoryTitle);
+        } else {
+            _tempFilteredCategories.Add(categoryTitle);
+        }
+        StateHasChanged();
+    }
+
+    private string GetSearchPlaceholder() {
+        if (_searchMode == "category") {
+            return "カテゴリを検索...";
+        }
+        return _referenceTab == "characters" ? "人物を検索..." : "資料を検索...";
+    }
+
+    private IEnumerable<(CharacterCategory Category, IEnumerable<Character> Characters)> GetFilteredCharacterCategories() {
+        if (_project?.ProjectDataObject?.Character?.Category == null) {
+            return Enumerable.Empty<(CharacterCategory, IEnumerable<Character>)>();
+        }
+
+        var categories = _project.ProjectDataObject.Character.Category.AsEnumerable();
+
+        // カテゴリフィルタ（チェックボックスで選択されたカテゴリのみ）
+        if (_filteredCategories.Count > 0) {
+            categories = categories.Where(c => _filteredCategories.Contains(c.Title));
+        }
+
+        // 検索フィルタ
+        if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
+            var searchLower = _referenceSearchText.ToLower();
+
+            if (_searchMode == "category") {
+                // カテゴリ名で検索
+                categories = categories.Where(c =>
+                    c.Title?.ToLower().Contains(searchLower) ?? false
+                );
+            } else {
+                // 人物名で検索（カテゴリ内に該当人物がいる場合のみ表示）
+                categories = categories.Where(c =>
+                    c.Characters != null && c.Characters.Any(ch =>
+                        (ch.Name?.ToLower().Contains(searchLower) ?? false) ||
+                        (ch.NameRuby?.ToLower().Contains(searchLower) ?? false) ||
+                        (ch.Alias?.ToLower().Contains(searchLower) ?? false)
+                    )
+                );
+            }
+        }
+
+        // カテゴリソート
+        if (_sortField == "category") {
+            categories = _sortOrder == "asc"
+                ? categories.OrderBy(c => c.Title)
+                : categories.OrderByDescending(c => c.Title);
+        }
+
+        var result = new List<(CharacterCategory, IEnumerable<Character>)>();
+
+        foreach (var category in categories) {
+            if (category.Characters == null || category.Characters.Length == 0) continue;
+
+            var characters = category.Characters.AsEnumerable();
+
+            // 人物検索モード時のフィルタリング
+            if (_searchMode == "item" && !string.IsNullOrWhiteSpace(_referenceSearchText)) {
+                var searchLower = _referenceSearchText.ToLower();
+                characters = characters.Where(c =>
+                    (c.Name?.ToLower().Contains(searchLower) ?? false) ||
+                    (c.NameRuby?.ToLower().Contains(searchLower) ?? false) ||
+                    (c.Alias?.ToLower().Contains(searchLower) ?? false)
+                );
+            }
+
+            // 名前ソート
+            if (_sortField == "name") {
+                characters = _sortOrder == "asc"
+                    ? characters.OrderBy(c => c.Name)
+                    : characters.OrderByDescending(c => c.Name);
+            }
+
+            if (characters.Any()) {
+                result.Add((category, characters));
+            }
+        }
+
+        return result;
+    }
+
+    private IEnumerable<(MaterialCategory Category, IEnumerable<MaterialItem> Items)> GetFilteredMaterialCategories() {
+        if (_project?.ProjectDataObject?.Material?.Category == null) {
+            return Enumerable.Empty<(MaterialCategory, IEnumerable<MaterialItem>)>();
+        }
+
+        var categories = _project.ProjectDataObject.Material.Category.AsEnumerable();
+
+        // カテゴリフィルタ（チェックボックスで選択されたカテゴリのみ）
+        if (_filteredCategories.Count > 0) {
+            categories = categories.Where(c => _filteredCategories.Contains(c.Title));
+        }
+
+        // 検索フィルタ
+        if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
+            var searchLower = _referenceSearchText.ToLower();
+
+            if (_searchMode == "category") {
+                // カテゴリ名で検索
+                categories = categories.Where(c =>
+                    c.Title?.ToLower().Contains(searchLower) ?? false
+                );
+            } else {
+                // 資料名で検索（カテゴリ内に該当資料がある場合のみ表示）
+                categories = categories.Where(c =>
+                    c.Items != null && c.Items.Any(i =>
+                        (i.Title?.ToLower().Contains(searchLower) ?? false) ||
+                        (i.Text?.ToLower().Contains(searchLower) ?? false)
+                    )
+                );
+            }
+        }
+
+        // カテゴリソート
+        if (_sortField == "category") {
+            categories = _sortOrder == "asc"
+                ? categories.OrderBy(c => c.Title)
+                : categories.OrderByDescending(c => c.Title);
+        }
+
+        var result = new List<(MaterialCategory, IEnumerable<MaterialItem>)>();
+
+        foreach (var category in categories) {
+            if (category.Items == null || category.Items.Length == 0) continue;
+
+            var items = category.Items.AsEnumerable();
+
+            // 資料検索モード時のフィルタリング
+            if (_searchMode == "item" && !string.IsNullOrWhiteSpace(_referenceSearchText)) {
+                var searchLower = _referenceSearchText.ToLower();
+                items = items.Where(i =>
+                    (i.Title?.ToLower().Contains(searchLower) ?? false) ||
+                    (i.Text?.ToLower().Contains(searchLower) ?? false)
+                );
+            }
+
+            // タイトルソート
+            if (_sortField == "name") {
+                items = _sortOrder == "asc"
+                    ? items.OrderBy(i => i.Title)
+                    : items.OrderByDescending(i => i.Title);
+            }
+
+            if (items.Any()) {
+                result.Add((category, items));
+            }
+        }
+
+        return result;
     }
 }
 
