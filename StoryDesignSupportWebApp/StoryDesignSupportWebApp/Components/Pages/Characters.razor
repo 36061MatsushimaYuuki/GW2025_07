@@ -131,6 +131,7 @@
     .category-item {
         padding: 16px 20px;
         height: 60px;
+        background-color: white;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -286,6 +287,7 @@
     .character-item {
         padding: 16px 20px;
         height: 60px;
+        background-color: white;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -481,17 +483,17 @@
 
         .empty-state.category-bar {
             padding: 16px 20px;
-            height: fit-content;
+            height: 60px;
             border-bottom: 1px solid #e1e4e8;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
 
         .empty-state.character-bar {
             padding: 16px 20px;
-            height: fit-content;
+            height: 60px;
             border-bottom: 1px solid #e1e4e8;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
 
@@ -949,80 +951,6 @@
         white-space: nowrap;
     }
 
-    .mobile-category-list {
-        flex: 1;
-        overflow-y: auto;
-        background-color: #fafbfc;
-    }
-
-    .mobile-category-item {
-        padding: 16px 20px;
-        height: 60px;
-        background-color: white;
-        border-bottom: 1px solid #e1e4e8;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-        .mobile-category-item:hover {
-            background-color: #f6f8fa;
-        }
-
-        .mobile-category-item.dragging {
-            opacity: 0.6;
-            background-color: #f6f8fa;
-        }
-
-        .mobile-category-item.drag-over-top {
-            border-top: 3px solid #0969da;
-            background-color: #ddf4ff;
-        }
-
-        .mobile-category-item.drag-over-bottom {
-            border-bottom: 3px solid #0969da;
-            background-color: #ddf4ff;
-        }
-
-    .mobile-character-list {
-        flex: 1;
-        overflow-y: auto;
-        background-color: #fafbfc;
-    }
-
-    .mobile-character-item {
-        padding: 16px 20px;
-        height: 60px;
-        background-color: white;
-        border-bottom: 1px solid #e1e4e8;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-        .mobile-character-item:hover {
-            background-color: #f6f8fa;
-        }
-
-        .mobile-character-item.dragging {
-            opacity: 0.6;
-            background-color: #f6f8fa;
-        }
-
-        .mobile-character-item.drag-over-top {
-            border-top: 3px solid #0969da;
-            background-color: #ddf4ff;
-        }
-
-        .mobile-character-item.drag-over-bottom {
-            border-bottom: 3px solid #0969da;
-            background-color: #ddf4ff;
-        }
-
     .mobile-editor {
         height: calc(100vh - 5.5rem);
         display: flex;
@@ -1119,6 +1047,7 @@
         background-color: lightgrey;
         border: solid;
         border-color: grey;
+        z-index: 100;
     }
 
         .category-select-button + .category-select-button {
@@ -1198,7 +1127,7 @@
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
-                    &lt; 一覧に戻る
+                    &lt; プロジェクト一覧に戻る
                 </div>
                 <div class="category-view">
                     <div class="category-item" @onclick='() => SelectCategory("writing")'>
@@ -1515,12 +1444,12 @@
                     <button class="back-btn" @onclick="BackToCategoryListMobile">&lt;</button>
                     <div class="mobile-title">カテゴリ: @(_selectedCategory?.Title ?? "人物")</div>
                 </div>
-                <div class="mobile-character-list">
+                <div class="character-view">
                     @if (_selectedCategory?.Characters != null && _selectedCategory.Characters.Length > 0) {
                         @for (int i = 0; i < _selectedCategory.Characters.Length; i++) {
                             var item = _selectedCategory.Characters[i];
                             var index = i;
-                            <div class="mobile-character-item @GetCharacterDragClass(index)"
+                            <div class="character-item @GetCharacterDragClass(index)"
                                  draggable="true"
                                  @ondragstart="() => HandleCharacterDragStart(index)"
                                  @ondragover="(e) => HandleCharacterDragOver(e, index)"
@@ -1565,12 +1494,12 @@
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
                     <div class="mobile-title">プロジェクト一覧に戻る</div>
                 </div>
-                <div class="mobile-category-list">
+                <div class="category-view">
                     @if (_project.ProjectDataObject?.Character?.Category != null && _project.ProjectDataObject.Character.Category.Length > 0) {
                         @for (int i = 0; i < _project.ProjectDataObject.Character.Category.Length; i++) {
                             var category = _project.ProjectDataObject.Character.Category[i];
                             var index = i;
-                            <div class="mobile-category-item @GetDragClass(index)"
+                            <div class="category-item @GetDragClass(index)"
                                  draggable="true"
                                  @ondragstart="() => HandleDragStart(index)"
                                  @ondragover="(e) => HandleDragOver(e, index)"

@@ -131,6 +131,7 @@
     .category-item {
         padding: 16px 20px;
         height: 60px;
+        background-color: white;
         border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -533,6 +534,7 @@
         background-color: lightgrey;
         border: solid;
         border-color: grey;
+        z-index: 100;
     }
 
         .category-select-button + .category-select-button {
@@ -587,7 +589,7 @@
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
-                    &lt; 一覧に戻る
+                    &lt; プロジェクト一覧に戻る
                 </div>
                 <div class="category-view">
                     <div class="category-item" @onclick='() => SelectCategory("writing")'>

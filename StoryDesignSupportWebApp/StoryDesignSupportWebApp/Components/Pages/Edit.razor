@@ -132,6 +132,7 @@
     .category-item {
         padding: 16px 20px;
         border-bottom: 1px solid #e1e4e8;
+        background-color: white;
         cursor: pointer;
         transition: all 0.2s ease;
         font-weight: 500;
@@ -612,27 +613,6 @@
             font-size: 0.5em;
         }
 
-    /* 人物・資料参照ボタン */
-    .reference-btn {
-        background-color: #f6f8fa;
-        border: 1px solid #d0d7de;
-        border-radius: 6px;
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        color: #24292f;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-        .reference-btn:hover {
-            background-color: #e1e4e8;
-            border-color: #0969da;
-        }
-
     /* 参照パネル */
     .reference-panel {
         position: fixed;
@@ -975,6 +955,11 @@
     }
 
     .reference-search-mode {
+        display: flex;
+        gap: 4px;
+    }
+
+    .reference-input-button {
         display: flex;
         gap: 4px;
     }
@@ -1485,11 +1470,6 @@
             width: 100vw;
             right: -100vw;
         }
-
-        .reference-btn {
-            padding: 6px 10px;
-            font-size: 12px;
-        }
     }
 
     .mobile-category-ui {
@@ -1513,6 +1493,7 @@
         background-color: lightgrey;
         border: solid;
         border-color: grey;
+        z-index: 100;
     }
 
         .category-select-button + .category-select-button {
@@ -1763,7 +1744,7 @@
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
-                    &lt; 一覧に戻る
+                    &lt; プロジェクト一覧に戻る
                 </div>
                 <div class="category-view">
                     <div class="category-item @(_currentCategory == "writing" ? "active" : "")" @onclick='() => SelectCategory("writing")'>
@@ -1858,7 +1839,7 @@
                     <button class="toolbar-btn" @onclick='() => InsertText(" ")' title="半角スペース" style="font-weight: bold">␣</button>
                     <button class="toolbar-btn" @onclick='() => InsertText("—")' title="ダッシュ">―</button>
                     <div class="toolbar-separator"></div>
-                    <button class="reference-btn" @onclick="ToggleReferencePanel" title="人物・資料を参照">
+                    <button class="toolbar-btn" @onclick="ToggleReferencePanel" title="人物・資料を参照">
                         📚 参照
                     </button>
                     <div class="toolbar-separator"></div>
@@ -1972,7 +1953,7 @@
                         <button class="toolbar-btn" @onclick='() => InsertText(" ")' title="半角スペース" style="font-weight: bold">␣</button>
                         <button class="toolbar-btn" @onclick='() => InsertText("—")' title="ダッシュ">―</button>
                         <div class="toolbar-separator"></div>
-                        <button class="reference-btn" @onclick="ToggleReferencePanel" title="参照">📚</button>
+                        <button class="toolbar-btn" @onclick="ToggleReferencePanel" title="参照">📚</button>
                         <div class="toolbar-separator"></div>
                         <button class="toolbar-btn" @onclick="ClearFormat" style="font-size: 11px;">✕</button>
                     </div>
@@ -2084,17 +2065,19 @@
                                 カテゴリ
                             </button>
                         </div>
-                        <input type="text"
-                               class="reference-search-input"
-                               placeholder="@GetSearchPlaceholder()"
-                               @bind="_referenceSearchText"
-                               @bind:event="oninput" />
+                        <div class="reference-input-button">
+                            <input type="text"
+                                   class="reference-search-input"
+                                   placeholder="@GetSearchPlaceholder()"
+                                   @bind="_referenceSearchText"
+                                   @bind:event="oninput" />
+                            <button class="reference-filter-btn @(IsFilterActive() ? "active" : "")"
+                                    @onclick="ShowFilterModal"
+                                    title="フィルタ・並び順">
+                                <img src="/images/filter-icon.png" class="reference-filter-icon" alt="フィルタ" />
+                            </button>
+                        </div>
                     </div>
-                    <button class="reference-filter-btn @(IsFilterActive() ? "active" : "")"
-                            @onclick="ShowFilterModal"
-                            title="フィルタ・並び順">
-                        <img src="/images/filter-icon.png" class="reference-filter-icon" alt="フィルタ" />
-                    </button>
                 </div>
             </div>
 
