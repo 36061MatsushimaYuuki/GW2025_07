@@ -1,0 +1,13 @@
+﻿@page "/Account/Logout"
+@using Microsoft.AspNetCore.Identity
+@using StoryDesignSupportWebApp.Data
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@code {
+    protected override async Task OnInitializedAsync() {
+        await SignInManager.SignOutAsync();
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+}
