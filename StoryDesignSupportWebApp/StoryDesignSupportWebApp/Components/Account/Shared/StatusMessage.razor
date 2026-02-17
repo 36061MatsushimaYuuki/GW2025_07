@@ -1,4 +1,12 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage)) {
+﻿<style>
+    .alert {
+        width: 365px;
+        word-break: break-all;
+        overflow-wrap: break-word;
+    }
+</style>
+
+@if (!string.IsNullOrEmpty(DisplayMessage)) {
     var statusMessageClass = DisplayMessage.StartsWith("エラー") ? "danger" : "success";
     <div class="alert alert-@statusMessageClass" role="alert">
         @DisplayMessage
