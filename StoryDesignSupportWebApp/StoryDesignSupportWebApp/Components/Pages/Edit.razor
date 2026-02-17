@@ -923,6 +923,31 @@
         white-space: pre-wrap;
     }
 
+        .reference-overview h1 {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin: 6px 0 3px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .reference-overview h2 {
+            font-size: 1.05em;
+            font-weight: 600;
+            margin: 5px 0 2px 0;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .reference-overview h3 {
+            font-size: 1.0em;
+            font-weight: 600;
+            margin: 4px 0 2px 0;
+        }
+
+        .reference-overview p {
+            margin: 0 0 3px 0;
+        }
+
     .reference-material-content {
         margin-top: 10px;
         padding: 10px;
@@ -2209,7 +2234,7 @@
                                                         </div>
                                                     }
                                                     @if (!string.IsNullOrEmpty(character.Overview)) {
-                                                        <div class="reference-overview">@character.Overview</div>
+                                                        <div class="reference-overview">@((MarkupString)character.Overview)</div>
                                                     }
                                                 </div>
                                             }
