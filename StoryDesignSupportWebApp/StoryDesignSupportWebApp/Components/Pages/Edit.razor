@@ -320,6 +320,7 @@
         flex-direction: column;
         overflow: hidden;
         min-width: 0;
+        border-right: 1px solid #e1e4e8;
         transition: margin-left 0.3s ease;
     }
 
@@ -1160,6 +1161,47 @@
         user-select: none;
     }
 
+    /* エディタエリアの幅調整 */
+    .editor-area.narrowed {
+        margin-right: 420px;
+        transition: margin-right 0.3s ease;
+    }
+
+    /* 参照パネル切り替えボタン */
+    .reference-panel-toggle {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        background-color: #f6f8fa;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        color: #24292f;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 10;
+    }
+
+        .reference-panel-toggle:hover {
+            background-color: #e1e4e8;
+            border-color: #0969da;
+        }
+
+        .reference-panel-toggle.active {
+            background-color: #ddf4ff;
+            border-color: #0969da;
+            color: #0969da;
+        }
+
+    .toggle-icon-text {
+        font-size: 11px;
+    }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -1470,6 +1512,14 @@
             width: 100vw;
             right: -100vw;
         }
+
+        .editor-area.narrowed {
+            margin-right: 0;
+        }
+
+        .reference-panel-toggle {
+            display: none;
+        }
     }
 
     .mobile-category-ui {
@@ -1769,7 +1819,7 @@
         </div>
 
         <!-- 編集エリア -->
-        <div class="editor-area">
+        <div class="editor-area @(_narrowEditorArea && _showReferencePanel ? "narrowed" : "")">
             @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
                     _project.ProjectDataObject?.Scenario?.Chapters != null &&
                     _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
@@ -2221,6 +2271,12 @@
                 }
             }
         </div>
+        <!-- デスクトップ版のみ：エディタ幅調整ボタン -->
+        <button class="reference-panel-toggle @(_narrowEditorArea ? "active" : "")"
+                @onclick="ToggleNarrowEditor">
+            <span>@(_narrowEditorArea ? "◀" : "▶")</span>
+            <span class="toggle-icon-text">@(_narrowEditorArea ? "エディタを広げる" : "エディタを狭める")</span>
+        </button>
     </div>
 
     <!-- フィルタ・ソートモーダル -->
@@ -2941,6 +2997,7 @@
     private HashSet<string> _collapsedCategories = new HashSet<string>();
     private string _referenceSearchText = "";
     private string _searchMode = "item"; // "item" or "category"
+    private bool _narrowEditorArea = false;
 
     // フィルタ・ソート
     private bool _showFilterModal = false;
@@ -3367,6 +3424,11 @@
     [JSInvokable]
     public void UpdateFormatButtonState(bool isDisabled) {
         _isFormatButtonDisabled = isDisabled;
+        StateHasChanged();
+    }
+
+    private void ToggleNarrowEditor() {
+        _narrowEditorArea = !_narrowEditorArea;
         StateHasChanged();
     }
 
