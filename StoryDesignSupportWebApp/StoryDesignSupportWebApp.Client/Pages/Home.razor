@@ -1,11 +1,17 @@
 ﻿@page "/"
-
 @using Microsoft.AspNetCore.Authorization
+@inject NavigationManager NavManager
 
 @attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
 
-<h1>既にログインされています</h1>
+<h1>正常にログインされました！</h1>
 
 <a href="/projects">プロジェクトページへ</a>
+
+@code {
+    protected override void OnInitialized() {
+        NavManager.NavigateTo("/projects");
+    }
+}
