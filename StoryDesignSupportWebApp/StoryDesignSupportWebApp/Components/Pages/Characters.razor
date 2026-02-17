@@ -2610,4 +2610,123 @@
             }
         }
     };
+
+    window.overviewEditor = {
+
+        sync: function (id, content) {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            if (!el._overviewInitialized) {
+                el._overviewInitialized = true;
+                el.contentEditable = 'true';
+                el.style.minHeight = '280px';
+                el.style.padding = '12px';
+                el.style.outline = 'none';
+                el.style.fontFamily = 'inherit';
+                el.style.fontSize = '15px';
+                el.style.lineHeight = '1.8';
+                el.style.cursor = 'text';
+                el.setAttribute('data-placeholder', '概要を入力してください...');
+
+                el.addEventListener('input', function () {
+                    window.overviewEditor._updatePlaceholder(el);
+                });
+                el.addEventListener('focus', function () {
+                    window.overviewEditor._updatePlaceholder(el);
+                });
+                el.addEventListener('blur', function () {
+                    window.overviewEditor._updatePlaceholder(el);
+                });
+            }
+
+            if (document.activeElement === el) return;
+
+            el.innerHTML = window.overviewEditor._toHtml(content);
+            window.overviewEditor._updatePlaceholder(el);
+        },
+
+        _toHtml: function (text) {
+            if (!text) return '';
+            return text.split('\n').map(function (line) {
+                if (line.startsWith('### ')) return '<h3>' + line.slice(4) + '</h3>';
+                if (line.startsWith('## '))  return '<h2>' + line.slice(3) + '</h2>';
+                if (line.startsWith('# '))   return '<h1>' + line.slice(2) + '</h1>';
+                if (line === '')             return '<p><br></p>';
+                return '<p>' + line + '</p>';
+            }).join('');
+        },
+
+        serialize: function (id) {
+            const el = document.getElementById(id);
+            if (!el) return '';
+            return Array.from(el.childNodes).map(function (node) {
+                const tag = node.nodeName.toLowerCase();
+                const text = node.textContent || '';
+                if (tag === 'h1') return '# ' + text;
+                if (tag === 'h2') return '## ' + text;
+                if (tag === 'h3') return '### ' + text;
+                return text;
+            }).join('\n');
+        },
+
+        _updatePlaceholder: function (el) {
+            const text = (el.textContent || '').trim();
+            const html = (el.innerHTML || '').trim();
+            const isEmpty = text === '' || html === '' || html === '<br>';
+            if (isEmpty) {
+                el.classList.add('is-empty');
+            } else {
+                el.classList.remove('is-empty');
+            }
+        },
+
+        applyHeading: function (id, level) {
+            const el = document.getElementById(id);
+            if (!el) return window.overviewEditor.serialize(id);
+
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return window.overviewEditor.serialize(id);
+
+            const range = sel.getRangeAt(0);
+
+            function getDirectChild(container) {
+                let node = container;
+                if (node.nodeType === 3) node = node.parentNode;
+                if (node === el) return el.firstChild || null;
+                while (node && node.parentNode !== el) {
+                    node = node.parentNode;
+                    if (!node) return null;
+                }
+                return node;
+            }
+
+            const targetNode = getDirectChild(range.startContainer);
+            if (!targetNode || !el.contains(targetNode)) {
+                return window.overviewEditor.serialize(id);
+            }
+
+            const text = targetNode.textContent || '';
+            const newTag = level === 0 ? 'p' : 'h' + level;
+            const newNode = document.createElement(newTag);
+            newNode.textContent = text;
+
+            if (targetNode.parentNode === el) {
+                el.replaceChild(newNode, targetNode);
+            } else {
+                return window.overviewEditor.serialize(id);
+            }
+
+            try {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(newNode);
+                newRange.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+                newNode.focus();
+            } catch (e) {}
+
+            return window.overviewEditor.serialize(id);
+        }
+    };
 </script>
