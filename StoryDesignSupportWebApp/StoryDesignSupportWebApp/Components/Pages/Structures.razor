@@ -535,13 +535,15 @@
         bottom: 0;
         width: max-content;
         margin: 0 auto;
+        user-select: none;
+        box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
     }
 
     .category-select-button {
         width: 64px;
         height: 64px;
         cursor: pointer;
-        line-height: 64px;
+        line-height: 30px;
         text-align: center;
         background-color: #ECEFF1;
         border: 1px solid rgba(25, 118, 210, 0.15);
@@ -580,6 +582,29 @@
             .category-select-button.active:hover {
                 background: linear-gradient(135deg, #1565C0, #0D47A1);
             }
+
+    .category-ui-flex {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+        .category-ui-flex img {
+            max-width: 50%;
+            margin-top: 8px;
+            margin-bottom: -5px;
+            height: auto;
+            transition: all 0.2s ease;
+            filter: brightness(0) saturate(100%) invert(41%) sepia(30%) saturate(370%) hue-rotate(154deg) brightness(91%) contrast(84%);
+        }
+
+        .category-ui-flex:hover img {
+            filter: brightness(0) saturate(100%) invert(36%) sepia(76%) saturate(3916%) hue-rotate(196deg) brightness(92%) contrast(81%) invert(0%);
+        }
+
+        .category-ui-flex.active img {
+            filter: none;
+        }
 </style>
 
 @if (_project == null) {
@@ -886,10 +911,30 @@
                 </div> *@
             </div>
             <div class="mobile-category-ui">
-                <div class="category-select-button" @onclick='() => SelectCategory("writing")'>執筆</div>
-                <div class="category-select-button active" @onclick='() => SelectCategory("structure")'>構成</div>
-                <div class="category-select-button" @onclick='() => SelectCategory("characters")'>人物</div>
-                <div class="category-select-button" @onclick='() => SelectCategory("materials")'>資料</div>
+                <div class="category-select-button" @onclick='() => SelectCategory("writing")'>
+                    <div class="category-ui-flex">
+                        <img src="/images/ui-edit.png" />
+                        執筆
+                    </div>
+                </div>
+                <div class="category-select-button active" @onclick='() => SelectCategory("structure")'>
+                    <div class="category-ui-flex active">
+                        <img src="/images/ui-structure.png" />
+                        構成
+                    </div>
+                </div>
+                <div class="category-select-button" @onclick='() => SelectCategory("characters")'>
+                    <div class="category-ui-flex">
+                        <img src="/images/ui-character.png" />
+                        人物
+                    </div>
+                </div>
+                <div class="category-select-button" @onclick='() => SelectCategory("materials")'>
+                    <div class="category-ui-flex">
+                        <img src="/images/ui-material.png" />
+                        資料
+                    </div>
+                </div>
             </div>
         }
     </div>
