@@ -18,18 +18,27 @@
 <PageTitle>LunaStory - プロジェクト</PageTitle>
 
 <style>
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #F3F6FB;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+
     .projects-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 24px 20px;
+        background-color: transparent;
     }
 
     .header-section {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+        background: #FFFFFF;
+        padding: 20px 24px;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08), 0 1px 3px rgba(0,0,0,0.06);
+        margin-bottom: 24px;
+        border: 1px solid rgba(25, 118, 210, 0.08);
     }
 
     .search-filter-row {
@@ -40,38 +49,39 @@
     }
 
     .filter-button {
-        background: #6c757d;
-        color: white;
         border: none;
         padding: 0;
         width: 44px;
         height: 44px;
-        border-radius: 4px;
         cursor: pointer;
         font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.3s;
         flex-shrink: 0;
+        background-color: #6c757d;
+        color: #546E7A;
+        border-radius: 8px;
+        transition: all 0.2s ease;
     }
 
         .filter-button:hover {
-            background: #5a6268;
+            background-color: #5a6268;
+            border-color: #0969da;
         }
 
         .filter-button.active {
-            background: #007bff;
+            background-color: #007bff;
+            border-color: #0969da;
         }
 
             .filter-button.active:hover {
-                background: #0056b3;
+                background-color: #0056b3;
             }
 
         .filter-button img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
+            width: 16px;
+            height: 16px;
         }
 
     .search-box {
@@ -82,32 +92,44 @@
         .search-box input {
             width: 100%;
             height: 44px;
-            padding: 0 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 0 16px;
+            border: 1px solid rgba(25, 118, 210, 0.25);
+            border-radius: 8px;
             font-size: 14px;
             box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #FAFCFF;
         }
 
+            .search-box input:focus {
+                outline: none;
+                border-color: #1976D2;
+                box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
+            }
+
     .add-button {
-        background: #007bff;
         color: white;
         border: none;
         padding: 0;
         width: 44px;
         height: 44px;
-        border-radius: 4px;
         cursor: pointer;
-        font-size: 24px;
+        font-size: 16px;
+        font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.3s;
         flex-shrink: 0;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
         .add-button:hover {
-            background: #0056b3;
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.4);
+            transform: translateY(-1px);
         }
 
     .modal-overlay {
@@ -273,23 +295,24 @@
         }
 
     .apply-filter-btn {
-        background: #30b84f;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
         color: white;
     }
 
         .apply-filter-btn:hover {
-            background: #269e41;
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
         }
 
     .modal-content {
-        background: white;
-        border-radius: 8px;
+        background: #ffffff;
+        border-radius: 16px;
         padding: 30px;
         max-width: 600px;
         width: 90%;
         max-height: 90vh;
         overflow-y: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(25, 118, 210, 0.08);
     }
 
     .modal-header {
@@ -462,12 +485,15 @@
         }
 
     .save-btn {
-        background: #30b84f;
         color: white;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
     }
 
         .save-btn:hover {
-            background: #269e41;
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
         }
 
     .cancel-btn {
@@ -480,7 +506,6 @@
         }
 
     .projects-count {
-        background: white;
         margin-left: 2px;
         margin-bottom: 10px;
         font-size: 14px;
@@ -488,7 +513,7 @@
     }
 
         .projects-count strong {
-            color: #007bff;
+            color: #1976D2;
             font-size: 16px;
         }
 
@@ -499,22 +524,23 @@
     }
 
     .project-card {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
         padding: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
         height: 280px;
         display: flex;
         flex-direction: column;
         cursor: pointer;
         position: relative;
+        background: #FFFFFF;
+        border: 1px solid rgba(25, 118, 210, 0.10);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.07), 0 1px 3px rgba(0,0,0,0.05);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
     }
 
         .project-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.15), 0 2px 8px rgba(0,0,0,0.08);
+            border-color: rgba(25, 118, 210, 0.25);
         }
 
     .project-header {
@@ -552,21 +578,29 @@
         }
 
     .edit-btn {
-        background: #17a2b8;
-        color: white;
+        background: #E3F2FD;
+        color: #1565C0;
+        border-radius: 6px;
+        font-weight: 500;
+        border: 1px solid rgba(25, 118, 210, 0.2);
     }
 
         .edit-btn:hover {
-            background: #138496;
+            background: #BBDEFB;
+            color: #0D47A1;
         }
 
     .delete-btn {
-        background: #dc3545;
-        color: white;
+        background: #FFEBEE;
+        color: #C62828;
+        border-radius: 6px;
+        font-weight: 500;
+        border: 1px solid rgba(198, 40, 40, 0.2);
     }
 
         .delete-btn:hover {
-            background: #c82333;
+            background: #FFCDD2;
+            color: #B71C1C;
         }
 
     .delete-modal-content {
@@ -682,21 +716,25 @@
         left: 95%;
         width: 56px;
         height: 56px;
-        border-radius: 100%;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         color: white;
-        background-color: #007bff;
-        font-size: 24px;
+        font-size: 16px;
+        font-weight: bold;
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s;
         z-index: 100;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        box-shadow: 0 4px 14px rgba(25, 118, 210, 0.4);
+        border-radius: 28px;
     }
 
         .project-add-button:hover {
-            background: #0056b3;
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.5);
+            transform: translateY(-2px);
         }
 
         .project-add-button.show {
@@ -724,7 +762,7 @@
             </div>
 
             <button class="add-button" @onclick="OpenAddModal" title="新規プロジェクト">
-                +
+                ＋
             </button>
         </div>
     </div>
@@ -785,7 +823,7 @@
             }
         </div>
 
-        <button class="project-add-button @(isVisible ? "show" : "")" @onclick="OpenAddModal">+</button>
+        <button class="project-add-button @(isVisible ? "show" : "")" @onclick="OpenAddModal">＋</button>
     }
 </div>
 

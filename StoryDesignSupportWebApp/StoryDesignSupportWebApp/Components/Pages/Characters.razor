@@ -26,6 +26,14 @@
         padding: 0;
     }
 
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+        background-color: #F3F6FB;
+        font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+
     body {
         overflow: hidden;
     }
@@ -41,14 +49,14 @@
     /* サイドバー */
     .sidebar {
         width: 300px;
-        background-color: #fafbfc;
-        border-right: 1px solid #e1e4e8;
+        background-color: #FAFCFF;
+        border-right: 1px solid rgba(25, 118, 210, 0.12);
         display: flex;
         flex-direction: column;
         overflow-y: auto;
         position: relative;
         transition: margin-left 0.3s ease;
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+        box-shadow: 2px 0 12px rgba(25, 118, 210, 0.08);
     }
 
         .sidebar.collapsed {
@@ -57,17 +65,21 @@
         }
 
     .sidebar-header {
-        padding: 15px;
-        border-bottom: 1px solid #e1e4e8;
-        background-color: #0066cc;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
         cursor: pointer;
         color: white;
         font-weight: 600;
-        transition: all 0.2s ease;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
     }
 
         .sidebar-header:hover {
-            background-color: #0550ae;
+            background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
         }
 
     .sidebar-toggle {
@@ -123,7 +135,7 @@
             box-shadow: 3px 0 15px rgba(9, 105, 218, 0.35);
         }
 
-    .category-view {
+    .category-view, .character-view {
         flex: 1;
         overflow-y: auto;
     }
@@ -131,52 +143,26 @@
     .category-item {
         padding: 16px 20px;
         height: 60px;
-        background-color: white;
-        border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
-        transition: all 0.2s ease;
         font-weight: 500;
-        border-left: 3px solid transparent;
-    }
-
-        .category-item:hover {
-            background-color: #f6f8fa;
-            border-left-color: #0969da;
-        }
-
-        .category-item.active {
-            background-color: #ddf4ff;
-            color: #0969da;
-            border-left-color: #0969da;
-            font-weight: 600;
-        }
-
-    .category-view, .material-view {
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    .category-item {
-        padding: 16px 20px;
-        border-bottom: 1px solid #e1e4e8;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-weight: 500;
-        border-left: 3px solid transparent;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        border-left: 3px solid transparent;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
         .category-item:hover {
-            background-color: #f6f8fa;
-            border-left-color: #0969da;
+            background-color: #E3F2FD;
+            border-left-color: #1976D2;
         }
 
         .category-item.active {
-            background-color: #ddf4ff;
-            color: #0969da;
-            border-left-color: #0969da;
+            background-color: #BBDEFB;
+            color: #1565C0;
+            border-left-color: #1976D2;
             font-weight: 600;
         }
 
@@ -186,13 +172,13 @@
         }
 
         .category-item.drag-over-top {
-            border-top: 3px solid #0969da;
-            background-color: #ddf4ff;
+            border-top: 3px solid #1976D2;
+            background-color: #E3F2FD;
         }
 
         .category-item.drag-over-bottom {
-            border-bottom: 3px solid #0969da;
-            background-color: #ddf4ff;
+            border-bottom: 3px solid #1976D2;
+            background-color: #E3F2FD;
         }
 
     .category-title {
@@ -257,55 +243,57 @@
                 color: #ff1111;
             }
 
-    .add-category-btn {
-        margin: 15px;
-        padding: 10px;
-        background-color: #0969da;
+    .add-category-btn, .add-character-btn {
+        margin: 16px;
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         font-weight: 500;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
+        font-size: 14px;
+        letter-spacing: 0.3px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
     }
 
-        .add-category-btn.mobile {
+        .add-category-btn:hover, .add-character-btn:hover {
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.35);
+        }
+
+        .add-category-btn.mobile, .add-character-btn.mobile {
             padding: 0px;
             height: 48px;
             width: 48px;
-            font-size: 22px;
+            font-size: 20px;
             text-align: center;
-        }
-
-        .add-category-btn:hover {
-            background-color: #0550ae;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
         }
 
     .character-item {
         padding: 16px 20px;
         height: 60px;
-        background-color: white;
-        border-bottom: 1px solid #e1e4e8;
         cursor: pointer;
-        transition: all 0.2s ease;
-        border-left: 3px solid transparent;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        border-left: 3px solid transparent;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
         .character-item:hover {
-            background-color: #f6f8fa;
-            border-left-color: #0969da;
+            background-color: #E3F2FD;
+            border-left-color: #1976D2;
         }
 
         .character-item.active {
-            background-color: #ddf4ff;
-            color: #0969da;
-            border-left-color: #0969da;
+            background-color: #BBDEFB;
+            color: #1565C0;
+            border-left-color: #1976D2;
             font-weight: 600;
         }
 
@@ -315,13 +303,13 @@
         }
 
         .character-item.drag-over-top {
-            border-top: 3px solid #0969da;
-            background-color: #ddf4ff;
+            border-top: 3px solid #1976D2;
+            background-color: #E3F2FD;
         }
 
         .character-item.drag-over-bottom {
-            border-bottom: 3px solid #0969da;
-            background-color: #ddf4ff;
+            border-bottom: 3px solid #1976D2;
+            background-color: #E3F2FD;
         }
 
     .character-title {
@@ -341,33 +329,6 @@
     .character-item:hover .character-actions {
         opacity: 1;
     }
-
-    .add-character-btn {
-        margin: 15px;
-        padding: 10px;
-        background-color: #0969da;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(9, 105, 218, 0.2);
-    }
-
-        .add-character-btn.mobile {
-            padding: 0px;
-            height: 48px;
-            width: 48px;
-            font-size: 22px;
-            text-align: center;
-        }
-
-        .add-character-btn:hover {
-            background-color: #0550ae;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(9, 105, 218, 0.3);
-        }
 
     .character-list-panel {
         width: 300px;
@@ -446,7 +407,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        background-color: #ffffff;
+        background-color: #F8FAFF;
         overflow: hidden;
     }
 
@@ -725,12 +686,12 @@
     }
 
     .modal-content {
-        background: white;
-        border-radius: 12px;
+        background: #ffffff;
+        border-radius: 16px;
         padding: 24px;
         width: 90%;
         max-width: 500px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(25, 118, 210, 0.08);
         animation: slideUp 0.3s ease;
     }
 
@@ -760,16 +721,16 @@
     .modal-input {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #d0d7de;
-        border-radius: 6px;
+        border: 1px solid rgba(25, 118, 210, 0.25);
+        border-radius: 8px;
         font-size: 14px;
         outline: none;
         transition: border-color 0.2s ease;
     }
 
         .modal-input:focus {
-            border-color: #0969da;
-            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+            border-color: #1976D2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
         }
 
     .modal-footer {
@@ -803,12 +764,15 @@
         }
 
     .modal-btn-primary {
-        background-color: #0969da;
         color: white;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
     }
 
         .modal-btn-primary:hover {
-            background-color: #0550ae;
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
         }
 
     .modal-btn-danger {
@@ -930,13 +894,14 @@
     .mobile-list {
         height: calc(100vh - 5.5rem);
         overflow-y: auto;
-        background-color: #f5f5f5;
+        background-color: #F3F6FB;
         transition: height 0.3s ease;
     }
 
     .mobile-header {
         padding: 15px;
-        background-color: #0066cc;
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
         color: white;
         display: flex;
         align-items: center;
@@ -971,7 +936,8 @@
 
     .mobile-editor-header {
         padding: 15px;
-        background-color: #0066cc;
+        background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
         color: white;
         display: flex;
         align-items: center;
@@ -1052,11 +1018,12 @@
         cursor: pointer;
         line-height: 64px;
         text-align: center;
-        align-items: center;
-        justify-content: center;
-        background-color: lightgrey;
-        border: solid;
-        border-color: grey;
+        background-color: #ECEFF1;
+        border: 1px solid rgba(25, 118, 210, 0.15);
+        color: #546E7A;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
         z-index: 100;
     }
 
@@ -1075,16 +1042,18 @@
         }
 
         .category-select-button:hover {
-            background-color: grey;
+            background-color: #E3F2FD;
+            color: #1976D2;
         }
 
         .category-select-button.active {
-            background-color: #0066cc;
+            background: linear-gradient(135deg, #1976D2, #1565C0);
             color: white;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.15);
         }
 
             .category-select-button.active:hover {
-                background-color: #0052a3;
+                background: linear-gradient(135deg, #1565C0, #0D47A1);
             }
 </style>
 
@@ -1495,7 +1464,7 @@
                             <div>人物がありません</div>
                         </div>
                     }
-                    <button class="add-character-btn mobile" @onclick="SaveCharacter">+</button>
+                    <button class="add-character-btn mobile" @onclick="SaveCharacter">＋</button>
                 </div>
             </div>
         } else {
@@ -1533,7 +1502,7 @@
                             <div>人物カテゴリがありません</div>
                         </div>
                     }
-                    <button class="add-category-btn mobile" @onclick="ShowAddCategoryModal">+</button>
+                    <button class="add-category-btn mobile" @onclick="ShowAddCategoryModal">＋</button>
                 </div>
             </div>
         }
