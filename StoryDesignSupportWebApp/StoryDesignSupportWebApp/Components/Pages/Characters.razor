@@ -218,15 +218,21 @@
     .icon-btn {
         background: none;
         border: none;
-        color: #666;
         cursor: pointer;
         font-size: 14px;
         padding: 4px;
         transition: color 0.2s ease;
     }
 
-        .icon-btn:hover {
-            color: #333;
+        .icon-btn img {
+            margin-top: -3px;
+            max-width: 18px;
+            height: auto;
+            filter: brightness(0) saturate(100%) invert(39%) sepia(0%) saturate(1132%) hue-rotate(181deg) brightness(97%) contrast(81%);
+        }
+
+        .icon-btn:hover img {
+            filter: brightness(0) saturate(100%) invert(15%) sepia(0%) saturate(1213%) hue-rotate(202deg) brightness(91%) contrast(83%);
         }
 
         .icon-btn.delete {
@@ -237,6 +243,7 @@
             font-size: 14px;
             color: #ff2222;
             font-weight: bold;
+            margin-right: -8px;
         }
 
             .icon-btn.delete:hover {
@@ -1117,8 +1124,8 @@
                                     <span class="category-name">@category.Title</span>
                                 </span>
                                 <div class="category-actions">
-                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✎</button>
-                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCategoryConfirm(category)" @onclick:stopPropagation="true">−</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true"><img src="/images/ui-rename.png" /></button>
+                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCategoryConfirm(category)" @onclick:stopPropagation="true">ー</button>
                                 </div>
                             </div>
                         }
@@ -1193,7 +1200,7 @@
                                     }
                                 </div>
                                 <div class="character-actions">
-                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">−</button>
+                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">ー</button>
                                 </div>
                             </div>
                         }
@@ -1480,7 +1487,7 @@
                                     }
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">−</button>
+                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCharacterConfirm(item)" @onclick:stopPropagation="true">ー</button>
                                 </div>
                             </div>
                         }
@@ -1496,7 +1503,7 @@
             <div class="mobile-list">
                 <div class="mobile-header">
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
-                    <div class="mobile-title">プロジェクト一覧に戻る</div>
+                    <div class="mobile-title">人物: プロジェクト一覧に戻る</div>
                 </div>
                 <div class="category-view">
                     @if (_project.ProjectDataObject?.Character?.Category != null && _project.ProjectDataObject.Character.Category.Length > 0) {
@@ -1517,8 +1524,8 @@
                                     <div class="category-name">@category.Title</div>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true">✎</button>
-                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCategoryConfirm(category)" @onclick:stopPropagation="true">−</button>
+                                    <button class="icon-btn" @onclick="() => ShowRenameCategoryModal(category)" @onclick:stopPropagation="true"><img src="/images/ui-rename.png" /></button>
+                                    <button class="icon-btn delete" @onclick="() => ShowDeleteCategoryConfirm(category)" @onclick:stopPropagation="true">ー</button>
                                 </div>
                             </div>
                         }

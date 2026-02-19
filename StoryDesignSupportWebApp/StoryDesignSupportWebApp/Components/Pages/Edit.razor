@@ -215,7 +215,7 @@
         border: none;
         color: #0066cc;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 16px;
         padding: 0 8px;
     }
 
@@ -1438,13 +1438,19 @@
         cursor: pointer;
         font-size: 16px;
         padding: 0 8px;
-        margin-left: 4px;
-        margin-right: -10px;
-        color: #666;
+        margin-left: 0px;
+        margin-right: -14px;
     }
 
-        .settings-btn:hover {
-            color: #333;
+        .settings-btn img {
+            margin-top: -3px;
+            max-width: 20px;
+            height: auto;
+            filter: brightness(0) saturate(100%) invert(39%) sepia(0%) saturate(1132%) hue-rotate(181deg) brightness(97%) contrast(81%);
+        }
+
+        .settings-btn:hover img {
+            filter: brightness(0) saturate(100%) invert(15%) sepia(0%) saturate(1213%) hue-rotate(202deg) brightness(91%) contrast(83%);
         }
 
     .desktop-btn {
@@ -1464,10 +1470,10 @@
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 14px;
         padding: 0 8px;
         margin-left: 4px;
-        margin-right: -8px;
+        margin-right: -10px;
         color: #ff2222;
         font-weight: bold;
     }
@@ -1835,8 +1841,8 @@
                                         @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
                                     </span>
                                     <div class="desktop-btn">
-                                        <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
-                                        <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
+                                        <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">＋</button>
+                                        <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)"><img src="/images/ui-option.png" /></button>
                                     </div>
                                 </div>
                                 <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
@@ -1860,7 +1866,7 @@
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </span>
                                                 <div class="desktop-btn">
-                                                    <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                    <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">ー</button>
                                                 </div>
                                             </div>
                                         }
@@ -2103,7 +2109,7 @@
             <div class="mobile-list">
                 <div class="mobile-header">
                     <button class="back-btn" @onclick="BackToProjectList">&lt;</button>
-                    <div class="mobile-editor-title">プロジェクト一覧に戻る</div>
+                    <div class="mobile-editor-title">執筆: プロジェクト一覧に戻る</div>
                 </div>
                 <div class="mobile-chapter-view">
                     @if (_project.ProjectDataObject?.Scenario?.Chapters == null || _project.ProjectDataObject.Scenario.Chapters.Length == 0) {
@@ -2120,8 +2126,8 @@
                                     <span class="chapter-title" @onclick="() => ToggleChapter(chapterIndex)">
                                         @(string.IsNullOrEmpty(chapter.Title) ? $"Chapter {chapterIndex + 1}" : chapter.Title)
                                     </span>
-                                    <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">+</button>
-                                    <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)">⚙</button>
+                                    <button class="add-section-btn" @onclick="() => ShowAddSectionModal(chapterIndex)">＋</button>
+                                    <button class="settings-btn" @onclick="() => ShowChapterSettings(chapterIndex)"><img src="/images/ui-option.png" /></button>
                                 </div>
                                 <div class="sections-list @(_expandedChapters.Contains(chapterIndex) ? "expanded" : "")">
                                     @if (chapter.Sections == null || chapter.Sections.Length == 0) {
@@ -2143,7 +2149,7 @@
                                                 <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;" @onclick="() => SelectSectionMobile(chapterIndex, sectionIndex)">
                                                     @(string.IsNullOrEmpty(section.Title) ? $"Section {sectionIndex + 1}" : section.Title)
                                                 </span>
-                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">−</button>
+                                                <button class="delete-section-btn" style="font-size: 14px; flex-shrink: 0;" @onclick="() => ShowDeleteSectionConfirm(chapterIndex, sectionIndex)">ー</button>
                                             </div>
                                         }
                                     }
