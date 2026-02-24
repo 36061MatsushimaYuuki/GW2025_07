@@ -40,7 +40,7 @@
 
     .edit-container {
         display: flex;
-        height: calc(100vh - 5.5rem);
+        height: calc(100dvh - 5.5rem);
         overflow: hidden;
         max-width: 100vw;
         transition: height 0.3s ease;
@@ -893,13 +893,13 @@
     /* モバイルビュー */
     .mobile-view {
         display: none;
-        height: calc(100vh - 5.5rem);
+        height: calc(100dvh - 5.5rem);
         overflow: hidden;
         transition: height 0.3s ease;
     }
 
     .mobile-list {
-        height: calc(100vh - 5.5rem);
+        height: calc(100dvh - 5.5rem);
         overflow-y: auto;
         background-color: #F3F6FB;
         transition: height 0.3s ease;
@@ -934,7 +934,7 @@
     }
 
     .mobile-editor {
-        height: calc(100vh - 5.5rem);
+        height: calc(100dvh - 5.5rem);
         display: flex;
         flex-direction: column;
         background-color: #fff;
@@ -1012,7 +1012,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100vh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
         }
 
         .mobile-editor-content {
@@ -2463,7 +2463,7 @@
 
             if (topRow) {
                 const isCollapsed = topRow.classList.contains('collapsed');
-                const height = isCollapsed ? 'calc(100vh - 2rem)' : 'calc(100vh - 5.5rem)';
+                const height = isCollapsed ? 'calc(100dvh - 2rem)' : 'calc(100dvh - 5.5rem)';
 
                 if (desktopContainer) desktopContainer.style.height = height;
                 if (mobileContainer) mobileContainer.style.height = height;
