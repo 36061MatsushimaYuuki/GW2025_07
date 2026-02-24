@@ -2223,7 +2223,7 @@
         </div>
         <div class="reference-tabs">
             <button class="reference-tab @(_referenceTab == "characters" ? "active" : "")"
-                    @onclick='() => { _referenceTab = "characters"; _referenceSearchText = ""; }'>
+                    @onclick='() => { _referenceTab = "characters"; _referenceSearchText = ""; _searchMode = "item"; }'>
                 人物
             </button>
             <button class="reference-tab @(_referenceTab == "materials" ? "active" : "")"
@@ -2245,6 +2245,12 @@
                                     @onclick='() => _searchMode = "category"'>
                                 カテゴリ
                             </button>
+                            @if (_referenceTab == "materials") {
+                                <button class="search-mode-btn @(_searchMode == "label" ? "active" : "")"
+                                        @onclick='() => _searchMode = "label"'>
+                                    ラベル
+                                </button>
+                            }
                         </div>
                         <div class="reference-input-button">
                             <input type="text"
@@ -3644,6 +3650,9 @@
         if (_searchMode == "category") {
             return "カテゴリを検索...";
         }
+        if (_searchMode == "label") {
+            return "ラベルを検索...";
+        }
         return _referenceTab == "characters" ? "人物を検索..." : "資料を検索...";
     }
 
@@ -3740,6 +3749,15 @@
                 categories = categories.Where(c =>
                     c.Title?.ToLower().Contains(searchLower) ?? false
                 );
+            } else if (_searchMode == "label") {
+                // ラベルで検索
+                categories = categories.Where(c =>
+                    c.Items != null && c.Items.Any(i =>
+                        i.Label != null && i.Label.Any(lbl =>
+                            lbl?.ToLower().Contains(searchLower) ?? false
+                        )
+                    )
+                );
             } else {
                 // 資料名で検索（カテゴリ内に該当資料がある場合のみ表示）
                 categories = categories.Where(c =>
@@ -3765,13 +3783,21 @@
 
             var items = category.Items.AsEnumerable();
 
-            // 資料検索モード時のフィルタリング
-            if (_searchMode == "item" && !string.IsNullOrWhiteSpace(_referenceSearchText)) {
+            // 資料・ラベル検索モード時のフィルタリング
+            if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
                 var searchLower = _referenceSearchText.ToLower();
-                items = items.Where(i =>
-                    (i.Title?.ToLower().Contains(searchLower) ?? false) ||
-                    (i.Text?.ToLower().Contains(searchLower) ?? false)
-                );
+                if (_searchMode == "item") {
+                    items = items.Where(i =>
+                        (i.Title?.ToLower().Contains(searchLower) ?? false) ||
+                        (i.Text?.ToLower().Contains(searchLower) ?? false)
+                    );
+                } else if (_searchMode == "label") {
+                    items = items.Where(i =>
+                        i.Label != null && i.Label.Any(lbl =>
+                            lbl?.ToLower().Contains(searchLower) ?? false
+                        )
+                    );
+                }
             }
 
             // タイトルソート
