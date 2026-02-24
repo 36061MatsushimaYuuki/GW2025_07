@@ -9,6 +9,7 @@ using StoryDesignSupportWebApp.Client.Pages;
 using StoryDesignSupportWebApp.Components;
 using StoryDesignSupportWebApp.Components.Account;
 using StoryDesignSupportWebApp.Data;
+using StoryDesignSupportWebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+builder.Services.Remove(builder.Services.First(s => s.ServiceType == typeof(IPasswordValidator<ApplicationUser>)));
+
+builder.Services.AddScoped<IPasswordValidator<ApplicationUser>, JapanesePasswordValidator<ApplicationUser>>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
