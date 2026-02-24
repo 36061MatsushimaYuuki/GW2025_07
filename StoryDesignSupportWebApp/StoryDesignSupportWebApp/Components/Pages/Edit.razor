@@ -1577,6 +1577,32 @@
         .reference-panel-toggle {
             display: none;
         }
+
+        .edit-container,
+        .mobile-view,
+        .mobile-list,
+        .mobile-editor {
+            height: calc(100vh - 3.5rem);
+        }
+
+        .editor-toolbar {
+            flex-wrap: wrap;
+            max-height: none;
+        }
+
+        .modal-content {
+            width: 95%;
+            min-width: unset;
+            padding: 16px;
+        }
+
+        #char-counter,
+        #char-counter-mobile {
+            font-size: 12px;
+            padding: 4px 8px;
+            bottom: 8px;
+            right: 8px;
+        }
     }
 
     .mobile-category-ui {
@@ -2354,7 +2380,16 @@
                                              @onclick="() => ToggleReferenceItem(item)"
                                              @onclick:stopPropagation="true">
                                             <div class="reference-item-header">
-                                                <div class="reference-item-name">@item.Title</div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div class="reference-item-name">@item.Title</div>
+                                                    @if (item.Label != null && item.Label.Length > 0) {
+                                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                                                            @foreach (var lbl in item.Label) {
+                                                                <span style="display: inline-block; padding: 1px 8px; background-color: #E3F2FD; color: #1565C0; border-radius: 20px; font-size: 10px; font-weight: 500; border: 1px solid rgba(25,118,210,0.2); white-space: nowrap;">@lbl</span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
                                             </div>
                                             @if (_expandedReferenceItems.Contains(item)) {
                                                 <div class="reference-item-details">

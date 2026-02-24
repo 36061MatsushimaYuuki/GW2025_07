@@ -593,6 +593,134 @@
             background-color: #5a6268;
         }
 
+    /* ラベル関連 */
+    .label-section {
+        margin-top: 12px;
+    }
+
+    .label-section-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #546E7A;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+
+    .label-input-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .label-input {
+        flex: 1;
+        padding: 7px 10px;
+        border: 1px solid rgba(25, 118, 210, 0.25);
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+        .label-input:focus {
+            border-color: #1976D2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
+        }
+
+        .label-input:disabled {
+            background-color: #F3F6FB;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+    .label-add-btn {
+        padding: 7px 12px;
+        background: linear-gradient(135deg, #1976D2, #1565C0);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .label-add-btn:hover {
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+        }
+
+        .label-add-btn:disabled {
+            background: #CFD8DC;
+            cursor: not-allowed;
+        }
+
+    .label-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-height: 28px;
+    }
+
+    .label-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px 3px 10px;
+        background-color: #E3F2FD;
+        color: #1565C0;
+        border: 1px solid rgba(25, 118, 210, 0.25);
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .label-tag-remove {
+        background: none;
+        border: none;
+        color: #90A4AE;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease;
+    }
+
+        .label-tag-remove:hover {
+            color: #E53935;
+        }
+
+    /* 資料リスト内のラベル表示 */
+    .material-item-labels {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-top: 3px;
+    }
+
+    .material-label-chip {
+        display: inline-block;
+        padding: 1px 7px;
+        background-color: #E3F2FD;
+        color: #1565C0;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 500;
+        border: 1px solid rgba(25, 118, 210, 0.2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+    }
+
     /* モバイルビュー */
     .mobile-view {
         display: none;
@@ -689,7 +817,7 @@
 
     .mobile-textarea {
         width: 100%;
-        height: 90%;
+        height: 75%;
         min-height: 300px;
         border: 1px solid #d0d7de;
         border-radius: 6px;
@@ -725,6 +853,27 @@
         .sidebar.collapsed {
             margin-left: 0;
             width: 300px;
+        }
+
+        .edit-container,
+        .mobile-view,
+        .mobile-list,
+        .mobile-editor {
+            height: calc(100vh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+        }
+
+        .mobile-editor-content {
+            padding: 12px;
+        }
+
+        .modal-content {
+            width: 95%;
+            padding: 16px;
+        }
+
+        .crop-modal-content {
+            padding: 16px;
+            gap: 10px;
         }
     }
 
@@ -899,7 +1048,16 @@
                                  @ondrop="() => HandleMaterialDrop(index)"
                                  @ondragend="HandleMaterialDragEnd"
                                  @onclick="() => SelectMaterial(item)">
-                                <span class="material-title">@item.Title</span>
+                                <div style="flex: 1; overflow: hidden; min-width: 0;">
+                                    <div class="material-title">@item.Title</div>
+                                    @if (item.Label != null && item.Label.Length > 0) {
+                                        <div class="material-item-labels">
+                                            @foreach (var lbl in item.Label) {
+                                                <span class="material-label-chip" title="@lbl">@lbl</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
                                 <div class="material-actions">
                                     <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true"><img src="/images/ui-rename.png" /></button>
                                     <button class="icon-btn delete" @onclick="() => ShowDeleteMaterialConfirm(item)" @onclick:stopPropagation="true">ー</button>
@@ -921,6 +1079,35 @@
             @if (_showCategoryView && _selectedMaterial != null) {
                 <div class="editor-header">
                     <input type="text" class="editor-title-input" placeholder="資料のタイトル" @bind="_selectedMaterial.Title" @bind:event="oninput" />
+                    <div class="label-section">
+                        <div class="label-section-title">ラベル（最大3つ・1つ20文字まで）</div>
+                        <div class="label-input-row">
+                            <input type="text"
+                                   class="label-input"
+                                   placeholder="ラベルを入力"
+                                   maxlength="20"
+                                   @bind="_labelInput"
+                                   @bind:event="oninput"
+                                   @onkeydown="HandleLabelKeyDown"
+                                   disabled="@((_selectedMaterial.Label?.Length ?? 0) >= 3)" />
+                            <button class="label-add-btn"
+                                    @onclick="AddLabel"
+                                    disabled="@(string.IsNullOrWhiteSpace(_labelInput) || (_selectedMaterial.Label?.Length ?? 0) >= 3)">
+                                ＋
+                            </button>
+                        </div>
+                        <div class="label-tags">
+                            @if (_selectedMaterial.Label != null) {
+                                @foreach (var lbl in _selectedMaterial.Label) {
+                                    var capturedLabel = lbl;
+                                    <span class="label-tag">
+                                        @capturedLabel
+                                        <button class="label-tag-remove" @onclick="() => RemoveLabel(capturedLabel)" @onclick:stopPropagation="true">×</button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    </div>
                 </div>
                 <div class="editor-content">
                     <textarea class="editor-textarea" placeholder="資料の内容をここに入力してください..." @bind="_selectedMaterial.Text" @bind:event="oninput"></textarea>
@@ -954,6 +1141,35 @@
                 <div class="mobile-editor-content">
                     @if (_selectedMaterial != null) {
                         <input type="text" class="mobile-title-input" placeholder="資料のタイトル" @bind="_selectedMaterial.Title" @bind:event="oninput" />
+                        <div class="label-section" style="margin-bottom: 12px;">
+                            <div class="label-section-title">ラベル（最大3つ・1つ20文字まで）</div>
+                            <div class="label-input-row">
+                                <input type="text"
+                                       class="label-input"
+                                       placeholder="ラベルを入力"
+                                       maxlength="20"
+                                       @bind="_labelInput"
+                                       @bind:event="oninput"
+                                       @onkeydown="HandleLabelKeyDown"
+                                       disabled="@((_selectedMaterial.Label?.Length ?? 0) >= 3)" />
+                                <button class="label-add-btn"
+                                        @onclick="AddLabel"
+                                        disabled="@(string.IsNullOrWhiteSpace(_labelInput) || (_selectedMaterial.Label?.Length ?? 0) >= 3)">
+                                    ＋
+                                </button>
+                            </div>
+                            <div class="label-tags">
+                                @if (_selectedMaterial.Label != null) {
+                                    @foreach (var lbl in _selectedMaterial.Label) {
+                                        var capturedLabel = lbl;
+                                        <span class="label-tag">
+                                            @capturedLabel
+                                            <button class="label-tag-remove" @onclick="() => RemoveLabel(capturedLabel)" @onclick:stopPropagation="true">×</button>
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        </div>
                         <textarea class="mobile-textarea" placeholder="資料の内容をここに入力してください..." @bind="_selectedMaterial.Text" @bind:event="oninput"></textarea>
                     }
                 </div>
@@ -978,8 +1194,17 @@
                                  @ondrop="() => HandleMaterialDrop(index)"
                                  @ondragend="HandleMaterialDragEnd"
                                  @onclick="() => SelectMaterialMobile(item)">
-                                <span>@item.Title</span>
-                                <div style="display: flex; gap: 8px;">
+                                <div style="flex: 1; overflow: hidden; min-width: 0;">
+                                    <div class="material-title">@item.Title</div>
+                                    @if (item.Label != null && item.Label.Length > 0) {
+                                        <div class="material-item-labels">
+                                            @foreach (var lbl in item.Label) {
+                                                <span class="material-label-chip" title="@lbl">@lbl</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-shrink: 0;">
                                     <button class="icon-btn" @onclick="() => ShowRenameMaterialModal(item)" @onclick:stopPropagation="true"><img src="/images/ui-rename.png" /></button>
                                     <button class="icon-btn delete" @onclick="() => ShowDeleteMaterialConfirm(item)" @onclick:stopPropagation="true">ー</button>
                                 </div>
@@ -1154,6 +1379,7 @@
 
     // サイドバー
     private bool _sidebarCollapsed = false;
+    private string _labelInput = "";
 
     // デスクトップ/モバイル判定
     private bool _isMobile = false;
@@ -1279,6 +1505,40 @@
     private void SelectMaterial(MaterialItem material) {
         _selectedMaterial = material;
         StateHasChanged();
+    }
+
+    private async Task AddLabel() {
+        if (_selectedMaterial == null) return;
+        var trimmed = _labelInput.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return;
+
+        var labels = _selectedMaterial.Label?.ToList() ?? new List<string>();
+        if (labels.Count >= 3) return;
+        if (labels.Contains(trimmed)) {
+            _labelInput = "";
+            return;
+        }
+
+        labels.Add(trimmed);
+        _selectedMaterial.Label = labels.ToArray();
+        _labelInput = "";
+        await SaveProject();
+        StateHasChanged();
+    }
+
+    private async Task RemoveLabel(string label) {
+        if (_selectedMaterial == null) return;
+        var labels = _selectedMaterial.Label?.ToList() ?? new List<string>();
+        labels.Remove(label);
+        _selectedMaterial.Label = labels.Count > 0 ? labels.ToArray() : null;
+        await SaveProject();
+        StateHasChanged();
+    }
+
+    private async Task HandleLabelKeyDown(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            await AddLabel();
+        }
     }
 
     // モバイル用

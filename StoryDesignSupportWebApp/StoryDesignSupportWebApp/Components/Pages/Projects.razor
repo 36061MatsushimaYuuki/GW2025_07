@@ -741,6 +741,44 @@
             opacity: 1;
             visibility: visible;
         }
+
+    @@media (max-width: 768px) {
+        .projects-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .project-card {
+            height: auto;
+            min-height: 220px;
+        }
+
+        .project-overview {
+            height: auto;
+            -webkit-line-clamp: 3;
+        }
+
+        .search-filter-row {
+            flex-wrap: wrap;
+        }
+
+        .project-add-button {
+            left: auto;
+            right: 16px;
+        }
+
+        .modal-content {
+            width: 95%;
+            padding: 20px 16px;
+        }
+
+        .modal-actions {
+            flex-direction: column-reverse;
+        }
+
+            .modal-actions button {
+                width: 100%;
+            }
+    }
 </style>
 
 <div class="projects-container">
