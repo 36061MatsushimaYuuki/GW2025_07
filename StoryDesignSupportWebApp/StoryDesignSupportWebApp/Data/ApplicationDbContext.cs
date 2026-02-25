@@ -23,21 +23,16 @@ namespace StoryDesignSupportWebApp.Data {
                 }
             }
 
-            // JSONシリアライズ設定（必要ならオプションを調整）
             var jsonOptions = new JsonSerializerOptions {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                // null の扱い、既定値の書き出しなど必要に応じて
-                // DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
             };
 
-            // ValueConverter: ProjectData <-> string(JSON)
             var dataConverter = new ValueConverter<ProjectData, string>(
                 v => JsonSerializer.Serialize(v, jsonOptions),
                 v => string.IsNullOrWhiteSpace(v)
                         ? new ProjectData()
                         : JsonSerializer.Deserialize<ProjectData>(v, jsonOptions)!);
 
-            // ValueComparer: 差分検出を JSON同値で判定
             var dataComparer = new ValueComparer<ProjectData>(
                 (a, b) => JsonSerializer.Serialize(a, jsonOptions) == JsonSerializer.Serialize(b, jsonOptions),
                 v => JsonSerializer.Serialize(v, jsonOptions).GetHashCode(),
@@ -47,8 +42,8 @@ namespace StoryDesignSupportWebApp.Data {
             modelBuilder.Entity<Project>()
                 .Property(p => p.ProjectDataObject)
                 .HasConversion(dataConverter)
-                .HasColumnType("TEXT")   // SQL Server の場合
-                .HasAnnotation("Relational:ColumnOrder", 0) // 任意。列順を制御したいなら
+                .HasColumnType("TEXT")
+                .HasAnnotation("Relational:ColumnOrder", 0)
                 .Metadata.SetValueComparer(dataComparer);
         }
     }
