@@ -1,6 +1,8 @@
 ﻿@page "/projects/edit/{id:int}/characters"
+
 @rendermode InteractiveServer
 @attribute [Authorize]
+
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -44,6 +46,7 @@
         transition: height 0.3s ease;
     }
 
+    /* サイドバー */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -406,6 +409,7 @@
         white-space: nowrap;
     }
 
+    /* エディタエリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -663,6 +667,7 @@
             line-height: 1.8;
         }
 
+    /* モーダル */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -795,6 +800,7 @@
             background-color: #5a6268;
         }
 
+    /* 画像トリミングモーダル */
     .crop-modal-overlay {
         position: fixed;
         top: 0;
@@ -884,6 +890,7 @@
         justify-content: flex-end;
     }
 
+    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -956,6 +963,7 @@
         padding: 20px;
     }
 
+    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -1004,7 +1012,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100dvh - 3.5rem);
+            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
         }
 
         .mobile-editor-content {
@@ -1101,13 +1109,18 @@
             filter: none;
         }
 </style>
+
 @if (_project == null) {
     <p>Loading...</p>
 } else {
+    <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
+        <!-- サイドバー開くボタン -->
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
+
+        <!-- 左サイドバー：カテゴリ一覧またはナビゲーション -->
         <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
             @if (_showCategoryView) {
                 <div class="sidebar-header" @onclick="BackToCategoryView">
@@ -1167,6 +1180,8 @@
                 <button class="sidebar-toggle" @onclick="ToggleSidebar">◀</button>
             }
         </div>
+
+        <!-- 中央パネル：人物リスト -->
         @if (_showCategoryView && _selectedCategory != null) {
             <div class="character-list-panel">
                 <div class="character-list-header">
@@ -1219,10 +1234,13 @@
                 </div>
             </div>
         }
+
+        <!-- 右側エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _selectedCharacter != null) {
                 <div class="editor-content">
                     <div class="character-editor-layout">
+                        <!-- 画像エリア -->
                         <div class="character-image-section">
                             <div class="image-square">
                                 @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
@@ -1243,6 +1261,8 @@
                                 <button class="image-clear-btn" @onclick="ClearImage">画像を削除</button>
                             }
                         </div>
+
+                        <!-- テキストフィールド -->
                         <div class="character-fields-section">
                             <div class="field-group">
                                 <label>名前</label>
@@ -1306,6 +1326,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 概要エディタ -->
                     <div class="overview-section">
                         <div class="overview-toolbar">
                             <button class="toolbar-btn" title="大見出し"
@@ -1346,6 +1368,8 @@
             }
         </div>
     </div>
+
+    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             <div class="mobile-editor">
@@ -1564,6 +1588,9 @@
             </div>
         }
     </div>
+
+
+    <!-- カテゴリ追加/編集モーダル -->
     @if (_showCategoryModal) {
         <div class="modal-overlay" @onclick="CloseCategoryModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1578,6 +1605,8 @@
             </div>
         </div>
     }
+
+    <!-- カテゴリ削除確認モーダル -->
     @if (_showDeleteCategoryConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteCategoryConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1593,6 +1622,8 @@
             </div>
         </div>
     }
+
+    <!-- 人物削除確認モーダル -->
     @if (_showDeleteCharacterConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteCharacterConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1607,6 +1638,8 @@
             </div>
         </div>
     }
+
+    <!-- 画像トリミングモーダル -->
     @if (_showCropModal) {
         <div class="crop-modal-overlay">
             <div class="crop-modal-content" @onclick:stopPropagation="true">
@@ -1629,9 +1662,11 @@
         </div>
     }
 }
+
 @code {
     [Parameter]
     public int id { get; set; }
+
     private Project? _project;
     private string _currentCategory = "characters";
     private bool _showCategoryView = true;
@@ -1643,11 +1678,14 @@
     private string? _tempImageMime = null;
     private static Dictionary<string, Characters> _instances = new Dictionary<string, Characters>();
     private string _instanceId = Guid.NewGuid().ToString();
+
     private Character? _lastRenderedCharacter = null;
     private System.Threading.Timer? _overviewSaveTimer;
     private bool _hasPendingContentSave = false;
     private System.Threading.Timer? _autoSaveTimer;
     private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
+
+    // モーダル関連
     private bool _showCategoryModal = false;
     private string _categoryModalTitle = "";
     private bool _isEditingCategory = false;
@@ -1655,40 +1693,57 @@
     private bool _showDeleteCharacterConfirm = false;
     private CharacterCategory? _editingCategory;
     private Character? _editingCharacter;
+    // 画像トリミング
     private bool _showCropModal = false;
     private byte[]? _pendingImageBytes = null;
     private string _pendingImageMime = "image/jpeg";
     private int _cropScale = 100;
+
+    // サイドバー
     private bool _sidebarCollapsed = false;
+
+    // デスクトップ/モバイル判定
     private bool _isResizing = false;
+
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
+
         var appUser = await UserManager.GetUserAsync(user);
         var userId = appUser.Id;
+
         _project = await DbFactory
             .CreateDbContext()
             .Projects
             .Where(x => x.Id == id && x.UserId == userId)
             .FirstOrDefaultAsync();
+
         if (_project == null) {
             Nav.NavigateTo("/projects");
             return;
         }
+
+        // CharacterDataの初期化
         if (_project.ProjectDataObject.Character == null) {
             _project.ProjectDataObject.Character = new CharacterData();
         }
+
         if (_project.ProjectDataObject.Character.Category == null) {
             _project.ProjectDataObject.Character.Category = Array.Empty<CharacterCategory>();
         }
     }
+
     private DotNetObjectReference<Characters>? dotNetRef;
+
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             await JSRuntime.InvokeVoidAsync("initializeEditorEventListeners", _instanceId);
             await JSRuntime.InvokeVoidAsync("setBlazorInstance", DotNetObjectReference.Create(this));
         }
+
         bool needUpdate = (_selectedCharacter != _lastRenderedCharacter || _isResizing);
+
+        // デスクトップとモバイル間の同期
         if (needUpdate && _selectedCharacter != null) {
             await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor", _selectedCharacter.Overview ?? "");
             await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor-mobile", _selectedCharacter.Overview ?? "");
@@ -1697,13 +1752,17 @@
             _isResizing = false;
         }
     }
+
     protected override void OnInitialized() {
         base.OnInitialized();
         _instances[_instanceId] = this;
     }
+
     private async Task OnOverviewInput() {
         _hasPendingContentSave = true;
+
         _overviewSaveTimer?.Dispose();
+
         _overviewSaveTimer = new System.Threading.Timer(async _ => {
             if (_hasPendingContentSave) {
                 await InvokeAsync(async () => {
@@ -1719,6 +1778,7 @@
             }
         }, null, 500, Timeout.Infinite);
     }
+
     private void ScheduleAutoSave() {
         _autoSaveTimer?.Dispose();
         _autoSaveTimer = new System.Threading.Timer(async _ => {
@@ -1727,24 +1787,28 @@
             });
         }, null, 1000, Timeout.Infinite);
     }
+
     private async Task AutoSave() {
         if (!await _saveSemaphore.WaitAsync(0)) {
             return;
         }
+
         try {
             if (_project != null) {
                 _project.UpdatedAt = DateTime.UtcNow;
+
+                // リトライロジック
                 int maxRetries = 3;
                 for (int i = 0; i < maxRetries; i++) {
                     try {
                         await using var db = DbFactory.CreateDbContext();
                         db.Projects.Update(_project);
                         await db.SaveChangesAsync();
-                        break;
+                        break; // 成功したらループを抜ける
                     }
                     catch (Exception ex) when (i < maxRetries - 1) {
                         Console.WriteLine($"AutoSave attempt {i + 1} failed: {ex.Message}");
-                        await Task.Delay(500 * (i + 1));
+                        await Task.Delay(500 * (i + 1)); // リトライ前に待機
                     }
                 }
             }
@@ -1756,10 +1820,15 @@
             _saveSemaphore.Release();
         }
     }
+
     private async Task SaveOverviewContent() {
+
         var content = "";
+
         try {
             using var context = await DbFactory.CreateDbContextAsync();
+
+            // カテゴリを検索してキャラクターを更新
             foreach (var category in _project.ProjectDataObject.Character.Category) {
                 var character = category.Characters?.FirstOrDefault(c => c == _selectedCharacter);
                 if (_mobileShowEditor) {
@@ -1780,6 +1849,7 @@
             Console.WriteLine($"Overview保存エラー: {ex.Message}");
         }
     }
+
     private async Task BackToCategoryView() {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1790,6 +1860,7 @@
         _lastRenderedCharacter = null;
         StateHasChanged();
     }
+
     private async Task BackToProjectList() {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1797,6 +1868,7 @@
         await SaveProject();
         Nav.NavigateTo("/projects");
     }
+
     private async Task SaveProject() {
         if (_project != null && _project.ProjectDataObject != null) {
             _project.UpdatedAt = DateTime.UtcNow;
@@ -1805,6 +1877,7 @@
             await db.SaveChangesAsync();
         }
     }
+
     private async Task SelectCategory(string category) {
         _currentCategory = category;
         if (category == "writing") {
@@ -1819,8 +1892,10 @@
             await SaveProject();
             Nav.NavigateTo($"/projects/edit/{id}/materials");
         }
+
         StateHasChanged();
     }
+
     private async Task SelectCharacterCategory(CharacterCategory category) {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1831,6 +1906,7 @@
         _lastRenderedCharacter = null;
         StateHasChanged();
     }
+
     private async Task SelectCharacter(Character character) {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1840,6 +1916,8 @@
         _lastRenderedCharacter = null;
         StateHasChanged();
     }
+
+    // モバイル用
     private async Task SelectCharacterCategoryMobile(CharacterCategory category) {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1850,6 +1928,7 @@
         _lastRenderedCharacter = null;
         StateHasChanged();
     }
+
     private async Task SelectCharacterMobile(Character character) {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1860,6 +1939,7 @@
         _lastRenderedCharacter = null;
         StateHasChanged();
     }
+
     private async Task BackToCategoryListMobile() {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1869,6 +1949,7 @@
         _selectedCategory = null;
         StateHasChanged();
     }
+
     private async Task BackToCharacterList() {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1878,6 +1959,8 @@
         _selectedCharacter = null;
         StateHasChanged();
     }
+
+    // カテゴリ追加モーダル
     private void ShowAddCategoryModal() {
         var categoryCount = _project?.ProjectDataObject?.Character?.Category?.Length ?? 0;
         _categoryModalTitle = $"カテゴリ{categoryCount + 1}";
@@ -1885,18 +1968,21 @@
         _editingCategory = null;
         _showCategoryModal = true;
     }
+
     private void ShowRenameCategoryModal(CharacterCategory category) {
         _categoryModalTitle = category.Title;
         _isEditingCategory = true;
         _editingCategory = category;
         _showCategoryModal = true;
     }
+
     private void CloseCategoryModal() {
         _showCategoryModal = false;
         _categoryModalTitle = "";
         _isEditingCategory = false;
         _editingCategory = null;
     }
+
     private async Task HandleCategoryModalKeyDown(KeyboardEventArgs e) {
         if (e.Key == "Enter") {
             await SaveCategory();
@@ -1904,10 +1990,12 @@
             CloseCategoryModal();
         }
     }
+
     private async Task SaveCategory() {
         if (string.IsNullOrWhiteSpace(_categoryModalTitle)) {
             return;
         }
+
         if (_isEditingCategory && _editingCategory != null) {
             _editingCategory.Title = _categoryModalTitle;
         } else {
@@ -1915,174 +2003,234 @@
                 Title = _categoryModalTitle,
                 Characters = Array.Empty<Character>()
             };
+
             var categories = _project.ProjectDataObject.Character.Category?.ToList() ?? new List<CharacterCategory>();
             categories.Add(newCategory);
             _project.ProjectDataObject.Character.Category = categories.ToArray();
         }
+
         await SaveProject();
         CloseCategoryModal();
         StateHasChanged();
     }
+
     private void ShowDeleteCategoryConfirm(CharacterCategory category) {
         _showDeleteCategoryConfirm = true;
         _editingCategory = category;
     }
+
     private void CloseDeleteCategoryConfirm() {
         _showDeleteCategoryConfirm = false;
         _editingCategory = null;
     }
+
     private async Task DeleteCategory() {
         if (_project.ProjectDataObject?.Character?.Category != null) {
             var categories = _project.ProjectDataObject.Character.Category.ToList();
             var category = _editingCategory;
             categories.Remove(category);
             _project.ProjectDataObject.Character.Category = categories.ToArray();
+
             if (_selectedCategory == category) {
                 _selectedCategory = null;
                 _selectedCharacter = null;
             }
+
             await SaveProject();
             CloseDeleteCategoryConfirm();
             StateHasChanged();
         }
     }
+
     private async Task SaveCharacter() {
         var characterCount = _selectedCategory.Characters?.Length ?? 0;
         var newCharacter = new Character {
             Name = "キャラクター" + characterCount,
         };
+
         var items = _selectedCategory.Characters?.ToList() ?? new List<Character>();
         items.Add(newCharacter);
         _selectedCategory.Characters = items.ToArray();
         _selectedCharacter = newCharacter;
+
         await SaveProject();
         StateHasChanged();
     }
+
     private void ShowDeleteCharacterConfirm(Character character) {
         _showDeleteCharacterConfirm = true;
         _editingCharacter = character;
     }
+
     private void CloseDeleteCharacterConfirm() {
         _showDeleteCharacterConfirm = false;
         _editingCharacter = null;
     }
+
     private async Task DeleteCharacter() {
         if (_selectedCategory?.Characters != null) {
             var items = _selectedCategory.Characters.ToList();
             var character = _editingCharacter;
             items.Remove(character);
             _selectedCategory.Characters = items.ToArray();
+
             if (_selectedCharacter == character) {
                 _selectedCharacter = _selectedCategory.Characters?.FirstOrDefault();
             }
+
             await SaveProject();
             CloseDeleteCharacterConfirm();
             StateHasChanged();
         }
     }
+
     private void ToggleSidebar() {
         _sidebarCollapsed = !_sidebarCollapsed;
     }
+
+    // ドラッグアンドドロップ用の変数を追加
     private int _dragSourceIndex = -1;
     private int _dragOverIndex = -1;
     private bool _dragOverBottom = false;
+
+    // ドラッグアンドドロップ用のメソッドを追加
     private void HandleDragStart(int index) {
         _dragSourceIndex = index;
     }
+
     private void HandleDragEnd() {
         _dragSourceIndex = -1;
         _dragOverIndex = -1;
         _dragOverBottom = false;
     }
+
     private void HandleDragOver(DragEventArgs e, int index) {
         _dragOverIndex = index;
+        // 要素の高さの半分より下にマウスがある場合は下に挿入
         _dragOverBottom = e.OffsetY > 20;
     }
+
     private void HandleDragLeave() {
         _dragOverIndex = -1;
         _dragOverBottom = false;
     }
+
     private string GetDragClass(int index) {
         if (_dragSourceIndex == index) {
             return "dragging";
         }
+
         if (_dragOverIndex == index) {
             return _dragOverBottom ? "drag-over-bottom" : "drag-over-top";
         }
+
         return "";
     }
+
     private async Task HandleDrop(int targetIndex) {
         if (_dragSourceIndex == -1 || _dragSourceIndex == targetIndex) {
             HandleDragEnd();
             return;
         }
+
         if (_project?.ProjectDataObject?.Character?.Category == null) {
             HandleDragEnd();
             return;
         }
+
         var categories = _project.ProjectDataObject.Character.Category.ToList();
         var draggedCategory = categories[_dragSourceIndex];
+
+        // 元の位置から削除
         categories.RemoveAt(_dragSourceIndex);
+
+        // 新しい位置に挿入
         int insertIndex = targetIndex;
+
+        // ドラッグ元より前の要素にドロップした場合
         if (_dragSourceIndex > targetIndex) {
-            if (_dragOverBottom) {
-                insertIndex++;
-            }
-        } else {
-            insertIndex--;
+            // 上半分なら手前に、下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
+        // ドラッグ元より後の要素にドロップした場合
+        else {
+            // 削除によってインデックスが1つ減っているので調整
+            insertIndex--;
+
+            // 下半分なら後ろに挿入
+            if (_dragOverBottom) {
+                insertIndex++;
+            }
+        }
+
+        // インデックスの範囲チェック
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > categories.Count) insertIndex = categories.Count;
+
         categories.Insert(insertIndex, draggedCategory);
         _project.ProjectDataObject.Character.Category = categories.ToArray();
+
         await SaveProject();
         HandleDragEnd();
         StateHasChanged();
     }
+
     private int _dragSourceCharacterIndex = -1;
     private int _dragOverCharacterIndex = -1;
     private bool _dragOverCharacterBottom = false;
+
     private void HandleCharacterDragStart(int index) {
         _dragSourceCharacterIndex = index;
     }
+
     private void HandleCharacterDragEnd() {
         _dragSourceCharacterIndex = -1;
         _dragOverCharacterIndex = -1;
         _dragOverCharacterBottom = false;
     }
+
     private void HandleCharacterDragOver(DragEventArgs e, int index) {
         _dragOverCharacterIndex = index;
         _dragOverCharacterBottom = e.OffsetY > 20;
     }
+
     private void HandleCharacterDragLeave() {
         _dragOverCharacterIndex = -1;
         _dragOverCharacterBottom = false;
     }
+
     private string GetCharacterDragClass(int index) {
         if (_dragSourceCharacterIndex == index) {
             return "dragging";
         }
+
         if (_dragOverCharacterIndex == index) {
             return _dragOverCharacterBottom ? "drag-over-bottom" : "drag-over-top";
         }
+
         return "";
     }
+
     private async Task HandleCharacterDrop(int targetIndex) {
         if (_dragSourceCharacterIndex == -1 || _dragSourceCharacterIndex == targetIndex) {
             HandleCharacterDragEnd();
             return;
         }
+
         if (_selectedCategory?.Characters == null) {
             HandleCharacterDragEnd();
             return;
         }
+
         var characters = _selectedCategory.Characters.ToList();
         var draggedCharacter = characters[_dragSourceCharacterIndex];
+
         characters.RemoveAt(_dragSourceCharacterIndex);
+
         int insertIndex = targetIndex;
+
         if (_dragSourceCharacterIndex > targetIndex) {
             if (_dragOverCharacterBottom) {
                 insertIndex++;
@@ -2093,23 +2241,30 @@
                 insertIndex++;
             }
         }
+
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > characters.Count) insertIndex = characters.Count;
+
         characters.Insert(insertIndex, draggedCharacter);
         _selectedCategory.Characters = characters.ToArray();
+
         await SaveProject();
         HandleCharacterDragEnd();
         StateHasChanged();
     }
+
     private void InsertMarkdown(string markdown) {
         if (_selectedCharacter != null) {
             _selectedCharacter.Overview += markdown;
             StateHasChanged();
         }
     }
+
+    // 画像アップロード（一時・保存なし）
     private async Task HandleImageUpload(InputFileChangeEventArgs e) {
         var file = e.File;
         if (file == null) return;
+
         using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
         using var ms = new System.IO.MemoryStream();
         await stream.CopyToAsync(ms);
@@ -2118,11 +2273,14 @@
         _cropScale = 100;
         _showCropModal = true;
         StateHasChanged();
+
+        // モーダルが描画された後にJS側へ画像をセット
         var base64 = Convert.ToBase64String(_pendingImageBytes);
         await JSRuntime.InvokeVoidAsync("cropEditor.init",
             "crop-viewport", "crop-image", "crop-scale-slider",
             $"data:{_pendingImageMime};base64,{base64}");
     }
+
     private void OnCropSliderInput(ChangeEventArgs e) {
         if (int.TryParse(e.Value?.ToString(), out var v)) {
             _cropScale = v;
@@ -2130,31 +2288,39 @@
                 "crop-viewport", "crop-image", v);
         }
     }
+
     private async Task CancelCrop() {
         _showCropModal = false;
         _pendingImageBytes = null;
         await JSRuntime.InvokeVoidAsync("cropEditor.destroy");
         StateHasChanged();
     }
+
     private async Task ConfirmCrop() {
         if (_selectedCharacter == null || _pendingImageBytes == null) return;
+
         var resultBase64 = await JSRuntime.InvokeAsync<string>(
             "cropEditor.crop", "crop-viewport", "crop-image");
+
         if (!string.IsNullOrEmpty(resultBase64)) {
+            // "data:image/webp;base64,XXXX" または "data:image/jpeg;base64,XXXX"
             var comma = resultBase64.IndexOf(',');
             var data = comma >= 0 ? resultBase64[(comma + 1)..] : resultBase64;
             _selectedCharacter.Image = Convert.FromBase64String(data);
         }
+
         _showCropModal = false;
         _pendingImageBytes = null;
         await JSRuntime.InvokeVoidAsync("cropEditor.destroy");
         StateHasChanged();
     }
+
     private void ClearImage() {
         if (_selectedCharacter == null) return;
         _selectedCharacter.Image = null;
         StateHasChanged();
     }
+
     private async Task ApplyHeading(int level) {
         if (_selectedCharacter == null) return;
         var editorId = _mobileShowEditor ? "overview-editor-mobile" : "overview-editor";
@@ -2163,32 +2329,42 @@
         _selectedCharacter.Overview = result;
         StateHasChanged();
     }
+
     [JSInvokable]
     public async Task OnOverviewChanged(string content) {
         if (_selectedCharacter == null) return;
+
         _selectedCharacter.Overview = content;
+
         await SaveProject();
     }
+
     public void Dispose() {
         try {
             _overviewSaveTimer?.Dispose();
             _autoSaveTimer?.Dispose();
             _saveSemaphore?.Dispose();
+
             JSRuntime.InvokeVoidAsync("eval", $@"
             window.blazorConnected = false;
             window['editorEventListenersRegistered_{_instanceId}'] = false;
         ");
         }
         catch {
+            // 既に切断されている場合は無視
         }
+
         _instances.Remove(_instanceId);
     }
+
     [JSInvokable("OnWindowResizeCharacters")]
     public static async Task OnWindowResizeCharacters(string instanceId, int width) {
         if (!_instances.TryGetValue(instanceId, out var instance)) return;
+
         try {
             await instance.InvokeAsync(async () => {
                 bool isMobile = width <= 768;
+
                 if (!isMobile && instance._mobileShowEditor) {
                     await instance.SaveOverviewContent();
                     instance._mobileShowEditor = false;
@@ -2207,9 +2383,13 @@
         }
     }
 }
+
 <script>
     (function() {
+        // Blazor接続状態を追跡
         let blazorConnected = true;
+
+        // Blazor切断検知
         if (window.Blazor) {
             Blazor.disconnect = new Proxy(Blazor.disconnect || (() => {}), {
                 apply: function(target, thisArg, args) {
@@ -2218,9 +2398,12 @@
                 }
             });
         }
+
         window.initializeEditorEventListeners = function(instanceId) {
+
             if (window['editorEventListenersRegistered_' + instanceId]) return;
             window['editorEventListenersRegistered_' + instanceId] = true;
+            // リサイズ検知
             let resizeTimer;
             window.addEventListener('resize', function() {
                 if (!window.blazorConnected) return;
@@ -2234,18 +2417,25 @@
                     }
                 }, 300);
             });
+
+            // Blazor接続状態の初期化
             window.blazorConnected = true;
         };
+
         window.setBlazorInstance = function(instance) {
             window.blazorInstance = instance;
         };
+
         window.setOverviewContent = function(elementId, content) {
             const element = document.getElementById(elementId);
             if (!element) return;
+
             if (element.innerHTML !== (content || '')) {
                 element.innerHTML = content || '';
+
                 const selection = window.getSelection();
                 const range = document.createRange();
+
                 if (element.childNodes.length > 0) {
                     range.setStart(element.childNodes[0], 0);
                     range.collapse(true);
@@ -2253,37 +2443,46 @@
                     range.selectNodeContents(element);
                     range.collapse(true);
                 }
+
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
         };
+
         window.getOverviewContent = function(elementId) {
             const element = document.getElementById(elementId);
             return element ? element.innerHTML : '';
         };
+
         function adjustContainerHeight() {
             const topRow = document.querySelector('.top-row');
             const desktopContainer = document.querySelector('.edit-container.desktop-view');
             const mobileContainer = document.querySelector('.mobile-view');
             const mobileView = document.querySelector('.mobile-list');
             const mobileEditor = document.querySelector('.mobile-editor');
+
             if (topRow) {
                 const isCollapsed = topRow.classList.contains('collapsed');
                 const height = isCollapsed ? 'calc(100dvh - 2rem)' : 'calc(100dvh - 5.5rem)';
+
                 if (desktopContainer) desktopContainer.style.height = height;
                 if (mobileContainer) mobileContainer.style.height = height;
                 if (mobileView) mobileView.style.height = height;
                 if (mobileEditor) mobileEditor.style.height = height;
             }
         }
+
         window.adjustContainerHeight = adjustContainerHeight;
     })();
+
     window.cropEditor = {
         _state: {},
+
         init: function (viewportId, imgId, sliderId, src) {
             const vp = document.getElementById(viewportId);
             const img = document.getElementById(imgId);
             if (!vp || !img) return;
+
             const st = window.cropEditor._state;
             st.offsetX = 0;
             st.offsetY = 0;
@@ -2294,18 +2493,24 @@
             st.viewportId = viewportId;
             st.imgId = imgId;
             st.sliderId = sliderId;
+
             img.onload = function () {
                 const vpSize = vp.getBoundingClientRect().width || 400;
                 const iw = img.naturalWidth;
                 const ih = img.naturalHeight;
+
+                // 短辺がビューポートと一致する初期スケール（はみ出さない最小値）
                 const minScale = vpSize / Math.min(iw, ih);
                 st.minScale = minScale;
                 st.scale = minScale;
                 st.baseScale = minScale;
+
+                // 画像を中央に配置
                 st.offsetX = (vpSize - iw * st.scale) / 2;
                 st.offsetY = (vpSize - ih * st.scale) / 2;
                 window.cropEditor._clampOffset();
                 window.cropEditor._apply();
+
                 const slider = document.getElementById(sliderId);
                 if (slider) {
                     slider.min = 100;
@@ -2314,12 +2519,15 @@
                 }
             };
             img.src = src;
+
+            // マウスドラッグ
             vp.onmousedown = function (e) {
                 st.dragging = true;
                 st.lastX = e.clientX;
                 st.lastY = e.clientY;
                 e.preventDefault();
             };
+            // グローバルに登録（モーダルを跨いでもドラッグが続く）
             window._cropMouseMove = function (e) {
                 if (!st.dragging) return;
                 st.offsetX += e.clientX - st.lastX;
@@ -2332,6 +2540,8 @@
             window._cropMouseUp = function () { st.dragging = false; };
             window.addEventListener('mousemove', window._cropMouseMove);
             window.addEventListener('mouseup', window._cropMouseUp);
+
+            // タッチ
             vp.ontouchstart = function (e) {
                 if (e.touches.length === 1) {
                     st.dragging = true;
@@ -2352,6 +2562,7 @@
             };
             vp.ontouchend = function () { st.dragging = false; };
         },
+
         setScale: function (viewportId, imgId, sliderVal) {
             const st = window.cropEditor._state;
             if (!st.baseScale) return;
@@ -2360,7 +2571,11 @@
             const vpSize = vp.getBoundingClientRect().width || 400;
             const img = document.getElementById(imgId);
             if (!img) return;
+
+            // sliderVal 100 = minScale（短辺ぴったり）、300 = 3倍
             const newScale = st.baseScale * (sliderVal / 100);
+
+            // ビューポート中心を固定点としてオフセットを再計算
             const cx = vpSize / 2;
             const cy = vpSize / 2;
             const ratio = newScale / st.scale;
@@ -2370,21 +2585,29 @@
             window.cropEditor._clampOffset();
             window.cropEditor._apply();
         },
+
+        // 画像がビューポートからはみ出さないようオフセットを制限
         _clampOffset: function () {
             const st = window.cropEditor._state;
             const vp = document.getElementById(st.viewportId);
             const img = document.getElementById(st.imgId);
             if (!vp || !img) return;
+
             const vpSize = vp.getBoundingClientRect().width || 400;
             const scaledW = img.naturalWidth * st.scale;
             const scaledH = img.naturalHeight * st.scale;
+
+            // X軸：画像右端がビューポート右端より左に来てはいけない
+            //      画像左端がビューポート左端より右に来てはいけない
             const maxX = 0;
             const minX = vpSize - scaledW;
             st.offsetX = Math.min(maxX, Math.max(minX, st.offsetX));
+
             const maxY = 0;
             const minY = vpSize - scaledH;
             st.offsetY = Math.min(maxY, Math.max(minY, st.offsetY));
         },
+
         _apply: function () {
             const st = window.cropEditor._state;
             const img = document.getElementById(st.imgId);
@@ -2394,17 +2617,23 @@
             img.style.left   = st.offsetX + 'px';
             img.style.top    = st.offsetY + 'px';
         },
+
         crop: function (viewportId, imgId) {
             const vp = document.getElementById(viewportId);
             const img = document.getElementById(imgId);
             if (!vp || !img) return '';
+
             const vpSize = vp.getBoundingClientRect().width || 400;
             const st = window.cropEditor._state;
+
             const canvas = document.createElement('canvas');
             canvas.width  = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
+
+            // ビューポート座標 → canvas(512x512) の変換比率
             const drawScale = 512 / vpSize;
+
             ctx.drawImage(
                 img,
                 0, 0, img.naturalWidth, img.naturalHeight,
@@ -2413,12 +2642,16 @@
                 img.naturalWidth  * st.scale * drawScale,
                 img.naturalHeight * st.scale * drawScale
             );
+
+            // WebP 品質0.85で軽量化
             const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
             const mime    = supportsWebP ? 'image/webp' : 'image/jpeg';
             const quality = supportsWebP ? 0.85 : 0.88;
             return canvas.toDataURL(mime, quality);
         },
+
         destroy: function () {
+            // モーダルを閉じる際にグローバルイベントを解除
             if (window._cropMouseMove) {
                 window.removeEventListener('mousemove', window._cropMouseMove);
                 window._cropMouseMove = null;
@@ -2429,10 +2662,13 @@
             }
         }
     };
+
     window.overviewEditor = {
+
         sync: function (id, content) {
             const el = document.getElementById(id);
             if (!el) return;
+
             if (!el._overviewInitialized) {
                 el._overviewInitialized = true;
                 el.contentEditable = 'true';
@@ -2444,6 +2680,7 @@
                 el.style.lineHeight = '1.8';
                 el.style.cursor = 'text';
                 el.setAttribute('data-placeholder', '概要を入力してください...');
+
                 el.addEventListener('input', function () {
                     window.overviewEditor._updatePlaceholder(el);
                 });
@@ -2454,10 +2691,13 @@
                     window.overviewEditor._updatePlaceholder(el);
                 });
             }
+
             if (document.activeElement === el) return;
+
             el.innerHTML = window.overviewEditor._toHtml(content);
             window.overviewEditor._updatePlaceholder(el);
         },
+
         _toHtml: function (text) {
             if (!text) return '';
             return text.split('\n').map(function (line) {
@@ -2468,6 +2708,7 @@
                 return '<p>' + line + '</p>';
             }).join('');
         },
+
         serialize: function (id) {
             const el = document.getElementById(id);
             if (!el) return '';
@@ -2480,6 +2721,7 @@
                 return text;
             }).join('\n');
         },
+
         _updatePlaceholder: function (el) {
             const text = (el.textContent || '').trim();
             const html = (el.innerHTML || '').trim();
@@ -2490,12 +2732,16 @@
                 el.classList.remove('is-empty');
             }
         },
+
         applyHeading: function (id, level) {
             const el = document.getElementById(id);
             if (!el) return window.overviewEditor.serialize(id);
+
             const sel = window.getSelection();
             if (!sel || sel.rangeCount === 0) return window.overviewEditor.serialize(id);
+
             const range = sel.getRangeAt(0);
+
             function getDirectChild(container) {
                 let node = container;
                 if (node.nodeType === 3) node = node.parentNode;
@@ -2506,19 +2752,23 @@
                 }
                 return node;
             }
+
             const targetNode = getDirectChild(range.startContainer);
             if (!targetNode || !el.contains(targetNode)) {
                 return window.overviewEditor.serialize(id);
             }
+
             const text = targetNode.textContent || '';
             const newTag = level === 0 ? 'p' : 'h' + level;
             const newNode = document.createElement(newTag);
             newNode.textContent = text;
+
             if (targetNode.parentNode === el) {
                 el.replaceChild(newNode, targetNode);
             } else {
                 return window.overviewEditor.serialize(id);
             }
+
             try {
                 const newRange = document.createRange();
                 newRange.selectNodeContents(newNode);
@@ -2527,6 +2777,7 @@
                 sel.addRange(newRange);
                 newNode.focus();
             } catch (e) {}
+
             return window.overviewEditor.serialize(id);
         }
     };

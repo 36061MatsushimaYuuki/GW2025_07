@@ -56,23 +56,27 @@ builder.Services.AddServerSideBlazor(options => {
 });
 
 builder.Services.Configure<HubOptions>(options => {
-    options.MaximumReceiveMessageSize = 1024 * 2048;
+    options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
     options.HandshakeTimeout = TimeSpan.FromSeconds(30);
 });
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
 } else {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    //app.UseHsts();
 }
 
+// ★ 追加：Nginx の X-Forwarded-Proto を信頼する（UseAuthentication より前に必須）
 app.UseForwardedHeaders(new ForwardedHeadersOptions {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
+// app.UseHttpsRedirection(); // ← Nginx が HTTPS を担当するためコメントアウト
 
 app.UseStaticFiles();
 app.UseAntiforgery();
@@ -82,6 +86,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(StoryDesignSupportWebApp.Client._Imports).Assembly);
 
+// Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
