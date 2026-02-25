@@ -1,8 +1,6 @@
 ﻿@page "/projects/edit/{id:int}/structure"
-
 @rendermode InteractiveServer
 @attribute [Authorize]
-
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -46,7 +44,6 @@
         transition: height 0.3s ease;
     }
 
-    /* サイドバー */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -163,7 +160,6 @@
             font-weight: 600;
         }
 
-    /* エディタエリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -193,7 +189,6 @@
         padding: 30px 30px 20px 30px;
     }
 
-    /* プロット編集用スタイル */
     .plot-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -320,7 +315,6 @@
             background-color: #0550ae;
         }
 
-    /* 時系列編集用スタイル */
     .timeline-container {
         display: flex;
         flex-direction: column;
@@ -344,7 +338,6 @@
         margin-bottom: 16px;
     }
 
-    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -507,7 +500,6 @@
             border-color: #0969da;
         }
 
-    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -531,7 +523,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+            height: calc(100dvh - 3.5rem);
         }
 
         .mobile-editor-content {
@@ -628,16 +620,14 @@
             filter: none;
         }
 </style>
-
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <!-- デスクトップビュー -->
+
     <div class="edit-container desktop-view">
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
-
         <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
             @if (_showCategoryView) {
                 <div class="sidebar-header" @onclick="BackToCategoryView">
@@ -647,9 +637,6 @@
                     <div class="category-item @(_structureMode == "plot" ? "active" : "")" @onclick='() => SelectStructureMode("plot")'>
                         プロット
                     </div>
-                    @* <div class="category-item @(_structureMode == "timeline" ? "active" : "")" @onclick='() => SelectStructureMode("timeline")'>
-                        時系列
-                    </div> *@
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
@@ -675,7 +662,6 @@
             }
         </div>
 
-        <!-- エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _structureMode == "plot") {
                 <div class="editor-header">
@@ -683,7 +669,7 @@
                 </div>
                 <div class="editor-content">
                     <div class="plot-container">
-                        <!-- 起 -->
+
                         <div class="plot-column">
                             <div class="plot-column-header">起</div>
                             <div class="plot-items">
@@ -705,7 +691,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
                         </div>
 
-                        <!-- 承 -->
                         <div class="plot-column">
                             <div class="plot-column-header">承</div>
                             <div class="plot-items">
@@ -727,7 +712,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
                         </div>
 
-                        <!-- 転 -->
                         <div class="plot-column">
                             <div class="plot-column-header">転</div>
                             <div class="plot-items">
@@ -749,7 +733,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
                         </div>
 
-                        <!-- 結 -->
                         <div class="plot-column">
                             <div class="plot-column-header">結</div>
                             <div class="plot-items">
@@ -779,7 +762,6 @@
                 <div class="editor-content">
                     <div class="timeline-container">
                         @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
-
                         } else {
                             <div class="empty-state">
                                 <div>章と話を追加すると時系列が表示されます</div>
@@ -801,7 +783,6 @@
         </div>
     </div>
 
-    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             @if (_structureMode == "plot") {
@@ -811,7 +792,7 @@
                         <div class="mobile-editor-title">プロット編集</div>
                     </div>
                     <div class="mobile-editor-content">
-                        <!-- 起 -->
+
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">起</div>
                             <div class="plot-items">
@@ -833,7 +814,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
                         </div>
 
-                        <!-- 承 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">承</div>
                             <div class="plot-items">
@@ -855,7 +835,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
                         </div>
 
-                        <!-- 転 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">転</div>
                             <div class="plot-items">
@@ -877,7 +856,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
                         </div>
 
-                        <!-- 結 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">結</div>
                             <div class="plot-items">
@@ -909,7 +887,6 @@
                     <div class="mobile-editor-content">
                         <div class="timeline-container" style="padding: 20px;">
                             @if (_project.ProjectDataObject?.Scenario?.Chapters != null && _project.ProjectDataObject.Scenario.Chapters.Length > 0) {
-
                             } else {
                                 <div class="empty-state">
                                     <div>章と話を追加すると時系列が表示されます</div>
@@ -928,9 +905,6 @@
                 <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("plot")'>
                     プロット
                 </div>
-                @* <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("timeline")'>
-                    時系列
-                </div> *@
             </div>
             <div class="mobile-category-ui">
                 <div class="category-select-button" @onclick='() => SelectCategory("writing")'>
@@ -961,45 +935,33 @@
         }
     </div>
 }
-
 @code {
     [Parameter]
     public int id { get; set; }
-
     private Project? _project;
     private string _currentCategory = "structure";
     private bool _showCategoryView = true;
     private string _structureMode = "";
     private bool _mobileShowEditor = false;
     private bool _sidebarCollapsed = false;
-
-    // デスクトップ/モバイル判定
     private bool _isMobile = false;
-
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-
         var appUser = await UserManager.GetUserAsync(user);
         var userId = appUser.Id;
-
         _project = await DbFactory
             .CreateDbContext()
             .Projects
             .Where(x => x.Id == id && x.UserId == userId)
             .FirstOrDefaultAsync();
-
         if (_project == null) {
             Nav.NavigateTo("/projects");
             return;
         }
-
-        // StructureDataの初期化
         if (_project.ProjectDataObject.Structure == null) {
             _project.ProjectDataObject.Structure = new StructureData();
         }
-
-        // PlotDataの初期化
         if (_project.ProjectDataObject.Structure.Plots == null) {
             _project.ProjectDataObject.Structure.Plots = new PlotData {
                 Ki = Array.Empty<string>(),
@@ -1008,23 +970,18 @@
                 Ketsu = Array.Empty<string>()
             };
         }
-
-        // TimeLineDataの初期化
         if (_project.ProjectDataObject.Structure.Timeline == null) {
             _project.ProjectDataObject.Structure.Timeline = new TimeLineData {
                 ChapterId = Array.Empty<int>(),
                 SectionId = Array.Empty<int>()
             };
         }
-
-        // ScenarioDataの初期化（時系列用）
         if (_project.ProjectDataObject.Scenario == null) {
             _project.ProjectDataObject.Scenario = new ScenarioData {
                 Chapters = Array.Empty<Chapter>()
             };
         }
     }
-
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             _isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
@@ -1032,19 +989,16 @@
         }
         await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
-
     private async Task BackToCategoryView() {
         await SaveProject();
         _showCategoryView = false;
         _structureMode = "";
         StateHasChanged();
     }
-
     private async Task BackToProjectList() {
         await SaveProject();
         Nav.NavigateTo("/projects");
     }
-
     private async Task SaveProject() {
         if (_project != null && _project.ProjectDataObject != null) {
             _project.UpdatedAt = DateTime.UtcNow;
@@ -1053,7 +1007,6 @@
             await db.SaveChangesAsync();
         }
     }
-
     private async Task SelectCategory(string category) {
         _currentCategory = category;
         if (category == "writing") {
@@ -1068,42 +1021,31 @@
             await SaveProject();
             Nav.NavigateTo($"/projects/edit/{id}/materials");
         }
-
         StateHasChanged();
     }
-
     private void SelectStructureMode(string mode) {
         _structureMode = mode;
         if (mode == "timeline") {
-
         }
         StateHasChanged();
     }
-
     private void SelectStructureModeMobile(string mode) {
         _structureMode = mode;
         _mobileShowEditor = true;
         if (mode == "timeline") {
-
         }
         StateHasChanged();
     }
-
     private void BackToModeSelect() {
         _mobileShowEditor = false;
         StateHasChanged();
     }
-
     private void ToggleSidebar() {
         _sidebarCollapsed = !_sidebarCollapsed;
     }
-
-    // プロット編集メソッド
     private async Task AddPlotItem(string column) {
         if (_project?.ProjectDataObject?.Structure?.Plots == null) return;
-
         var plots = _project.ProjectDataObject.Structure.Plots;
-
         switch (column.ToLower()) {
             case "ki":
                 var kiList = plots.Ki?.ToList() ?? new List<string>();
@@ -1126,16 +1068,12 @@
                 plots.Ketsu = ketsuList.ToArray();
                 break;
         }
-
         await SaveProject();
         StateHasChanged();
     }
-
     private async Task DeletePlotItem(string column, int index) {
         if (_project?.ProjectDataObject?.Structure?.Plots == null) return;
-
         var plots = _project.ProjectDataObject.Structure.Plots;
-
         switch (column.ToLower()) {
             case "ki":
                 if (plots.Ki != null && index >= 0 && index < plots.Ki.Length) {
@@ -1166,12 +1104,10 @@
                 }
                 break;
         }
-
         await SaveProject();
         StateHasChanged();
     }
 }
-
 <script>
     function adjustContainerHeight() {
         const topRow = document.querySelector('.top-row');
@@ -1179,17 +1115,14 @@
         const mobileContainer = document.querySelector('.mobile-view');
         const mobileView = document.querySelector('.mobile-list');
         const mobileEditor = document.querySelector('.mobile-editor');
-
         if (topRow) {
             const isCollapsed = topRow.classList.contains('collapsed');
             const height = isCollapsed ? 'calc(100dvh - 2rem)' : 'calc(100dvh - 5.5rem)';
-
             if (desktopContainer) desktopContainer.style.height = height;
             if (mobileContainer) mobileContainer.style.height = height;
             if (mobileView) mobileView.style.height = height;
             if (mobileEditor) mobileEditor.style.height = height;
         }
     }
-
     window.adjustContainerHeight = adjustContainerHeight;
 </script>

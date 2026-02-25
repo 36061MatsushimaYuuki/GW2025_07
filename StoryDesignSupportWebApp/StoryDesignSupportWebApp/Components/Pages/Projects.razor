@@ -1,8 +1,6 @@
 ﻿@page "/projects"
-
 @rendermode InteractiveServer
 @attribute [Authorize]
-
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -783,31 +781,26 @@
             }
     }
 </style>
-
 <div class="projects-container">
     <div class="header-section">
         <h3 style="margin-top: 0;">プロジェクト一覧</h3>
-
         <div class="search-filter-row">
             <button class="filter-button @(HasActiveFilters ? "active" : "")"
                     @onclick="OpenFilterModal"
                     title="ソート・フィルター">
                 <img src="/images/filter-icon.png" />
             </button>
-
             <div class="search-box">
                 <input type="text"
                        @bind="searchText"
                        @bind:event="oninput"
                        placeholder="プロジェクトを検索..." />
             </div>
-
             <button class="add-button" @onclick="OpenAddModal" title="新規プロジェクト">
                 ＋
             </button>
         </div>
     </div>
-
     @if (_projects == null) {
         <div class="loading">
             読み込み中...
@@ -830,7 +823,6 @@
                 }
             </div>
         }
-
         <div class="projects-grid">
             @foreach (var p in FilteredProjects) {
                 <div class="project-card" @onclick="() => NavigateToEdit(p.Id)">
@@ -841,11 +833,9 @@
                             <button class="delete-btn" @onclick:stopPropagation="true" @onclick="() => OpenDeleteModal(p.Id, p.Name)">削除</button>
                         </div>
                     </div>
-
                     <div class="project-overview">
                         @(string.IsNullOrWhiteSpace(p.Overview) ? "概要なし" : p.Overview)
                     </div>
-
                     <div class="project-meta">
                         <div class="project-genres-compact">
                             @if (p.Genre != null && p.Genre.Any(g => !string.IsNullOrWhiteSpace(g))) {
@@ -855,7 +845,6 @@
                             }
                         </div>
                     </div>
-
                     <div class="project-dates">
                         <div>作成日: @ToLocalTime(p.CreatedAt).ToString("yyyy/MM/dd HH:mm")</div>
                         <div>更新日: @GetRelativeTime(p.UpdatedAt)</div>
@@ -863,19 +852,16 @@
                 </div>
             }
         </div>
-
         <button class="project-add-button @(isVisible ? "show" : "")" @onclick="OpenAddModal">＋</button>
     }
 </div>
 
-<!-- ソート・フィルターモーダル -->
 <div class="modal-overlay @(showFilterModal ? "show" : "")" @onclick="CloseFilterModalOnOverlay">
     <div class="filter-modal-content" @onclick:stopPropagation="true">
         <div class="modal-header">
             <h3>ソート・フィルター</h3>
             <button class="modal-close" @onclick="CloseFilterModal">&times;</button>
         </div>
-
         <div class="filter-section">
             <h4>並び順</h4>
             <div class="sort-controls">
@@ -893,7 +879,6 @@
                 </button>
             </div>
         </div>
-
         <div class="filter-section">
             <h4 @onclick="ToggleGenreSection">
                 <span class="expand-icon @(genreSectionExpanded ? "expanded" : "")">▶</span>
@@ -917,7 +902,6 @@
                 }
             </div>
         </div>
-
         <div class="filter-actions">
             <button class="clear-filter-btn" @onclick="ClearFilters">クリア</button>
             <button class="apply-filter-btn" @onclick="ApplyFilters">適用</button>
@@ -925,14 +909,12 @@
     </div>
 </div>
 
-<!-- 新規追加/編集モーダル -->
 <div class="modal-overlay @(showModal ? "show" : "")" @onclick="CloseModalOnOverlay">
     <div class="modal-content" @onclick:stopPropagation="true">
         <div class="modal-header">
             <h3>@(isEditMode ? "プロジェクトを編集" : "新規プロジェクト")</h3>
             <button class="modal-close" @onclick="CloseModal">&times;</button>
         </div>
-
         @if (validationErrors.Any()) {
             <div class="error-message">
                 <strong>エラー:</strong>
@@ -943,7 +925,6 @@
                 </ul>
             </div>
         }
-
         <div class="form-group">
             <label>プロジェクト名 <span class="required">*</span></label>
             <input type="text"
@@ -955,7 +936,6 @@
                 @modalProjectName.Length / 100
             </div>
         </div>
-
         <div class="form-group">
             <label>概要</label>
             <textarea @bind="modalProjectOverview"
@@ -966,7 +946,6 @@
                 @modalProjectOverview.Length / 200
             </div>
         </div>
-
         <div class="form-group">
             <label>ジャンル (最大5個)</label>
             <div class="genre-input-container">
@@ -993,7 +972,6 @@
                 </div>
             }
         </div>
-
         <div class="modal-actions">
             <button class="cancel-btn" @onclick="CloseModal">キャンセル</button>
             <button class="save-btn" @onclick="SaveProject">保存</button>
@@ -1001,33 +979,27 @@
     </div>
 </div>
 
-<!-- 削除確認モーダル -->
 <div class="modal-overlay @(showDeleteModal ? "show" : "")" @onclick="CloseDeleteModal">
     <div class="delete-modal-content" @onclick:stopPropagation="true">
         <div class="modal-header">
             <h3>プロジェクトの削除</h3>
             <button class="modal-close" @onclick="CloseDeleteModal">&times;</button>
         </div>
-
         <div class="delete-modal-message">
             以下のプロジェクトを削除してもよろしいですか？
             <div class="delete-modal-project-name">@deleteTargetProjectName</div>
             この操作は取り消せません。
         </div>
-
         <div class="delete-modal-actions">
             <button class="cancel-btn" @onclick="CloseDeleteModal">キャンセル</button>
             <button class="delete-confirm-btn" @onclick="ConfirmDelete">削除</button>
         </div>
     </div>
 </div>
-
 @code {
     private List<ProjectListItem>? _projects;
     private string searchText = "";
     private string? userId;
-
-    // プロジェクト一覧用の軽量データ構造
     private class ProjectListItem {
         public int Id { get; set; }
         public string Name { get; set; } = "";
@@ -1036,19 +1008,13 @@
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
-
-    // ソート・フィルター関連
     private bool showFilterModal = false;
     private string sortField = "created";
     private string sortOrder = "desc";
     private HashSet<string> selectedGenreFilters = new();
     private bool genreSectionExpanded = false;
-
     private bool HasActiveFilters => !(sortField == "created" && sortOrder == "desc") || selectedGenreFilters.Any();
-
     private bool HasSearchOrGenreFilter => !string.IsNullOrWhiteSpace(searchText) || selectedGenreFilters.Any();
-
-    // モーダル関連
     private bool showModal = false;
     private bool isEditMode = false;
     private int? editingProjectId = null;
@@ -1057,17 +1023,12 @@
     private List<string> modalGenres = new();
     private string genreInput = "";
     private List<string> validationErrors = new();
-
-    // 削除確認モーダル関連
     private bool showDeleteModal = false;
     private int? deleteTargetId = null;
     private string deleteTargetProjectName = "";
-
     private bool isVisible = false;
     private DotNetObjectReference<Projects>? _dotNetHelper;
-
     private TimeZoneInfo? _clientTimeZone;
-
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             _dotNetHelper = DotNetObjectReference.Create(this);
@@ -1081,48 +1042,35 @@
                 _clientTimeZone = TimeZoneInfo.Utc;
             }
             StateHasChanged();
-
-            // 初期スクロール位置をチェック
-            await Task.Delay(100); // DOMの準備を待つ
+            await Task.Delay(100);
             try {
                 var scrollY = await JSRuntime.InvokeAsync<double>("eval", "window.scrollY || window.pageYOffset");
                 OnScrollPositionChanged(scrollY);
             }
             catch {
-                // エラーは無視
             }
         }
     }
-
     private DateTime ToLocalTime(DateTime utc) {
         if (_clientTimeZone == null) return utc;
         return TimeZoneInfo.ConvertTimeFromUtc(utc, _clientTimeZone);
     }
-
     public void Dispose() {
         _dotNetHelper?.Dispose();
     }
-
     private IEnumerable<ProjectListItem> FilteredProjects {
         get {
             if (_projects == null) return Enumerable.Empty<ProjectListItem>();
-
             var filtered = _projects.AsEnumerable();
-
-            // 検索フィルター
             if (!string.IsNullOrWhiteSpace(searchText)) {
                 filtered = filtered.Where(p =>
                     p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                     (p.Overview != null && p.Overview.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
             }
-
-            // ジャンルフィルター
             if (selectedGenreFilters.Any()) {
                 filtered = filtered.Where(p =>
                     p.Genre != null && p.Genre.Any(g => selectedGenreFilters.Contains(g)));
             }
-
-            // ソート適用
             if (sortField == "created") {
                 filtered = sortOrder == "desc"
                     ? filtered.OrderByDescending(p => p.CreatedAt)
@@ -1132,14 +1080,11 @@
                     ? filtered.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
                     : filtered.OrderBy(p => p.UpdatedAt ?? p.CreatedAt);
             }
-
             return filtered;
         }
     }
-
     private IEnumerable<string> GetAllGenres() {
         if (_projects == null) return Enumerable.Empty<string>();
-
         return _projects
             .Where(p => p.Genre != null)
             .SelectMany(p => p.Genre!)
@@ -1147,14 +1092,11 @@
             .Distinct()
             .OrderBy(g => g);
     }
-
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var appUser = await UserManager.GetUserAsync(user);
         userId = appUser?.Id;
-
-        // ProjectDataObjectを除外して必要なフィールドのみ取得
         _projects = await Db.Projects
             .AsNoTracking()
             .Where(x => x.UserId == userId)
@@ -1167,23 +1109,17 @@
                 UpdatedAt = p.UpdatedAt
             })
             .ToListAsync();
-
         isVisible = false;
     }
-
-    // ソート・フィルターモーダル
     private void OpenFilterModal() {
         showFilterModal = true;
     }
-
     private void CloseFilterModal() {
         showFilterModal = false;
     }
-
     private void CloseFilterModalOnOverlay(MouseEventArgs e) {
         CloseFilterModal();
     }
-
     private void ToggleGenreFilter(string genre) {
         if (selectedGenreFilters.Contains(genre)) {
             selectedGenreFilters.Remove(genre);
@@ -1191,28 +1127,21 @@
             selectedGenreFilters.Add(genre);
         }
     }
-
     private void ToggleGenreSection() {
         genreSectionExpanded = !genreSectionExpanded;
     }
-
     private int GetGenreCount(string genre) {
         if (_projects == null) return 0;
-
         return _projects.Count(p => p.Genre != null && p.Genre.Contains(genre));
     }
-
     private void ClearFilters() {
         sortField = "created";
         sortOrder = "desc";
         selectedGenreFilters.Clear();
     }
-
     private void ApplyFilters() {
         CloseFilterModal();
     }
-
-    // プロジェクト編集モーダル
     private void OpenAddModal() {
         isEditMode = false;
         editingProjectId = null;
@@ -1223,16 +1152,12 @@
         validationErrors.Clear();
         showModal = true;
     }
-
     private async Task OpenEditModal(ProjectListItem projectItem) {
-        // 編集時のみ完全なプロジェクトデータを取得
         var project = await Db.Projects
             .AsNoTracking()
             .Where(x => x.Id == projectItem.Id && x.UserId == userId)
             .FirstOrDefaultAsync();
-
         if (project == null) return;
-
         isEditMode = true;
         editingProjectId = project.Id;
         modalProjectName = project.Name;
@@ -1242,109 +1167,83 @@
         validationErrors.Clear();
         showModal = true;
     }
-
     private void CloseModal() {
         showModal = false;
         validationErrors.Clear();
     }
-
     private void CloseModalOnOverlay(MouseEventArgs e) {
         CloseModal();
     }
-
     private void HandleGenreInput(KeyboardEventArgs e) {
         if ((e.Key == " " || e.Key == "Enter") && !string.IsNullOrWhiteSpace(genreInput)) {
             AddGenre();
         }
     }
-
     private void AddGenre() {
         var trimmedGenre = genreInput.Trim();
-
         if (string.IsNullOrWhiteSpace(trimmedGenre)) {
             genreInput = "";
             return;
         }
-
         if (trimmedGenre.Length > 25) {
             validationErrors.Clear();
             validationErrors.Add("ジャンルは25文字以内で入力してください。");
             return;
         }
-
         if (modalGenres.Count >= Project.MaxGenreSize) {
             validationErrors.Clear();
             validationErrors.Add("ジャンルは最大5個までです。");
             genreInput = "";
             return;
         }
-
         if (modalGenres.Contains(trimmedGenre)) {
             validationErrors.Clear();
             validationErrors.Add("このジャンルは既に追加されています。");
             genreInput = "";
             return;
         }
-
         modalGenres.Add(trimmedGenre);
         genreInput = "";
         validationErrors.Clear();
     }
-
     private void RemoveGenre(string genre) {
         modalGenres.Remove(genre);
     }
-
     private async Task SaveProject() {
-        // バリデーション
         validationErrors.Clear();
-
         if (string.IsNullOrWhiteSpace(modalProjectName)) {
             validationErrors.Add("プロジェクト名は必須です。");
         } else if (modalProjectName.Length > 100) {
             validationErrors.Add("プロジェクト名は100文字以内で入力してください。");
         }
-
         if (modalProjectOverview.Length > 200) {
             validationErrors.Add("概要は200文字以内で入力してください。");
         }
-
-        // ジャンル入力中のテキストがあればバリデーション
         if (!string.IsNullOrWhiteSpace(genreInput)) {
             if (genreInput.Trim().Length > 25) {
                 validationErrors.Add("入力中のジャンルは25文字以内で入力してください。");
             } else {
-                // 自動的に追加
                 AddGenre();
             }
         }
-
-        // 各ジャンルの長さをチェック
         foreach (var genre in modalGenres) {
             if (genre.Length > 25) {
                 validationErrors.Add($"ジャンル「{genre}」は25文字以内にしてください。");
             }
         }
-
         if (validationErrors.Any()) {
             return;
         }
-
         if (isEditMode && editingProjectId.HasValue) {
-            // 編集モード - ProjectDataObjectを含む完全なエンティティを取得
             var project = await Db.Projects
                 .Where(x => x.Id == editingProjectId.Value && x.UserId == userId)
                 .FirstOrDefaultAsync();
-
             if (project != null) {
                 project.Name = modalProjectName;
                 project.Overview = modalProjectOverview;
                 project.Genre = modalGenres.Any() ? modalGenres.ToArray() : null;
                 project.UpdatedAt = DateTime.UtcNow;
-
                 await Db.SaveChangesAsync();
-
-                // リストアイテムを更新
                 var index = _projects!.FindIndex(p => p.Id == editingProjectId.Value);
                 if (index >= 0) {
                     _projects[index] = new ProjectListItem {
@@ -1358,7 +1257,6 @@
                 }
             }
         } else {
-            // 新規追加モード
             var project = new Project() {
                 Name = modalProjectName,
                 Overview = modalProjectOverview,
@@ -1366,11 +1264,8 @@
                 UserId = userId!,
                 CreatedAt = DateTime.UtcNow
             };
-
             Db.Projects.Add(project);
             await Db.SaveChangesAsync();
-
-            // リストに追加
             _projects!.Insert(0, new ProjectListItem {
                 Id = project.Id,
                 Name = project.Name,
@@ -1380,38 +1275,30 @@
                 UpdatedAt = project.UpdatedAt
             });
         }
-
         CloseModal();
     }
-
     private async Task NavigateToEdit(int id) {
-        // フラグを設定
         await SessionStorage.SetAsync("fromProjectsList", true);
         Nav.NavigateTo($"/projects/edit/{id}");
     }
-
     private void OpenDeleteModal(int id, string projectName) {
         deleteTargetId = id;
         deleteTargetProjectName = projectName;
         showDeleteModal = true;
     }
-
     private void CloseDeleteModal() {
         showDeleteModal = false;
         deleteTargetId = null;
         deleteTargetProjectName = "";
     }
-
     private async Task ConfirmDelete() {
         if (deleteTargetId.HasValue) {
             var target = await Db.Projects
                 .Where(x => x.Id == deleteTargetId.Value && x.UserId == userId)
                 .FirstOrDefaultAsync();
-
             if (target != null) {
                 Db.Projects.Remove(target);
                 await Db.SaveChangesAsync();
-
                 if (_projects != null) {
                     var itemToRemove = _projects.FirstOrDefault(p => p.Id == deleteTargetId.Value);
                     if (itemToRemove != null) {
@@ -1422,14 +1309,11 @@
         }
         CloseDeleteModal();
     }
-
     private string GetRelativeTime(DateTime? dateTime) {
         if (!dateTime.HasValue) return "未更新";
-
         var localTime = ToLocalTime(dateTime.Value);
         var now = ToLocalTime(DateTime.UtcNow);
         var diff = now - localTime;
-
         if (diff.TotalMinutes < 1) return "たった今";
         if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}分前";
         if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}時間前";
@@ -1437,38 +1321,29 @@
         if (diff.TotalDays < 365) return $"{(int)(diff.TotalDays / 30)}ヶ月前";
         return $"{(int)(diff.TotalDays / 365)}年前";
     }
-
     [JSInvokable("OnScrollPositionChanged")]
     public void OnScrollPositionChanged(double scrollY) {
-        // 300px以上スクロールしたら表示
         bool newVisibility = scrollY > 190;
         if (isVisible != newVisibility) {
             isVisible = newVisibility;
-            InvokeAsync(StateHasChanged); // InvokeAsyncでラップ
+            InvokeAsync(StateHasChanged);
         }
     }
 }
-
 <script>
     window.initializeScrollListener = function(dotNetHelper) {
-        // 既存のリスナーをクリーンアップ
         if (window.scrollListenerHandler) {
             window.removeEventListener('scroll', window.scrollListenerHandler);
         }
-
         window.scrollListenerHandler = function() {
             const scrollY = window.scrollY || window.pageYOffset;
-
             try {
                 dotNetHelper.invokeMethodAsync('OnScrollPositionChanged', scrollY);
             } catch (err) {
                 console.warn('Scroll listener failed:', err);
             }
         };
-
         window.addEventListener('scroll', window.scrollListenerHandler);
-
-        // 初期状態を即座にチェック
         setTimeout(() => {
             const scrollY = window.scrollY || window.pageYOffset;
             try {

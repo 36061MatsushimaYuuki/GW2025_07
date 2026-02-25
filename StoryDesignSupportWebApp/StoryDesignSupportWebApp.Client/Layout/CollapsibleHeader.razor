@@ -32,9 +32,6 @@
                         <div class="user-menu-dropdown" @onclick:stopPropagation="true">
                             <div class="user-menu-username">@context.User.Identity?.Name</div>
                             <div class="user-menu-divider"></div>
-                            @* <a class="user-menu-item" href="/Account/Manage">
-                                アカウント設定
-                            </a> *@
                             <button class="user-menu-item logout" @onclick="Logout">
                                 ログアウト
                             </button>
@@ -92,7 +89,6 @@
 
     private string GetInitial(string? name) {
         if (string.IsNullOrEmpty(name)) return "?";
-        // メールアドレスの場合は@より前の最初の文字、それ以外は最初の文字を大文字で返す
         var displayName = name.Contains('@') ? name.Split('@')[0] : name;
         return displayName[0].ToString().ToUpper();
     }
@@ -177,7 +173,6 @@
         transform: translateX(-50%) scale(0.96);
     }
 
-    /* ユーザーメニュー */
     .user-menu-wrapper {
         position: relative;
         margin-left: auto;

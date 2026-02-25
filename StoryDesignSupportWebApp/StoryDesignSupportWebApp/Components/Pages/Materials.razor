@@ -1,8 +1,6 @@
 ﻿@page "/projects/edit/{id:int}/materials"
-
 @rendermode InteractiveServer
 @attribute [Authorize]
-
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
@@ -16,9 +14,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 @inject ProtectedSessionStorage SessionStorage
-
 <PageTitle>LunaStory - 資料</PageTitle>
-
 <style>
     * {
         box-sizing: border-box;
@@ -46,7 +42,6 @@
         transition: height 0.3s ease;
     }
 
-    /* サイドバー（PC用） */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -82,7 +77,6 @@
             box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
         }
 
-    /* サイドバー開閉ボタン */
     .sidebar-toggle {
         position: absolute;
         bottom: 15px;
@@ -364,7 +358,6 @@
         white-space: nowrap;
     }
 
-    /* エディタエリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -460,7 +453,6 @@
         margin-bottom: 16px;
     }
 
-    /* モーダル */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -593,7 +585,6 @@
             background-color: #5a6268;
         }
 
-    /* ラベル関連 */
     .label-section {
         margin-top: 12px;
     }
@@ -698,7 +689,6 @@
             color: #E53935;
         }
 
-    /* 資料リスト内のラベル表示 */
     .material-item-labels {
         display: flex;
         gap: 4px;
@@ -721,7 +711,6 @@
         max-width: 80px;
     }
 
-    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -834,7 +823,6 @@
             border-color: #0969da;
         }
 
-    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -859,7 +847,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+            height: calc(100dvh - 3.5rem);
         }
 
         .mobile-editor-content {
@@ -956,18 +944,13 @@
             filter: none;
         }
 </style>
-
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
-        <!-- サイドバー開くボタン -->
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
-
-        <!-- 左サイドバー：カテゴリ一覧またはナビゲーション -->
         <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
             @if (_showCategoryView) {
                 <div class="sidebar-header" @onclick="BackToCategoryView">
@@ -1027,8 +1010,6 @@
                 <button class="sidebar-toggle" @onclick="ToggleSidebar">◀</button>
             }
         </div>
-
-        <!-- 中央パネル：資料リスト -->
         @if (_showCategoryView && _selectedCategory != null) {
             <div class="material-list-panel">
                 <div class="material-list-header">
@@ -1073,8 +1054,6 @@
                 </div>
             </div>
         }
-
-        <!-- 右側エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _selectedMaterial != null) {
                 <div class="editor-header">
@@ -1129,8 +1108,6 @@
             }
         </div>
     </div>
-
-    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             <div class="mobile-editor">
@@ -1286,8 +1263,6 @@
             </div>
         }
     </div>
-
-    <!-- カテゴリ追加/編集モーダル -->
     @if (_showCategoryModal) {
         <div class="modal-overlay" @onclick="CloseCategoryModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1302,8 +1277,6 @@
             </div>
         </div>
     }
-
-    <!-- 資料追加/編集モーダル -->
     @if (_showMaterialModal) {
         <div class="modal-overlay" @onclick="CloseMaterialModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1318,8 +1291,6 @@
             </div>
         </div>
     }
-
-    <!-- カテゴリ削除確認モーダル -->
     @if (_showDeleteCategoryConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteCategoryConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1335,8 +1306,6 @@
             </div>
         </div>
     }
-
-    <!-- 資料削除確認モーダル -->
     @if (_showDeleteMaterialConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteMaterialConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1352,11 +1321,9 @@
         </div>
     }
 }
-
 @code {
     [Parameter]
     public int id { get; set; }
-
     private Project? _project;
     private string _currentCategory = "materials";
     private bool _showCategoryView = true;
@@ -1364,8 +1331,6 @@
     private bool _mobileShowMaterialList = false;
     private MaterialCategory? _selectedCategory;
     private MaterialItem? _selectedMaterial;
-
-    // モーダル関連
     private bool _showCategoryModal = false;
     private bool _showMaterialModal = false;
     private string _categoryModalTitle = "";
@@ -1376,73 +1341,55 @@
     private bool _showDeleteMaterialConfirm = false;
     private MaterialCategory? _editingCategory;
     private MaterialItem? _editingMaterial;
-
-    // サイドバー
     private bool _sidebarCollapsed = false;
     private string _labelInput = "";
-
-    // デスクトップ/モバイル判定
     private bool _isMobile = false;
     private string? _lastPcContent = null;
     private string? _lastMobileContent = null;
-
     protected override async Task OnInitializedAsync() {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-
         var appUser = await UserManager.GetUserAsync(user);
         var userId = appUser.Id;
-
         _project = await DbFactory
             .CreateDbContext()
             .Projects
             .Where(x => x.Id == id && x.UserId == userId)
             .FirstOrDefaultAsync();
-
         if (_project == null) {
             Nav.NavigateTo("/projects");
             return;
         }
-
-        // MaterialDataの初期化
         if (_project.ProjectDataObject.Material == null) {
             _project.ProjectDataObject.Material = new MaterialData();
         }
-
         if (_project.ProjectDataObject.Material.Category == null) {
             _project.ProjectDataObject.Material.Category = Array.Empty<MaterialCategory>();
         }
     }
-
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (firstRender) {
             _isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
-
             if (_isMobile) {
                 _lastMobileContent = _selectedMaterial?.Text ?? "";
             } else {
                 _lastPcContent = _selectedMaterial?.Text ?? "";
             }
-
             StateHasChanged();
         } else {
             bool currentIsMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth <= 768");
-
             if (_isMobile != currentIsMobile) {
                 if (currentIsMobile && !_isMobile) {
-                    // PCからモバイルへ
                     _lastMobileContent = _lastPcContent;
                     if (_selectedMaterial != null) {
                         _selectedMaterial.Text = _lastMobileContent ?? "";
                     }
                 } else if (!currentIsMobile && _isMobile) {
-                    // モバイルからPCへ
                     _lastPcContent = _lastMobileContent;
                     if (_selectedMaterial != null) {
                         _selectedMaterial.Text = _lastPcContent ?? "";
                     }
                 }
-
                 _isMobile = currentIsMobile;
                 StateHasChanged();
             } else {
@@ -1455,7 +1402,6 @@
         }
         await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
-
     private async Task BackToCategoryView() {
         await SaveProject();
         _showCategoryView = false;
@@ -1463,12 +1409,10 @@
         _selectedMaterial = null;
         StateHasChanged();
     }
-
     private async Task BackToProjectList() {
         await SaveProject();
         Nav.NavigateTo("/projects");
     }
-
     private async Task SaveProject() {
         if (_project != null && _project.ProjectDataObject != null) {
             _project.UpdatedAt = DateTime.UtcNow;
@@ -1477,7 +1421,6 @@
             await db.SaveChangesAsync();
         }
     }
-
     private async Task SelectCategory(string category) {
         _currentCategory = category;
         if (category == "writing") {
@@ -1492,40 +1435,33 @@
         } else if (category == "materials") {
             _showCategoryView = true;
         }
-
         StateHasChanged();
     }
-
     private void SelectMaterialCategory(MaterialCategory category) {
         _selectedCategory = category;
         _selectedMaterial = category.Items?.FirstOrDefault();
         StateHasChanged();
     }
-
     private void SelectMaterial(MaterialItem material) {
         _selectedMaterial = material;
         StateHasChanged();
     }
-
     private async Task AddLabel() {
         if (_selectedMaterial == null) return;
         var trimmed = _labelInput.Trim();
         if (string.IsNullOrEmpty(trimmed)) return;
-
         var labels = _selectedMaterial.Label?.ToList() ?? new List<string>();
         if (labels.Count >= 3) return;
         if (labels.Contains(trimmed)) {
             _labelInput = "";
             return;
         }
-
         labels.Add(trimmed);
         _selectedMaterial.Label = labels.ToArray();
         _labelInput = "";
         await SaveProject();
         StateHasChanged();
     }
-
     private async Task RemoveLabel(string label) {
         if (_selectedMaterial == null) return;
         var labels = _selectedMaterial.Label?.ToList() ?? new List<string>();
@@ -1534,39 +1470,31 @@
         await SaveProject();
         StateHasChanged();
     }
-
     private async Task HandleLabelKeyDown(KeyboardEventArgs e) {
         if (e.Key == "Enter") {
             await AddLabel();
         }
     }
-
-    // モバイル用
     private void SelectMaterialCategoryMobile(MaterialCategory category) {
         _selectedCategory = category;
         _mobileShowMaterialList = true;
         StateHasChanged();
     }
-
     private void SelectMaterialMobile(MaterialItem material) {
         _selectedMaterial = material;
         _mobileShowEditor = true;
         StateHasChanged();
     }
-
     private void BackToCategoryListMobile() {
         _mobileShowMaterialList = false;
         _selectedCategory = null;
         StateHasChanged();
     }
-
     private void BackToMaterialList() {
         _mobileShowEditor = false;
         _selectedMaterial = null;
         StateHasChanged();
     }
-
-    // カテゴリ追加モーダル
     private void ShowAddCategoryModal() {
         var categoryCount = _project?.ProjectDataObject?.Material?.Category?.Length ?? 0;
         _categoryModalTitle = $"カテゴリ{categoryCount + 1}";
@@ -1574,21 +1502,18 @@
         _editingCategory = null;
         _showCategoryModal = true;
     }
-
     private void ShowRenameCategoryModal(MaterialCategory category) {
         _categoryModalTitle = category.Title;
         _isEditingCategory = true;
         _editingCategory = category;
         _showCategoryModal = true;
     }
-
     private void CloseCategoryModal() {
         _showCategoryModal = false;
         _categoryModalTitle = "";
         _isEditingCategory = false;
         _editingCategory = null;
     }
-
     private async Task HandleCategoryModalKeyDown(KeyboardEventArgs e) {
         if (e.Key == "Enter") {
             await SaveCategory();
@@ -1596,12 +1521,10 @@
             CloseCategoryModal();
         }
     }
-
     private async Task SaveCategory() {
         if (string.IsNullOrWhiteSpace(_categoryModalTitle)) {
             return;
         }
-
         if (_isEditingCategory && _editingCategory != null) {
             _editingCategory.Title = _categoryModalTitle;
         } else {
@@ -1609,46 +1532,37 @@
                 Title = _categoryModalTitle,
                 Items = Array.Empty<MaterialItem>()
             };
-
             var categories = _project.ProjectDataObject.Material.Category?.ToList() ?? new List<MaterialCategory>();
             categories.Add(newCategory);
             _project.ProjectDataObject.Material.Category = categories.ToArray();
         }
-
         await SaveProject();
         CloseCategoryModal();
         StateHasChanged();
     }
-
     private void ShowDeleteCategoryConfirm(MaterialCategory category) {
         _showDeleteCategoryConfirm = true;
         _editingCategory = category;
     }
-
     private void CloseDeleteCategoryConfirm() {
         _showDeleteCategoryConfirm = false;
         _editingCategory = null;
     }
-
     private async Task DeleteCategory() {
         if (_project.ProjectDataObject?.Material?.Category != null) {
             var categories = _project.ProjectDataObject.Material.Category.ToList();
             var category = _editingCategory;
             categories.Remove(category);
             _project.ProjectDataObject.Material.Category = categories.ToArray();
-
             if (_selectedCategory == category) {
                 _selectedCategory = null;
                 _selectedMaterial = null;
             }
-
             await SaveProject();
             CloseDeleteCategoryConfirm();
             StateHasChanged();
         }
     }
-
-    // 資料追加モーダル
     private void ShowAddMaterialModal() {
         var itemCount = _selectedCategory?.Items?.Length ?? 0;
         _materialModalTitle = $"資料{itemCount + 1}";
@@ -1656,21 +1570,18 @@
         _editingMaterial = null;
         _showMaterialModal = true;
     }
-
     private void ShowRenameMaterialModal(MaterialItem material) {
         _materialModalTitle = material.Title;
         _isEditingMaterial = true;
         _editingMaterial = material;
         _showMaterialModal = true;
     }
-
     private void CloseMaterialModal() {
         _showMaterialModal = false;
         _materialModalTitle = "";
         _isEditingMaterial = false;
         _editingMaterial = null;
     }
-
     private async Task HandleMaterialModalKeyDown(KeyboardEventArgs e) {
         if (e.Key == "Enter") {
             await SaveMaterial();
@@ -1678,12 +1589,10 @@
             CloseMaterialModal();
         }
     }
-
     private async Task SaveMaterial() {
         if (string.IsNullOrWhiteSpace(_materialModalTitle)) {
             return;
         }
-
         if (_isEditingMaterial && _editingMaterial != null) {
             _editingMaterial.Title = _materialModalTitle;
         } else {
@@ -1692,193 +1601,141 @@
                     Title = _materialModalTitle,
                     Text = ""
                 };
-
                 var items = _selectedCategory.Items?.ToList() ?? new List<MaterialItem>();
                 items.Add(newMaterial);
                 _selectedCategory.Items = items.ToArray();
                 _selectedMaterial = newMaterial;
             }
         }
-
         await SaveProject();
         CloseMaterialModal();
         StateHasChanged();
     }
-
     private void ShowDeleteMaterialConfirm(MaterialItem material) {
         _showDeleteMaterialConfirm = true;
         _editingMaterial = material;
     }
-
     private void CloseDeleteMaterialConfirm() {
         _showDeleteMaterialConfirm = false;
         _editingMaterial = null;
     }
-
     private async Task DeleteMaterial() {
         if (_selectedCategory?.Items != null) {
             var items = _selectedCategory.Items.ToList();
             var material = _editingMaterial;
             items.Remove(material);
             _selectedCategory.Items = items.ToArray();
-
             if (_selectedMaterial == material) {
                 _selectedMaterial = _selectedCategory.Items?.FirstOrDefault();
             }
-
             await SaveProject();
             CloseDeleteMaterialConfirm();
             StateHasChanged();
         }
     }
-
     private void ToggleSidebar() {
         _sidebarCollapsed = !_sidebarCollapsed;
     }
-
-    // ドラッグアンドドロップ用の変数を追加
     private int _dragSourceIndex = -1;
     private int _dragOverIndex = -1;
     private bool _dragOverBottom = false;
-
-    // ドラッグアンドドロップ用のメソッドを追加
     private void HandleDragStart(int index) {
         _dragSourceIndex = index;
     }
-
     private void HandleDragEnd() {
         _dragSourceIndex = -1;
         _dragOverIndex = -1;
         _dragOverBottom = false;
     }
-
     private void HandleDragOver(DragEventArgs e, int index) {
         _dragOverIndex = index;
-        // 要素の高さの半分より下にマウスがある場合は下に挿入
         _dragOverBottom = e.OffsetY > 20;
     }
-
     private void HandleDragLeave() {
         _dragOverIndex = -1;
         _dragOverBottom = false;
     }
-
     private string GetDragClass(int index) {
         if (_dragSourceIndex == index) {
             return "dragging";
         }
-
         if (_dragOverIndex == index) {
             return _dragOverBottom ? "drag-over-bottom" : "drag-over-top";
         }
-
         return "";
     }
-
     private async Task HandleDrop(int targetIndex) {
         if (_dragSourceIndex == -1 || _dragSourceIndex == targetIndex) {
             HandleDragEnd();
             return;
         }
-
         if (_project?.ProjectDataObject?.Material?.Category == null) {
             HandleDragEnd();
             return;
         }
-
         var categories = _project.ProjectDataObject.Material.Category.ToList();
         var draggedCategory = categories[_dragSourceIndex];
-
-        // 元の位置から削除
         categories.RemoveAt(_dragSourceIndex);
-
-        // 新しい位置に挿入
         int insertIndex = targetIndex;
-
-        // ドラッグ元より前の要素にドロップした場合
         if (_dragSourceIndex > targetIndex) {
-            // 上半分なら手前に、下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
-        }
-        // ドラッグ元より後の要素にドロップした場合
-        else {
-            // 削除によってインデックスが1つ減っているので調整
+        } else {
             insertIndex--;
-
-            // 下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
-
-        // インデックスの範囲チェック
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > categories.Count) insertIndex = categories.Count;
-
         categories.Insert(insertIndex, draggedCategory);
         _project.ProjectDataObject.Material.Category = categories.ToArray();
-
         await SaveProject();
         HandleDragEnd();
         StateHasChanged();
     }
-
     private int _dragSourceMaterialIndex = -1;
     private int _dragOverMaterialIndex = -1;
     private bool _dragOverMaterialBottom = false;
-
     private void HandleMaterialDragStart(int index) {
         _dragSourceMaterialIndex = index;
     }
-
     private void HandleMaterialDragEnd() {
         _dragSourceMaterialIndex = -1;
         _dragOverMaterialIndex = -1;
         _dragOverMaterialBottom = false;
     }
-
     private void HandleMaterialDragOver(DragEventArgs e, int index) {
         _dragOverMaterialIndex = index;
         _dragOverMaterialBottom = e.OffsetY > 20;
     }
-
     private void HandleMaterialDragLeave() {
         _dragOverMaterialIndex = -1;
         _dragOverMaterialBottom = false;
     }
-
     private string GetMaterialDragClass(int index) {
         if (_dragSourceMaterialIndex == index) {
             return "dragging";
         }
-
         if (_dragOverMaterialIndex == index) {
             return _dragOverMaterialBottom ? "drag-over-bottom" : "drag-over-top";
         }
-
         return "";
     }
-
     private async Task HandleMaterialDrop(int targetIndex) {
         if (_dragSourceMaterialIndex == -1 || _dragSourceMaterialIndex == targetIndex) {
             HandleMaterialDragEnd();
             return;
         }
-
         if (_selectedCategory?.Items == null) {
             HandleMaterialDragEnd();
             return;
         }
-
         var materials = _selectedCategory.Items.ToList();
         var draggedMaterial = materials[_dragSourceMaterialIndex];
-
         materials.RemoveAt(_dragSourceMaterialIndex);
-
         int insertIndex = targetIndex;
-
         if (_dragSourceMaterialIndex > targetIndex) {
             if (_dragOverMaterialBottom) {
                 insertIndex++;
@@ -1889,19 +1746,15 @@
                 insertIndex++;
             }
         }
-
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > materials.Count) insertIndex = materials.Count;
-
         materials.Insert(insertIndex, draggedMaterial);
         _selectedCategory.Items = materials.ToArray();
-
         await SaveProject();
         HandleMaterialDragEnd();
         StateHasChanged();
     }
 }
-
 <script>
     function adjustContainerHeight() {
         const topRow = document.querySelector('.top-row');
@@ -1909,17 +1762,14 @@
         const mobileContainer = document.querySelector('.mobile-view');
         const mobileView = document.querySelector('.mobile-list');
         const mobileEditor = document.querySelector('.mobile-editor');
-
         if (topRow) {
             const isCollapsed = topRow.classList.contains('collapsed');
             const height = isCollapsed ? 'calc(100dvh - 2rem)' : 'calc(100dvh - 5.5rem)';
-
             if (desktopContainer) desktopContainer.style.height = height;
             if (mobileContainer) mobileContainer.style.height = height;
             if (mobileView) mobileView.style.height = height;
             if (mobileEditor) mobileEditor.style.height = height;
         }
     }
-
     window.adjustContainerHeight = adjustContainerHeight;
 </script>
