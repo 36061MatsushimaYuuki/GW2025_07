@@ -1031,7 +1031,6 @@
     private string searchText = "";
     private string? userId;
 
-    // プロジェクト一覧用の軽量データ構造
     private class ProjectListItem {
         public int Id { get; set; }
         public string Name { get; set; } = "";
@@ -1041,7 +1040,6 @@
         public DateTime? UpdatedAt { get; set; }
     }
 
-    // ソート・フィルター関連
     private bool showFilterModal = false;
     private string sortField = "created";
     private string sortOrder = "desc";
@@ -1052,7 +1050,6 @@
 
     private bool HasSearchOrGenreFilter => !string.IsNullOrWhiteSpace(searchText) || selectedGenreFilters.Any();
 
-    // モーダル関連
     private bool showModal = false;
     private bool isEditMode = false;
     private int? editingProjectId = null;
@@ -1062,7 +1059,6 @@
     private string genreInput = "";
     private List<string> validationErrors = new();
 
-    // 削除確認モーダル関連
     private bool showDeleteModal = false;
     private int? deleteTargetId = null;
     private string deleteTargetProjectName = "";
@@ -1086,14 +1082,13 @@
             }
             StateHasChanged();
 
-            // 初期スクロール位置をチェック
-            await Task.Delay(100); // DOMの準備を待つ
+            await Task.Delay(100);
             try {
                 var scrollY = await JSRuntime.InvokeAsync<double>("eval", "window.scrollY || window.pageYOffset");
                 OnScrollPositionChanged(scrollY);
             }
             catch {
-                // エラーは無視
+               
             }
         }
     }
@@ -1113,20 +1108,17 @@
 
             var filtered = _projects.AsEnumerable();
 
-            // 検索フィルター
             if (!string.IsNullOrWhiteSpace(searchText)) {
                 filtered = filtered.Where(p =>
                     p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
                     (p.Overview != null && p.Overview.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
             }
 
-            // ジャンルフィルター
             if (selectedGenreFilters.Any()) {
                 filtered = filtered.Where(p =>
                     p.Genre != null && p.Genre.Any(g => selectedGenreFilters.Contains(g)));
             }
 
-            // ソート適用
             if (sortField == "created") {
                 filtered = sortOrder == "desc"
                     ? filtered.OrderByDescending(p => p.CreatedAt)
@@ -1158,7 +1150,6 @@
         var appUser = await UserManager.GetUserAsync(user);
         userId = appUser?.Id;
 
-        // ProjectDataObjectを除外して必要なフィールドのみ取得
         _projects = await Db.Projects
             .AsNoTracking()
             .Where(x => x.UserId == userId)
@@ -1175,7 +1166,6 @@
         isVisible = false;
     }
 
-    // ソート・フィルターモーダル
     private void OpenFilterModal() {
         showFilterModal = true;
     }
@@ -1216,7 +1206,6 @@
         CloseFilterModal();
     }
 
-    // プロジェクト編集モーダル
     private void OpenAddModal() {
         isEditMode = false;
         editingProjectId = null;
@@ -1229,7 +1218,6 @@
     }
 
     private async Task OpenEditModal(ProjectListItem projectItem) {
-        // 編集時のみ完全なプロジェクトデータを取得
         var project = await Db.Projects
             .AsNoTracking()
             .Where(x => x.Id == projectItem.Id && x.UserId == userId)
@@ -1300,7 +1288,6 @@
     }
 
     private async Task SaveProject() {
-        // バリデーション
         validationErrors.Clear();
 
         if (string.IsNullOrWhiteSpace(modalProjectName)) {
@@ -1313,17 +1300,14 @@
             validationErrors.Add("概要は200文字以内で入力してください。");
         }
 
-        // ジャンル入力中のテキストがあればバリデーション
         if (!string.IsNullOrWhiteSpace(genreInput)) {
             if (genreInput.Trim().Length > 25) {
                 validationErrors.Add("入力中のジャンルは25文字以内で入力してください。");
             } else {
-                // 自動的に追加
                 AddGenre();
             }
         }
 
-        // 各ジャンルの長さをチェック
         foreach (var genre in modalGenres) {
             if (genre.Length > 25) {
                 validationErrors.Add($"ジャンル「{genre}」は25文字以内にしてください。");
@@ -1335,7 +1319,6 @@
         }
 
         if (isEditMode && editingProjectId.HasValue) {
-            // 編集モード - ProjectDataObjectを含む完全なエンティティを取得
             var project = await Db.Projects
                 .Where(x => x.Id == editingProjectId.Value && x.UserId == userId)
                 .FirstOrDefaultAsync();
@@ -1348,7 +1331,6 @@
 
                 await Db.SaveChangesAsync();
 
-                // リストアイテムを更新
                 var index = _projects!.FindIndex(p => p.Id == editingProjectId.Value);
                 if (index >= 0) {
                     _projects[index] = new ProjectListItem {
@@ -1362,7 +1344,6 @@
                 }
             }
         } else {
-            // 新規追加モード
             var project = new Project() {
                 Name = modalProjectName,
                 Overview = modalProjectOverview,
@@ -1374,7 +1355,6 @@
             Db.Projects.Add(project);
             await Db.SaveChangesAsync();
 
-            // リストに追加
             _projects!.Insert(0, new ProjectListItem {
                 Id = project.Id,
                 Name = project.Name,
@@ -1389,7 +1369,6 @@
     }
 
     private async Task NavigateToEdit(int id) {
-        // フラグを設定
         await SessionStorage.SetAsync("fromProjectsList", true);
         Nav.NavigateTo($"/projects/edit/{id}");
     }
@@ -1444,18 +1423,16 @@
 
     [JSInvokable("OnScrollPositionChanged")]
     public void OnScrollPositionChanged(double scrollY) {
-        // 300px以上スクロールしたら表示
         bool newVisibility = scrollY > 190;
         if (isVisible != newVisibility) {
             isVisible = newVisibility;
-            InvokeAsync(StateHasChanged); // InvokeAsyncでラップ
+            InvokeAsync(StateHasChanged);
         }
     }
 }
 
 <script>
     window.initializeScrollListener = function(dotNetHelper) {
-        // 既存のリスナーをクリーンアップ
         if (window.scrollListenerHandler) {
             window.removeEventListener('scroll', window.scrollListenerHandler);
         }
@@ -1472,7 +1449,6 @@
 
         window.addEventListener('scroll', window.scrollListenerHandler);
 
-        // 初期状態を即座にチェック
         setTimeout(() => {
             const scrollY = window.scrollY || window.pageYOffset;
             try {

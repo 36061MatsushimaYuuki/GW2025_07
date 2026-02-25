@@ -46,7 +46,6 @@
         transition: height 0.3s ease;
     }
 
-    /* サイドバー（PC用） */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -82,7 +81,6 @@
             box-shadow: 0 4px 10px rgba(25, 118, 210, 0.4);
         }
 
-    /* サイドバー開閉ボタン */
     .sidebar-toggle {
         position: absolute;
         bottom: 15px;
@@ -328,7 +326,6 @@
             align-items: center;
         }
 
-    /* 編集エリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -592,7 +589,6 @@
             border-color: none;
         }
 
-        /* 各要素の行間を明示的に指定 */
         .content-editable p {
             line-height: 1.6;
             margin: 0;
@@ -630,7 +626,6 @@
             font-size: 0.5em;
         }
 
-    /* 参照パネル */
     .reference-panel {
         position: fixed;
         top: 0;
@@ -1202,13 +1197,11 @@
         user-select: none;
     }
 
-    /* エディタエリアの幅調整 */
     .editor-area.narrowed {
         margin-right: 420px;
         transition: margin-right 0.3s ease;
     }
 
-    /* 参照パネル切り替えボタン */
     .reference-panel-toggle {
         position: absolute;
         left: 16px;
@@ -1243,7 +1236,6 @@
         font-size: 11px;
     }
 
-    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -1312,7 +1304,6 @@
         white-space: nowrap;
     }
 
-    /* モーダル */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -1500,7 +1491,6 @@
         font-size: 16px;
     }
 
-    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -1720,7 +1710,6 @@
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <!-- 章追加モーダル -->
     @if (_showAddChapterModal) {
         <div class="modal-overlay" @onclick="CloseAddChapterModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1736,7 +1725,6 @@
         </div>
     }
 
-    <!-- 話追加モーダル -->
     @if (_showAddSectionModal) {
         <div class="modal-overlay" @onclick="CloseAddSectionModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1752,7 +1740,6 @@
         </div>
     }
 
-    <!-- 章設定モーダル -->
     @if (_showChapterSettingsModal) {
         <div class="modal-overlay" @onclick="CloseChapterSettings">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1774,7 +1761,6 @@
         </div>
     }
 
-    <!-- 章削除確認モーダル -->
     @if (_showDeleteChapterConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteChapterConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1791,7 +1777,6 @@
         </div>
     }
 
-    <!-- 話削除確認モーダル -->
     @if (_showDeleteSectionConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteSectionConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1807,7 +1792,6 @@
         </div>
     }
 
-    <!-- ルビ追加モーダル -->
     @if (_showRubyModal) {
         <div class="modal-overlay" @onclick="CloseRubyModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1838,14 +1822,11 @@
             </div>
         </div>
     }
-    <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
-        <!-- サイドバー開くボタン（サイドバーが閉じているときのみ表示） -->
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
 
-        <!-- サイドバー -->
         <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
             @if (_showCategoryView) {
                 <div class="sidebar-header" @onclick="BackToCategoryView">
@@ -1923,13 +1904,11 @@
                 </div>
             }
 
-            <!-- サイドバー閉じるボタン（サイドバーが開いているときのみ表示） -->
             @if (!_sidebarCollapsed) {
                 <button class="sidebar-toggle" @onclick="ToggleSidebar">◀</button>
             }
         </div>
 
-        <!-- 編集エリア -->
         <div class="editor-area @(_narrowEditorArea && _showReferencePanel ? "narrowed" : "")">
             @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
                     _project.ProjectDataObject?.Scenario?.Chapters != null &&
@@ -2033,7 +2012,6 @@
         </div>
     </div>
 
-    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             @if (_selectedChapter >= 0 && _selectedSection >= 0 &&
@@ -2215,7 +2193,6 @@
         }
     </div>
 
-    <!-- 人物・資料参照パネル -->
     <div class="reference-panel @(_showReferencePanel ? "show" : "")">
         <div class="reference-panel-header">
             <h3>人物・資料</h3>
@@ -2232,7 +2209,6 @@
             </button>
         </div>
         <div class="reference-content">
-            <!-- 検索 -->
             <div class="reference-search-section">
                 <div class="reference-search-row">
                     <div class="reference-search-input-wrapper">
@@ -2417,7 +2393,6 @@
                 }
             }
         </div>
-        <!-- デスクトップ版のみ：エディタ幅調整ボタン -->
         <button class="reference-panel-toggle @(_narrowEditorArea ? "active" : "")"
                 @onclick="ToggleNarrowEditor">
             <span>@(_narrowEditorArea ? "◀" : "▶")</span>
@@ -2425,7 +2400,6 @@
         </button>
     </div>
 
-    <!-- フィルタ・ソートモーダル -->
     @if (_showFilterModal) {
         <div class="filter-modal-overlay" @onclick="CloseFilterModal">
             <div class="filter-modal-content" @onclick:stopPropagation="true">
@@ -2561,7 +2535,7 @@
         ");
         }
         catch {
-            // 既に切断されている場合は無視
+            
         }
 
         _instances.Remove(_instanceId);
@@ -2580,12 +2554,10 @@
                 await JSRuntime.InvokeVoidAsync("setupInputUndoTracking");
                 await JSRuntime.InvokeVoidAsync("setBlazorInstance", DotNetObjectReference.Create(this));
 
-                // SessionStorageから遷移元を確認
                 if (!_hasCheckedSessionStorage) {
                     var result = await SessionStorage.GetAsync<bool>("fromProjectsList");
                     if (result.Success && result.Value) {
                         _showCategoryView = false;
-                        // フラグをクリア
                         await SessionStorage.DeleteAsync("fromProjectsList");
                     } else {
                         _showCategoryView = true;
@@ -2599,7 +2571,6 @@
             }
         }
 
-        // セクションが変更された場合、またはリサイズ時
         bool sectionChanged = (_selectedChapter != _lastRenderedChapter || _selectedSection != _lastRenderedSection);
         bool needsUpdate = sectionChanged || _isResizing;
 
@@ -2612,7 +2583,6 @@
 
             var section = _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection];
 
-            // 両方のエディタに内容を設定
             await JSRuntime.InvokeVoidAsync("setEditableContent", "content-editable", section.Text ?? "");
             await JSRuntime.InvokeVoidAsync("setEditableContent", "content-editable-mobile", section.Text ?? "");
 
@@ -2641,7 +2611,6 @@
 
         try {
             instance.InvokeAsync(() => {
-                // JsonElementから値を取得するヘルパー関数
                 bool GetBoolValue(object obj) {
                     if (obj is JsonElement jsonElement) {
                         return jsonElement.GetBoolean();
@@ -2701,7 +2670,6 @@
     }
 
     private async Task BackToCategoryView() {
-        // 現在のセクションを保存
         if (_selectedChapter >= 0 && _selectedSection >= 0) {
             await SaveContent();
             await AutoSave();
@@ -2719,7 +2687,6 @@
     }
 
     private async Task SelectCategory(string category) {
-        // 現在のセクションを保存
         if (_selectedChapter >= 0 && _selectedSection >= 0) {
             await SaveContent();
             await AutoSave();
@@ -2736,7 +2703,6 @@
             NavigateToMaterials(id);
         }
 
-        // 編集画面を閉じる
         _selectedChapter = -1;
         _selectedSection = -1;
         _lastRenderedChapter = -1;
@@ -2767,7 +2733,6 @@
     }
 
     private async void SelectSection(int chapterIndex, int sectionIndex) {
-        // 現在のセクションを保存
         if (_selectedChapter >= 0 && _selectedSection >= 0) {
             await SaveContent();
             await AutoSave();
@@ -2777,17 +2742,14 @@
         _selectedSection = sectionIndex;
         ResetFormatStates();
 
-        // Undo/Redoスタックを初期化
         await JSRuntime.InvokeVoidAsync("resetUndoRedoStack");
 
-        // 強制的に再レンダリング
         _lastRenderedChapter = -1;
         _lastRenderedSection = -1;
         StateHasChanged();
     }
 
     private async void SelectSectionMobile(int chapterIndex, int sectionIndex) {
-        // 現在のセクションを保存
         if (_selectedChapter >= 0 && _selectedSection >= 0) {
             await SaveContent();
             await AutoSave();
@@ -2798,10 +2760,8 @@
         _mobileShowEditor = true;
         ResetFormatStates();
 
-        // Undo/Redoスタックを初期化
         await JSRuntime.InvokeVoidAsync("resetUndoRedoStack");
 
-        // 強制的に再レンダリング
         _lastRenderedChapter = -1;
         _lastRenderedSection = -1;
 
@@ -2809,7 +2769,6 @@
         await JSRuntime.InvokeVoidAsync("adjustContainerHeight");
     }
 
-    // ドラッグ&ドロップ関連
     private int _dragSourceChapter = -1;
     private int _dragSourceSection = -1;
     private int _dragOverChapter = -1;
@@ -2835,8 +2794,7 @@
         _dragOverChapter = chapterIndex;
         _dragOverSection = sectionIndex;
 
-        // 要素の高さの半分より下にマウスがある場合は下に挿入
-        _dragOverBottom = e.OffsetY > 20; // section-itemの高さの半分程度
+        _dragOverBottom = e.OffsetY > 20;
     }
 
     private void HandleDragLeave() {
@@ -2858,13 +2816,11 @@
     }
 
     private async Task HandleDrop(int targetChapter, int targetSection) {
-        // 章をまたいだ移動は禁止
         if (_dragSourceChapter != targetChapter) {
             HandleDragEnd();
             return;
         }
 
-        // 同じ位置へのドロップは無視
         if (_dragSourceSection == targetSection) {
             HandleDragEnd();
             return;
@@ -2879,38 +2835,29 @@
         var sectionList = chapter.Sections.ToList();
         var draggedSection = sectionList[_dragSourceSection];
 
-        // 元の位置から削除
         sectionList.RemoveAt(_dragSourceSection);
 
-        // 新しい位置に挿入
         int insertIndex = targetSection;
 
-        // ドラッグ元より前の要素にドロップした場合
         if (_dragSourceSection > targetSection) {
-            // 上半分なら手前に、下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
-        // ドラッグ元より後の要素にドロップした場合
         else {
-            // 削除によってインデックスが1つ減っているので調整
             insertIndex--;
 
-            // 下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
 
-        // インデックスの範囲チェック
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > sectionList.Count) insertIndex = sectionList.Count;
 
         sectionList.Insert(insertIndex, draggedSection);
         chapter.Sections = sectionList.ToArray();
 
-        // 選択中のセクションのインデックスを更新
         if (_selectedChapter == targetChapter && _selectedSection == _dragSourceSection) {
             _selectedSection = insertIndex;
         }
@@ -2924,7 +2871,6 @@
     }
 
     private async void BackToList() {
-        // 保存してからリストに戻る
         await SaveContent();
         await AutoSave();
         _mobileShowEditor = false;
@@ -2965,10 +2911,8 @@
     private async Task OnContentInput() {
         _hasPendingContentSave = true;
 
-        // 既存のタイマーをキャンセル
         _contentInputTimer?.Dispose();
 
-        // 500ms後に保存
         _contentInputTimer = new System.Threading.Timer(async _ => {
             if (_hasPendingContentSave) {
                 await InvokeAsync(async () => {
@@ -2984,7 +2928,6 @@
             }
         }, null, 500, Timeout.Infinite);
 
-        // 文字カウンターは即座に更新
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
         await JSRuntime.InvokeVoidAsync("updateCharCounterForElement", elementId);
     }
@@ -2996,7 +2939,6 @@
     }
 
     private async Task OnKeyDown() {
-        // キーボード入力時の処理
     }
 
     private async Task Undo() {
@@ -3016,7 +2958,7 @@
 
         await using var db = DbFactory.CreateDbContext();
         db.Projects.Update(_project);
-        await db.SaveChangesAsync();   // ← ここで確定
+        await db.SaveChangesAsync();
 
         _selectedChapter = -1;
         _selectedSection = -1;
@@ -3030,10 +2972,8 @@
         try {
             string content = "";
 
-            // タイムアウト設定を追加
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-            // 現在表示されているエディタから内容を取得
             if (_mobileShowEditor) {
                 content = await JSRuntime.InvokeAsync<string>("getEditableContent", cts.Token, "content-editable-mobile");
             } else {
@@ -3046,7 +2986,6 @@
                 _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
                 _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
-                // 内容が変わっていない場合はスキップ
                 if (_project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection].Text == content) {
                     return;
                 }
@@ -3057,14 +2996,12 @@
         }
         catch (OperationCanceledException) {
             Console.WriteLine("SaveContent timeout - content might be too large");
-            // タイムアウトの場合は、キャッシュされた内容を使用
             if (_selectedChapter >= 0 && _selectedSection >= 0 &&
                 _project?.ProjectDataObject?.Scenario?.Chapters != null &&
                 _selectedChapter < _project.ProjectDataObject.Scenario.Chapters.Length &&
                 _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections != null &&
                 _selectedSection < _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections.Length) {
 
-                // 既にキャッシュがある場合はそれを使用
                 if (!string.IsNullOrEmpty(_currentContentCache)) {
                     _project.ProjectDataObject.Scenario.Chapters[_selectedChapter].Sections[_selectedSection].Text = _currentContentCache;
                 }
@@ -3093,18 +3030,17 @@
             if (_project != null) {
                 _project.UpdatedAt = DateTime.UtcNow;
 
-                // リトライロジック
                 int maxRetries = 3;
                 for (int i = 0; i < maxRetries; i++) {
                     try {
                         await using var db = DbFactory.CreateDbContext();
                         db.Projects.Update(_project);
                         await db.SaveChangesAsync();
-                        break; // 成功したらループを抜ける
+                        break;
                     }
                     catch (Exception ex) when (i < maxRetries - 1) {
                         Console.WriteLine($"AutoSave attempt {i + 1} failed: {ex.Message}");
-                        await Task.Delay(500 * (i + 1)); // リトライ前に待機
+                        await Task.Delay(500 * (i + 1));
                     }
                 }
             }
@@ -3117,7 +3053,6 @@
         }
     }
 
-    // モーダル関連の状態
     private bool _showAddChapterModal = false;
     private bool _showAddSectionModal = false;
     private bool _showChapterSettingsModal = false;
@@ -3136,16 +3071,14 @@
     private bool _isEditingRuby = false;
     private bool _hasSelectedText = false;
 
-    // 参照パネル
     private bool _showReferencePanel = false;
     private string _referenceTab = "characters";
     private HashSet<object> _expandedReferenceItems = new HashSet<object>();
     private HashSet<string> _collapsedCategories = new HashSet<string>();
     private string _referenceSearchText = "";
-    private string _searchMode = "item"; // "item" or "category"
+    private string _searchMode = "item";
     private bool _narrowEditorArea = false;
 
-    // フィルタ・ソート
     private bool _showFilterModal = false;
     private string _sortField = "default";
     private string _sortOrder = "asc";
@@ -3154,7 +3087,6 @@
     private HashSet<string> _filteredCategories = new HashSet<string>();
     private HashSet<string> _tempFilteredCategories = new HashSet<string>();
 
-    // 章追加モーダル
     private void ShowAddChapterModal() {
         var chapterCount = _project?.ProjectDataObject?.Scenario?.Chapters?.Length ?? 0;
         _newChapterTitle = $"第{chapterCount + 1}章";
@@ -3197,7 +3129,6 @@
         CloseAddChapterModal();
     }
 
-    // 話追加モーダル
     private void ShowAddSectionModal(int chapterIndex) {
         _addingSectionToChapterIndex = chapterIndex;
         var chapter = _project?.ProjectDataObject?.Scenario?.Chapters?[chapterIndex];
@@ -3246,7 +3177,6 @@
         CloseAddSectionModal();
     }
 
-    // 章設定モーダル
     private void ShowChapterSettings(int chapterIndex) {
         _editingChapterIndex = chapterIndex;
         var chapter = _project?.ProjectDataObject?.Scenario?.Chapters?[chapterIndex];
@@ -3282,7 +3212,6 @@
         CloseChapterSettings();
     }
 
-    // 章削除
     private void ShowDeleteChapterConfirm() {
         _showDeleteChapterConfirm = true;
     }
@@ -3299,14 +3228,12 @@
         chapterList.RemoveAt(_editingChapterIndex);
         _project.ProjectDataObject.Scenario.Chapters = chapterList.ToArray();
 
-        // 削除した章を選択していた場合はリセット
         if (_selectedChapter == _editingChapterIndex) {
             _selectedChapter = -1;
             _selectedSection = -1;
             _lastRenderedChapter = -1;
             _lastRenderedSection = -1;
         } else if (_selectedChapter > _editingChapterIndex) {
-            // 削除した章より後ろの章を選択していた場合はインデックスを調整
             _selectedChapter--;
         }
 
@@ -3342,7 +3269,6 @@
         sectionList.RemoveAt(_deletingSectionIndex);
         chapter.Sections = sectionList.ToArray();
 
-        // 削除した話を選択していた場合はリセット
         if (_selectedChapter == _deletingSectionChapterIndex && _selectedSection == _deletingSectionIndex) {
             _selectedChapter = -1;
             _selectedSection = -1;
@@ -3350,7 +3276,6 @@
             _lastRenderedSection = -1;
             _mobileShowEditor = false;
         } else if (_selectedChapter == _deletingSectionChapterIndex && _selectedSection > _deletingSectionIndex) {
-            // 削除した話より後ろの話を選択していた場合はインデックスを調整
             _selectedSection--;
         }
 
@@ -3384,7 +3309,6 @@
     private async Task ApplySelectedColor() {
         if (string.IsNullOrEmpty(_selectedColor)) return;
 
-        // カラーコードの正規化
         string color = _selectedColor.Trim();
         if (!color.StartsWith("#")) {
             color = "#" + color;
@@ -3424,53 +3348,42 @@
     }
 
     private void AddToRecentColors(string color) {
-        // 既に存在する場合は削除
         _recentColors.Remove(color);
 
-        // 先頭に追加
         _recentColors.Insert(0, color);
 
-        // 最大数を超えたら削除
         if (_recentColors.Count > MAX_RECENT_COLORS) {
             _recentColors.RemoveAt(_recentColors.Count - 1);
         }
     }
 
-    //ルビモーダル
     private async Task ShowRubyModal() {
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
 
-        // カーソル位置を保存（editableエリア内でない場合は末尾に移動）
         await JSRuntime.InvokeVoidAsync("saveSelectionForRuby", elementId);
 
-        // 選択範囲がルビと非ルビの混在かチェック
         var isMixedSelection = await JSRuntime.InvokeAsync<bool>("isMixedRubySelection", elementId);
 
         if (isMixedSelection) {
-            // 混在している場合はモーダルを開かない
             return;
         }
 
         var rubyData = await JSRuntime.InvokeAsync<string[]>("checkRubySelection", elementId);
 
         if (rubyData != null && rubyData.Length == 2) {
-            // ルビ要素を編集
             _isEditingRuby = true;
             _hasSelectedText = false;
             _rubyBase = rubyData[0];
             _rubyText = rubyData[1];
         } else {
-            // 新規追加
             _isEditingRuby = false;
             var selectedText = await JSRuntime.InvokeAsync<string>("getSelectedText", elementId);
 
             if (!string.IsNullOrEmpty(selectedText)) {
-                // 選択範囲がある場合
                 _hasSelectedText = true;
                 _rubyBase = selectedText;
                 _rubyText = "";
             } else {
-                // カーソル位置に挿入
                 _hasSelectedText = false;
                 _rubyBase = "";
                 _rubyText = "";
@@ -3504,7 +3417,6 @@
 
         var elementId = _mobileShowEditor ? "content-editable-mobile" : "content-editable";
 
-        // 保存した選択範囲を復元
         await JSRuntime.InvokeVoidAsync("restoreSelection", elementId);
 
         if (_isEditingRuby) {
@@ -3663,22 +3575,18 @@
 
         var categories = _project.ProjectDataObject.Character.Category.AsEnumerable();
 
-        // カテゴリフィルタ（チェックボックスで選択されたカテゴリのみ）
         if (_filteredCategories.Count > 0) {
             categories = categories.Where(c => _filteredCategories.Contains(c.Title));
         }
 
-        // 検索フィルタ
         if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
             var searchLower = _referenceSearchText.ToLower();
 
             if (_searchMode == "category") {
-                // カテゴリ名で検索
                 categories = categories.Where(c =>
                     c.Title?.ToLower().Contains(searchLower) ?? false
                 );
             } else {
-                // 人物名で検索（カテゴリ内に該当人物がいる場合のみ表示）
                 categories = categories.Where(c =>
                     c.Characters != null && c.Characters.Any(ch =>
                         (ch.Name?.ToLower().Contains(searchLower) ?? false) ||
@@ -3689,7 +3597,6 @@
             }
         }
 
-        // カテゴリソート
         if (_sortField == "category") {
             categories = _sortOrder == "asc"
                 ? categories.OrderBy(c => c.Title)
@@ -3703,7 +3610,6 @@
 
             var characters = category.Characters.AsEnumerable();
 
-            // 人物検索モード時のフィルタリング
             if (_searchMode == "item" && !string.IsNullOrWhiteSpace(_referenceSearchText)) {
                 var searchLower = _referenceSearchText.ToLower();
                 characters = characters.Where(c =>
@@ -3713,7 +3619,6 @@
                 );
             }
 
-            // 名前ソート
             if (_sortField == "name") {
                 characters = _sortOrder == "asc"
                     ? characters.OrderBy(c => c.Name)
@@ -3735,22 +3640,18 @@
 
         var categories = _project.ProjectDataObject.Material.Category.AsEnumerable();
 
-        // カテゴリフィルタ（チェックボックスで選択されたカテゴリのみ）
         if (_filteredCategories.Count > 0) {
             categories = categories.Where(c => _filteredCategories.Contains(c.Title));
         }
 
-        // 検索フィルタ
         if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
             var searchLower = _referenceSearchText.ToLower();
 
             if (_searchMode == "category") {
-                // カテゴリ名で検索
                 categories = categories.Where(c =>
                     c.Title?.ToLower().Contains(searchLower) ?? false
                 );
             } else if (_searchMode == "label") {
-                // ラベルで検索
                 categories = categories.Where(c =>
                     c.Items != null && c.Items.Any(i =>
                         i.Label != null && i.Label.Any(lbl =>
@@ -3759,7 +3660,6 @@
                     )
                 );
             } else {
-                // 資料名で検索（カテゴリ内に該当資料がある場合のみ表示）
                 categories = categories.Where(c =>
                     c.Items != null && c.Items.Any(i =>
                         (i.Title?.ToLower().Contains(searchLower) ?? false) ||
@@ -3769,7 +3669,6 @@
             }
         }
 
-        // カテゴリソート
         if (_sortField == "category") {
             categories = _sortOrder == "asc"
                 ? categories.OrderBy(c => c.Title)
@@ -3783,7 +3682,6 @@
 
             var items = category.Items.AsEnumerable();
 
-            // 資料・ラベル検索モード時のフィルタリング
             if (!string.IsNullOrWhiteSpace(_referenceSearchText)) {
                 var searchLower = _referenceSearchText.ToLower();
                 if (_searchMode == "item") {
@@ -3800,7 +3698,6 @@
                 }
             }
 
-            // タイトルソート
             if (_sortField == "name") {
                 items = _sortOrder == "asc"
                     ? items.OrderBy(i => i.Title)
@@ -3821,10 +3718,8 @@
         if (window.editorScriptLoaded) return;
         window.editorScriptLoaded = true;
 
-        // Blazor接続状態を追跡
         let blazorConnected = true;
 
-        // Blazor切断検知
         if (window.Blazor) {
             Blazor.disconnect = new Proxy(Blazor.disconnect || (() => {}), {
                 apply: function(target, thisArg, args) {
@@ -3834,7 +3729,6 @@
             });
         }
 
-        // 安全なDotNet呼び出しヘルパー
         function safeDotNetInvoke(methodName, ...args) {
             if (!blazorConnected) {
                 return Promise.resolve();
@@ -3870,7 +3764,6 @@
                 }
             });
 
-            // カラーピッカー外クリックイベント
             if (!window.colorPickerClickListenerRegistered) {
                 window.colorPickerClickListenerRegistered = true;
 
@@ -3887,7 +3780,6 @@
                 });
             }
 
-            // リサイズ検知
             let resizeTimer;
             window.addEventListener('resize', function() {
                 if (!window.blazorConnected) return;
@@ -3902,7 +3794,6 @@
                 }, 300);
             });
 
-            // ヘッダーの高さに応じてコンテナの高さを調整
             function adjustContainerHeight() {
                 const topRow = document.querySelector('.top-row');
                 const desktopContainer = document.querySelector('.edit-container.desktop-view');
@@ -3921,19 +3812,16 @@
                 }
             }
 
-            // 初回調整
             adjustContainerHeight();
 
             window.adjustContainerHeight = adjustContainerHeight;
 
-            // MutationObserverでヘッダーの変更を監視
             const observer = new MutationObserver(adjustContainerHeight);
             const topRow = document.querySelector('.top-row');
             if (topRow) {
                 observer.observe(topRow, { attributes: true, attributeFilter: ['class'] });
             }
 
-            // Blazor接続状態の初期化
             window.blazorConnected = true;
         };
 
@@ -3961,7 +3849,6 @@
             redoStack = [];
             lastSavedContent = {};
 
-            // Undo/Redo状態を通知
             notifyUndoRedoStates();
         };
 
@@ -3971,13 +3858,11 @@
 
             const currentContent = element.innerHTML;
 
-            // lastSavedContentが未定義の場合は初期化
             if (lastSavedContent[elementId] === undefined) {
                 lastSavedContent[elementId] = currentContent;
                 if (!force) return;
             }
 
-            // 内容が変わっている場合、または強制保存の場合
             if (force || lastSavedContent[elementId] !== currentContent) {
                 const state = {
                     html: force ? currentContent : lastSavedContent[elementId],
@@ -3987,7 +3872,7 @@
                 if (undoStack.length > MAX_UNDO_STACK) {
                     undoStack.shift();
                 }
-                redoStack = []; // 新しい操作でredoスタックをクリア
+                redoStack = [];
 
                 lastSavedContent[elementId] = currentContent;
                 notifyUndoRedoStates();
@@ -4063,29 +3948,23 @@
             const element = document.getElementById(elementId);
             if (!element || undoStack.length === 0) return;
 
-            // undoスタックから状態を取得
             const state = undoStack.pop();
 
-            // 現在の状態をredoスタックに保存
             redoStack.push({
                 html: element.innerHTML,
                 selection: saveSelectionState(element)
             });
 
-            // 状態を復元
             element.innerHTML = state.html;
 
-            // カーソル位置を復元
             if (state.selection) {
                 restoreSelectionState(element, state.selection);
             }
 
-            // 最後に保存した内容を更新
             lastSavedContent[elementId] = state.html;
 
             element.focus();
 
-            // Undo/Redo状態を通知
             notifyUndoRedoStates();
         };
 
@@ -4093,7 +3972,6 @@
             const element = document.getElementById(elementId);
             if (!element || redoStack.length === 0) return;
 
-            // 現在の状態をundoスタックに保存
             const currentHtml = element.innerHTML;
             const currentSelection = saveSelectionState(element);
 
@@ -4102,25 +3980,20 @@
                 selection: currentSelection
             });
 
-            // redoスタックから状態を復元
             const state = redoStack.pop();
             element.innerHTML = state.html;
 
-            // カーソル位置を復元
             if (state.selection) {
                 restoreSelectionState(element, state.selection);
             }
 
-            // 最後に保存した内容を更新
             lastSavedContent[elementId] = state.html;
 
             element.focus();
 
-            // Undo/Redo状態を通知
             notifyUndoRedoStates();
         };
 
-        // ルビと非ルビが混在する選択範囲かチェック
         window.isMixedRubySelection = function(elementId) {
             const element = document.getElementById(elementId);
             if (!element) return false;
@@ -4130,7 +4003,6 @@
 
             const range = selection.getRangeAt(0);
 
-            // 選択範囲内のすべてのruby要素を取得
             const allRubiesInDoc = element.querySelectorAll('ruby');
             let fullySelectedRubies = [];
             let partiallySelectedRubies = [];
@@ -4152,21 +4024,17 @@
                 }
             });
 
-            // 部分的に選択されているruby要素がある場合は混在とみなす（ボタン無効）
             if (partiallySelectedRubies.length > 0) {
                 return true;
             }
 
-            // 選択範囲内のテキストを取得（ruby要素のrt部分を除く）
             const fragment = range.cloneContents();
             const tempDiv = document.createElement('div');
             tempDiv.appendChild(fragment);
 
-            // rt要素を削除
             const rtElements = tempDiv.querySelectorAll('rt');
             rtElements.forEach(rt => rt.remove());
 
-            // 完全に選択されているruby要素のテキストを除去
             fullySelectedRubies.forEach(() => {
                 const rubies = tempDiv.querySelectorAll('ruby');
                 if (rubies.length > 0) {
@@ -4174,11 +4042,8 @@
                 }
             });
 
-            // 残りのテキストをチェック（ゼロ幅スペースと空白を除く）
             const remainingText = tempDiv.textContent.replace(/\u200B/g, '').replace(/\s/g, '');
 
-            // ルビ要素が1つ以上あり、かつ他のテキストもある場合は混在（ボタン無効）
-            // ルビ要素のみ、または通常テキストのみの場合はOK（ボタン有効）
             return fullySelectedRubies.length > 0 && remainingText.length > 0;
         };
 
@@ -4190,7 +4055,7 @@
 
         window.setEditableContent = function(elementId, content) {
             const element = document.getElementById(elementId);
-            if (!element) return; // 要素が存在しない場合は何もしない
+            if (!element) return;
 
             if (element.innerHTML !== (content || '')) {
                 element.innerHTML = content || '';
@@ -4216,7 +4081,6 @@
             return element ? element.innerHTML : '';
         };
 
-        // 特定のエディタの文字数をカウント
         window.updateCharCounterForElement = function(elementId) {
             const editor = document.getElementById(elementId);
 
@@ -4224,7 +4088,6 @@
 
             const count = countPlainTextCharacters(editor);
 
-            // モバイルかPCかで更新するカウンターを分ける
             if (elementId === 'content-editable-mobile') {
                 const counter = document.getElementById("char-counter-mobile");
                 if (counter) {
@@ -4246,7 +4109,6 @@
                 NodeFilter.SHOW_TEXT,
                 {
                     acceptNode(node) {
-                        // ruby / rt 内のテキストは除外
                         if (node.parentElement?.closest('ruby')) {
                             return NodeFilter.FILTER_REJECT;
                         }
@@ -4257,8 +4119,8 @@
 
             while (walker.nextNode()) {
                 const text = walker.currentNode.textContent
-                    .replace(/\u200B/g, '')   // ゼロ幅スペース除外
-                    .replace(/\s/g, '');      // 空白除外
+                    .replace(/\u200B/g, '')
+                    .replace(/\s/g, '');
 
                 count += text.length;
             }
@@ -4266,28 +4128,23 @@
             return count;
         }
 
-        // 選択状態とフォーカス状態の変更を監視
         let debounceTimer = null;
         let formatStateTimer = null;
 
         document.addEventListener('selectionchange', function() {
             if (!blazorConnected) return;
 
-            // 前のタイマーをクリア
             if (debounceTimer) {
                 clearTimeout(debounceTimer);
             }
 
-            // 50msに短縮（元は100ms）
             debounceTimer = setTimeout(function() {
                 if (!blazorConnected) return;
 
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
-                    // 常にフォーマット状態を更新
                     updateFormatStates();
 
-                    // ルビボタンの状態をチェック
                     const activeElement = document.activeElement;
                     if (activeElement && (activeElement.id === 'content-editable' || activeElement.id === 'content-editable-mobile')) {
                         try {
@@ -4296,7 +4153,6 @@
                                 detail: { disabled: isMixed }
                             }));
 
-                            // フォーマットボタンの状態をチェック（ルビが選択されているか）
                             const rubySelection = window.checkRubySelection(activeElement.id);
                             const hasRubySelected = rubySelection !== null || isMixed;
                             if (window.blazorInstance) {
@@ -4319,7 +4175,6 @@
             const range = selection.getRangeAt(0);
 
             if (selection.isCollapsed) {
-                // カーソル位置のみの場合
                 const node = range.startContainer;
                 const parentElement = node.nodeType === 3 ? node.parentElement : node;
 
@@ -4329,7 +4184,6 @@
                 currentFormat.italic = hasParentTag(parentElement, 'I') || hasParentTag(parentElement, 'EM');
                 currentFormat.underline = hasParentTag(parentElement, 'U');
             } else {
-                // 選択範囲がある場合 - 選択範囲内の全ノードをチェック
                 currentFormat.bold = checkFormatInRange(range, ['B', 'STRONG']);
                 currentFormat.italic = checkFormatInRange(range, ['I', 'EM']);
                 currentFormat.underline = checkFormatInRange(range, ['U']);
@@ -4339,24 +4193,20 @@
         }
 
         function checkFormatInRange(range, tagNames) {
-            // 選択範囲の開始ノードをチェック
             let node = range.startContainer;
             let element = node.nodeType === 3 ? node.parentElement : node;
 
-            // 開始位置が指定タグ内にあるかチェック
             for (const tagName of tagNames) {
                 if (hasParentTag(element, tagName)) {
                     return true;
                 }
             }
 
-            // 選択範囲内のすべてのノードをチェック
             const walker = document.createTreeWalker(
                 range.commonAncestorContainer,
                 NodeFilter.SHOW_ELEMENT,
                 {
                     acceptNode: function(node) {
-                        // 選択範囲に含まれるかチェック
                         if (range.intersectsNode(node)) {
                             return NodeFilter.FILTER_ACCEPT;
                         }
@@ -4378,15 +4228,12 @@
         }
 
         function hasParentTag(element, tagName) {
-            // elementがnullまたは要素でない場合の処理を追加
             if (!element) return false;
 
-            // テキストノードの場合は親要素を取得
             if (element.nodeType === 3) {
                 element = element.parentElement;
             }
 
-            // 要素でない場合はfalseを返す
             if (!element || element.nodeType !== 1) return false;
 
             while (element && element.nodeName !== 'DIV' && !element.hasAttribute('contenteditable')) {
@@ -4399,7 +4246,6 @@
         function notifyFormatStates() {
             if (!blazorConnected) return;
 
-            // debounceでまとめて送信
             if (formatStateTimer) {
                 clearTimeout(formatStateTimer);
             }
@@ -4408,7 +4254,6 @@
                 if (!blazorConnected) return;
 
                 try {
-                    // 現在の色を取得
                     const elementId = document.getElementById('content-editable') ? 'content-editable' : 'content-editable-mobile';
                     const currentColor = window.getCurrentTextColor(elementId);
 
@@ -4434,10 +4279,8 @@
             const selection = window.getSelection();
 
             if (selection.rangeCount > 0 && !selection.isCollapsed) {
-                // テキストが選択されている場合
                 document.execCommand(format, false, null);
 
-                // 選択を解除するが、書式状態は変更しない（チカチカ防止）
                 setTimeout(() => {
                     if (selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
@@ -4448,7 +4291,6 @@
                     element.scrollTop = scrollTop;
                 }, 10);
             } else {
-                // 選択されていない場合
                 currentFormat[format] = isActive;
 
                 const range = selection.getRangeAt(0);
@@ -4458,14 +4300,12 @@
                 const hasFormat = hasParentTag(parentElement, tagName);
 
                 if (isActive && !hasFormat) {
-                    // フォーマットを適用
                     const formatNode = document.createElement(tagName.toLowerCase());
                     const dummyNode = document.createTextNode('\u200B');
                     formatNode.appendChild(dummyNode);
                     range.insertNode(formatNode);
                     range.setStart(dummyNode, 1);
                 } else if (!isActive && hasFormat) {
-                    // フォーマットを解除 - フォーマット範囲の外に移動
                     let formatElement = parentElement;
                     while (formatElement && formatElement !== element) {
                         if (formatElement.nodeName === tagName) {
@@ -4484,7 +4324,6 @@
                         range.setStart(dummyNode, 1);
                     }
                 } else {
-                    // 状態が一致している場合はゼロ幅スペースを挿入
                     const dummyNode = document.createTextNode('\u200B');
                     range.insertNode(dummyNode);
                     range.setStart(dummyNode, 1);
@@ -4499,7 +4338,6 @@
             }
         };
 
-        // カラー適用関数
         window.applyColor = function(elementId, color) {
             const element = document.getElementById(elementId);
             if (!element) {
@@ -4533,7 +4371,6 @@
                     span.appendChild(contents);
                     range.insertNode(span);
 
-                    // カラー適用範囲の直後にゼロ幅スペースを追加して移動
                     const after = document.createTextNode('\u200B');
                     range.setStartAfter(span);
                     range.insertNode(after);
@@ -4565,7 +4402,6 @@
             element.scrollTop = scrollTop;
         };
 
-        // カラー解除関数
         window.removeColor = function(elementId) {
             const element = document.getElementById(elementId);
             if (!element) {
@@ -4590,7 +4426,6 @@
             const scrollTop = element.scrollTop;
 
             if (!selection.isCollapsed) {
-                // 選択範囲がある場合
                 try {
                     const range = selection.getRangeAt(0);
                     const fragment = range.extractContents();
@@ -4620,7 +4455,6 @@
                     console.error('Failed to remove color from selection:', e);
                 }
             } else {
-                // カーソル位置のみの場合 - カラー範囲外に移動
                 try {
                     const range = selection.getRangeAt(0);
                     let node = range.startContainer;
@@ -4638,7 +4472,6 @@
                     }
 
                     if (colorSpan) {
-                        // カラー範囲の直後にゼロ幅スペースを追加して移動
                         const after = document.createTextNode('\u200B');
                         if (colorSpan.nextSibling) {
                             colorSpan.parentNode.insertBefore(after, colorSpan.nextSibling);
@@ -4671,15 +4504,12 @@
 
             const range = selection.getRangeAt(0);
 
-            // 半角スペースの場合は特別処理
             if (text === ' ') {
-                // ノーブレークスペース(&nbsp;)を使用
                 const textNode = document.createTextNode('\u00A0');
 
                 range.deleteContents();
                 range.insertNode(textNode);
 
-                // カーソルを挿入したテキストの後ろに移動
                 range.setStartAfter(textNode);
                 range.collapse(true);
                 selection.removeAllRanges();
@@ -4690,7 +4520,6 @@
                 range.deleteContents();
                 range.insertNode(textNode);
 
-                // カーソルを挿入したテキストの後ろに移動
                 range.setStartAfter(textNode);
                 range.collapse(true);
                 selection.removeAllRanges();
@@ -4711,7 +4540,6 @@
             const range = selection.getRangeAt(0);
 
             if (!selection.isCollapsed) {
-                // 選択範囲がある場合
                 const selectedContent = range.extractContents();
                 const fragment = document.createDocumentFragment();
 
@@ -4722,11 +4550,9 @@
                 range.insertNode(fragment);
                 range.collapse(false);
             } else {
-                // 選択範囲がない場合
                 const textNode = document.createTextNode('「」');
                 range.insertNode(textNode);
 
-                // カーソルを「」の間に移動
                 range.setStart(textNode, 1);
                 range.collapse(true);
             }
@@ -4780,7 +4606,6 @@
                 } else {
                     document.execCommand('formatBlock', false, format);
 
-                    // 選択を解除
                     setTimeout(() => {
                         if (selection.rangeCount > 0) {
                             const range = selection.getRangeAt(0);
@@ -4848,7 +4673,6 @@
                 selection.removeAllRanges();
                 selection.addRange(range);
             } else {
-                // 位置が見つからない場合は最後に設定
                 range.selectNodeContents(element);
                 range.collapse(false);
                 selection.removeAllRanges();
@@ -4858,11 +4682,9 @@
             element.focus();
         }
 
-        // 選択範囲を保存する変数
         let savedSelection = null;
 
         window.saveSelection = function(elementId) {
-            // この関数は他の用途で使われている可能性があるので残す
             const element = document.getElementById(elementId);
             if (!element) return;
 
@@ -4892,12 +4714,10 @@
             const selection = window.getSelection();
             if (selection.rangeCount > 0 && !selection.isCollapsed) {
                 const range = selection.getRangeAt(0);
-                // ruby要素内のテキストを除外
                 const fragment = range.cloneContents();
                 const temp = document.createElement('div');
                 temp.appendChild(fragment);
 
-                // rt要素を削除
                 const rtElements = temp.querySelectorAll('rt');
                 rtElements.forEach(rt => rt.remove());
 
@@ -4920,7 +4740,6 @@
 
                 const cursorNode = range.startContainer;
 
-                // 選択範囲内の既存ruby要素を削除
                 if (!selection.isCollapsed) {
                     const fragment = range.cloneContents();
                     const tempDiv = document.createElement('div');
@@ -4966,7 +4785,6 @@
                     range.deleteContents();
                 }
 
-                // 新しいruby要素を作成
                 const ruby = document.createElement('ruby');
                 ruby.textContent = baseText;
 
@@ -5007,7 +4825,6 @@
 
             const range = selection.getRangeAt(0);
 
-            // 選択されているruby要素を取得
             let rubyElement = null;
 
             if (range.startContainer.nodeType === 1 &&
@@ -5030,7 +4847,6 @@
             }
 
             if (rubyElement) {
-                // 新しいruby要素を作成
                 const newRuby = document.createElement('ruby');
                 newRuby.textContent = baseText;
 
@@ -5038,10 +4854,8 @@
                 rt.textContent = rubyText;
                 newRuby.appendChild(rt);
 
-                // 古いruby要素を置き換え
                 rubyElement.parentNode.replaceChild(newRuby, rubyElement);
 
-                // カーソルをルビの後ろに移動
                 const afterNode = newRuby.nextSibling;
                 if (afterNode && afterNode.nodeType === 3 && afterNode.textContent === '\u200B') {
                     const newRange = document.createRange();
@@ -5088,7 +4902,6 @@
 
             const range = selection.getRangeAt(0);
 
-            // 選択されているruby要素を取得
             let rubyElement = null;
 
             if (range.startContainer.nodeType === 1 &&
@@ -5111,16 +4924,13 @@
             }
 
             if (rubyElement) {
-                // ベーステキストを取得
                 const baseText = Array.from(rubyElement.childNodes)
                     .filter(n => n.nodeName !== 'RT')
                     .map(n => n.textContent)
                     .join('');
 
-                // テキストノードを作成
                 const textNode = document.createTextNode(baseText);
 
-                // 前後のゼロ幅スペースを削除
                 const prevNode = rubyElement.previousSibling;
                 const nextNode = rubyElement.nextSibling;
 
@@ -5131,10 +4941,8 @@
                     nextNode.remove();
                 }
 
-                // ruby要素をテキストノードに置き換え
                 rubyElement.parentNode.replaceChild(textNode, rubyElement);
 
-                // カーソルをテキストの末尾に移動
                 const newRange = document.createRange();
                 newRange.setStart(textNode, textNode.textContent.length);
                 newRange.collapse(true);
@@ -5157,7 +4965,6 @@
 
             const range = selection.getRangeAt(0);
 
-            // ruby要素全体が選択されているかチェック
             if (range.startContainer === range.endContainer &&
                 range.startContainer.nodeType === 1) {
                 const selectedNode = range.startContainer.childNodes[range.startOffset];
@@ -5173,11 +4980,9 @@
                 }
             }
 
-            // 選択範囲の開始・終了位置からruby要素を探す
             let startNode = range.startContainer;
             let endNode = range.endContainer;
 
-            // テキストノードの場合は親要素を取得
             if (startNode.nodeType === 3) {
                 startNode = startNode.parentElement;
             }
@@ -5185,7 +4990,6 @@
                 endNode = endNode.parentElement;
             }
 
-            // 開始位置と終了位置が同じruby要素内にあるかチェック
             let startRuby = null;
             let endRuby = null;
 
@@ -5207,7 +5011,6 @@
                 node = node.parentElement;
             }
 
-            // 同じruby要素内の選択、またはカーソルがruby要素内にある場合
             if (startRuby && startRuby === endRuby) {
                 const baseText = Array.from(startRuby.childNodes)
                     .filter(n => n.nodeName !== 'RT')
@@ -5216,7 +5019,6 @@
                 const rtElement = startRuby.querySelector('rt');
                 const rubyText = rtElement ? rtElement.textContent : '';
 
-                // ruby要素全体を選択し直す
                 const newRange = document.createRange();
                 newRange.selectNode(startRuby);
                 selection.removeAllRanges();
@@ -5225,7 +5027,6 @@
                 return [baseText, rubyText];
             }
 
-            // 複数のruby要素にまたがる選択の場合はnullを返す（新規追加として扱う）
             const fragment = range.cloneContents();
             const tempDiv = document.createElement('div');
             tempDiv.appendChild(fragment);
@@ -5238,11 +5039,9 @@
             return null;
         };
 
-        // contenteditable要素のクリックイベントを監視
         document.addEventListener('click', function(e) {
             const target = e.target;
 
-            // content-editableまたはcontent-editable-mobile内のクリックか確認
             let editableElement = null;
             if (target.id === 'content-editable' || target.id === 'content-editable-mobile') {
                 editableElement = target;
@@ -5259,7 +5058,6 @@
 
             if (!editableElement) return;
 
-            // ruby要素またはその子要素がクリックされた場合の処理
             let rubyElement = null;
             if (target.nodeName === 'RUBY') {
                 rubyElement = target;
@@ -5270,7 +5068,6 @@
             }
 
             if (rubyElement) {
-                // ruby要素全体を選択
                 const selection = window.getSelection();
                 const range = document.createRange();
                 range.selectNode(rubyElement);
@@ -5281,16 +5078,13 @@
                 return;
             }
 
-            // クリック位置が末尾付近で、最後の要素がrubyの場合
             const rect = editableElement.getBoundingClientRect();
             const clickY = e.clientY;
 
-            // 下半分をクリックした場合
             if (clickY > rect.top + rect.height / 2) {
                 const lastChild = editableElement.lastChild;
                 let needsNewLine = false;
 
-                // 最後の要素がrubyまたはゼロ幅スペースの場合
                 if (lastChild) {
                     if (lastChild.nodeName === 'RUBY') {
                         needsNewLine = true;
@@ -5301,7 +5095,6 @@
                 }
 
                 if (needsNewLine) {
-                    // 末尾にテキストノードを追加
                     const textNode = document.createTextNode('\u200B');
                     editableElement.appendChild(textNode);
 
@@ -5318,11 +5111,9 @@
             }
         });
 
-        // ruby要素内での直接入力を防ぐ
         document.addEventListener('beforeinput', function(e) {
             const target = e.target;
 
-            // content-editableまたはcontent-editable-mobile内の入力か確認
             if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                 return;
             }
@@ -5333,12 +5124,10 @@
             const range = selection.getRangeAt(0);
             let node = range.startContainer;
 
-            // テキストノードの場合は親要素を取得
             if (node.nodeType === 3) {
                 node = node.parentElement;
             }
 
-            // ruby要素内またはrt要素内にいるかチェック
             let currentNode = node;
             let rubyElement = null;
 
@@ -5348,26 +5137,21 @@
                     break;
                 }
                 if (currentNode.nodeName === 'RT') {
-                    // rt要素内の場合、親のruby要素を取得
                     rubyElement = currentNode.parentElement;
                     break;
                 }
                 currentNode = currentNode.parentElement;
             }
 
-            // ruby要素内での入力を検出した場合
             if (rubyElement) {
                 e.preventDefault();
 
-                // ruby要素の直後にカーソルを移動
                 const newRange = document.createRange();
                 const afterNode = rubyElement.nextSibling;
 
                 if (afterNode && afterNode.nodeType === 3 && afterNode.textContent === '\u200B') {
-                    // 既存のゼロ幅スペースにカーソルを移動
                     newRange.setStart(afterNode, 1);
                 } else {
-                    // ゼロ幅スペースを追加
                     const zeroWidthSpace = document.createTextNode('\u200B');
                     if (rubyElement.nextSibling) {
                         rubyElement.parentNode.insertBefore(zeroWidthSpace, rubyElement.nextSibling);
@@ -5381,7 +5165,6 @@
                 selection.removeAllRanges();
                 selection.addRange(newRange);
 
-                // 入力内容が文字の場合は、カーソル位置に挿入
                 if (e.data) {
                     document.execCommand('insertText', false, e.data);
                 }
@@ -5390,54 +5173,43 @@
             }
         });
 
-        // inputイベントでもチェック（ペーストや部分削除などの場合）
         document.addEventListener('input', function(e) {
             const target = e.target;
 
-            // content-editableまたはcontent-editable-mobile内の変更か確認
             if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                 return;
             }
 
-            // すべてのruby要素をチェック
             const rubyElements = target.querySelectorAll('ruby');
             const elementsToRemove = [];
 
             rubyElements.forEach(ruby => {
-                // 元のruby構造が壊れているかチェック
                 const rtElement = ruby.querySelector('rt');
 
-                // rtがない、または子要素の構造が不正な場合は削除
                 if (!rtElement) {
                     elementsToRemove.push(ruby);
                     return;
                 }
 
-                // rt要素以外のテキストを取得
                 let baseText = '';
                 let hasOnlyTextAndRt = true;
 
                 Array.from(ruby.childNodes).forEach(node => {
                     if (node.nodeName === 'RT') {
-                        // rtはスキップ
+
                     } else if (node.nodeType === 3) {
-                        // テキストノード
                         baseText += node.textContent;
                     } else {
-                        // その他の要素が含まれている場合は構造が壊れている
                         hasOnlyTextAndRt = false;
                     }
                 });
 
-                // 構造が壊れているか、ベーステキストが空の場合は削除
                 if (!hasOnlyTextAndRt || !baseText || baseText.trim() === '') {
                     elementsToRemove.push(ruby);
                 }
             });
 
-            // 削除対象のruby要素を削除
             elementsToRemove.forEach(ruby => {
-                // 前後のゼロ幅スペースも削除
                 const prevNode = ruby.previousSibling;
                 const nextNode = ruby.nextSibling;
 
@@ -5451,23 +5223,18 @@
                 ruby.remove();
             });
 
-            // 空の書式タグを削除
             cleanupEmptyFormatTags(target);
         });
 
-        // 空の書式タグを削除する関数を修正
         function cleanupEmptyFormatTags(element) {
             const formatTags = ['B', 'STRONG', 'I', 'EM', 'U'];
 
             formatTags.forEach(tagName => {
                 const tags = element.querySelectorAll(tagName.toLowerCase());
                 tags.forEach(tag => {
-                    // テキストコンテンツを取得（ゼロ幅スペースを除く）
                     const text = tag.textContent.replace(/\u200B/g, '').trim();
 
-                    // 空の場合、または子要素がなくゼロ幅スペースのみの場合は削除
                     if (!text || (tag.childNodes.length === 1 && tag.textContent === '\u200B')) {
-                        // 前後のゼロ幅スペースも削除
                         const prevNode = tag.previousSibling;
                         const nextNode = tag.nextSibling;
 
@@ -5484,33 +5251,27 @@
             });
         }
 
-        // テキスト入力時のUndoスタック管理
         window.setupInputUndoTracking = function() {
             let inputTimeout = null;
             let lastInputTime = 0;
 
-            // beforeinput: 入力前の状態を保存
             document.addEventListener('beforeinput', function(e) {
                 const target = e.target;
 
-                // content-editableまたはcontent-editable-mobile内の入力か確認
                 if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                     return;
                 }
 
                 const elementId = target.id;
 
-                // 初期状態を保存（初回のみ）
                 if (lastSavedContent[elementId] === undefined) {
                     lastSavedContent[elementId] = target.innerHTML;
                 }
             }, true);
 
-            // inputイベントでの自動保存
             document.addEventListener('input', function(e) {
                 const target = e.target;
 
-                // content-editableまたはcontent-editable-mobile内の入力か確認
                 if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                     return;
                 }
@@ -5518,24 +5279,19 @@
                 const elementId = target.id;
                 const currentTime = Date.now();
 
-                // 初期状態を保存（初回のみ）
                 if (lastSavedContent[elementId] === undefined) {
                     lastSavedContent[elementId] = target.innerHTML;
                 }
 
-                // inputイベント発生時、タイマーをリセット
                 if (inputTimeout) {
                     clearTimeout(inputTimeout);
                 }
 
-                // 500ms間入力がなければUndoスタックに保存
                 inputTimeout = setTimeout(function() {
                     const currentContent = target.innerHTML;
                     const previousContent = lastSavedContent[elementId];
 
-                    // 内容が変わっている場合のみ保存
                     if (previousContent !== undefined && previousContent !== currentContent) {
-                        // 前の状態をundoスタックに保存
                         const state = {
                             html: previousContent,
                             selection: saveSelectionState(target)
@@ -5545,23 +5301,21 @@
                         if (undoStack.length > MAX_UNDO_STACK) {
                             undoStack.shift();
                         }
-                        redoStack = []; // 新しい入力でredoスタックをクリア
+                        redoStack = [];
 
                         lastSavedContent[elementId] = currentContent;
                         notifyUndoRedoStates();
 
                         console.log('Undo state saved:', undoStack.length);
                     }
-                }, 500); // 500msのディレイ（1秒から短縮）
+                }, 500);
 
                 lastInputTime = currentTime;
-            }, true); // キャプチャフェーズで実行
+            }, true);
 
-            // キーボードショートカット (Ctrl+Z, Ctrl+Y)
             document.addEventListener('keydown', function(e) {
                 const target = e.target;
 
-                // content-editableまたはcontent-editable-mobile内の入力か確認
                 if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                     return;
                 }
@@ -5571,7 +5325,6 @@
                 if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
                     e.preventDefault();
 
-                    // タイマーがある場合は即座に保存してからUndo
                     if (inputTimeout) {
                         clearTimeout(inputTimeout);
                         inputTimeout = null;
@@ -5597,24 +5350,20 @@
                     e.preventDefault();
                     window.redoEditor(elementId);
                 }
-            }, true); // キャプチャフェーズで実行
+            }, true);
         };
 
-        // キーボード入力でのruby削除処理を追加
         document.addEventListener('keydown', function(e) {
             const target = e.target;
 
-            // content-editableまたはcontent-editable-mobile内の入力か確認
             if (target.id !== 'content-editable' && target.id !== 'content-editable-mobile') {
                 return;
             }
 
-            // BackspaceまたはDeleteキーの場合
             if (e.key === 'Backspace' || e.key === 'Delete') {
                 const selection = window.getSelection();
 
                 if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
-                    // 選択範囲がある場合、削除前に現在の状態を保存
                     const element = document.getElementById(target.id);
                     if (element) {
                         const state = {
@@ -5634,20 +5383,16 @@
 
                 const range = selection.getRangeAt(0);
 
-                // 選択範囲がある場合
                 if (!selection.isCollapsed) {
                     const fragment = range.cloneContents();
                     const tempDiv = document.createElement('div');
                     tempDiv.appendChild(fragment);
 
-                    // 選択範囲内または部分的に含まれるruby要素をチェック
                     let affectedRubies = [];
 
-                    // 範囲の開始・終了コンテナからruby要素を探す
                     let startNode = range.startContainer;
                     let endNode = range.endContainer;
 
-                    // 開始位置のruby要素をチェック
                     let node = startNode;
                     while (node && node !== target) {
                         if (node.nodeName === 'RUBY') {
@@ -5657,7 +5402,6 @@
                         node = node.parentElement;
                     }
 
-                    // 終了位置のruby要素をチェック（開始と異なる場合）
                     node = endNode;
                     while (node && node !== target) {
                         if (node.nodeName === 'RUBY' && !affectedRubies.includes(node)) {
@@ -5667,10 +5411,8 @@
                         node = node.parentElement;
                     }
 
-                    // 範囲内のすべてのruby要素もチェック
                     const rangeRubies = tempDiv.querySelectorAll('ruby');
                     if (rangeRubies.length > 0) {
-                        // 実際のDOM内で対応するruby要素を見つける
                         const allRubies = target.querySelectorAll('ruby');
                         allRubies.forEach(ruby => {
                             if (range.intersectsNode(ruby) && !affectedRubies.includes(ruby)) {
@@ -5682,7 +5424,6 @@
                     if (affectedRubies.length > 0) {
                         e.preventDefault();
 
-                        // 影響を受けるruby要素を全て削除
                         affectedRubies.forEach(ruby => {
                             const prevNode = ruby.previousSibling;
                             const nextNode = ruby.nextSibling;
@@ -5697,7 +5438,6 @@
                             ruby.remove();
                         });
 
-                        // 選択範囲内の他のコンテンツも削除
                         if (selection.rangeCount > 0) {
                             const newRange = selection.getRangeAt(0);
                             newRange.deleteContents();
@@ -5706,13 +5446,11 @@
                         return;
                     }
 
-                    // ruby要素が含まれない通常の削除
                     const hasRuby = tempDiv.querySelector('ruby') !== null;
                     if (hasRuby) {
                         e.preventDefault();
                         range.deleteContents();
 
-                        // 削除後のクリーンアップは後続の処理で行われる
                         setTimeout(() => {
                             const rubyElements = target.querySelectorAll('ruby');
                             rubyElements.forEach(ruby => {
@@ -5738,13 +5476,10 @@
                         }, 0);
                     }
                 } else {
-                    // カーソル位置のみの場合（選択範囲なし）
                     const node = range.startContainer;
                     let rubyElement = null;
 
-                    // ruby要素の中または隣接しているかチェック
                     if (node.nodeType === 3) {
-                        // テキストノードの場合、親がrubyかチェック
                         let parent = node.parentElement;
                         while (parent && parent !== target) {
                             if (parent.nodeName === 'RUBY') {
@@ -5754,10 +5489,8 @@
                             parent = parent.parentElement;
                         }
 
-                        // ruby要素の直前または直後にいるかチェック
                         if (!rubyElement) {
                             if (e.key === 'Backspace') {
-                                // ゼロ幅スペース位置での削除を修正
                                 if (node.textContent === '\u200B' && range.startOffset === 1) {
                                     const prevNode = node.previousSibling;
                                     if (prevNode?.nodeName === 'RUBY') {
@@ -5767,7 +5500,6 @@
                                     rubyElement = node.previousSibling;
                                 }
                             } else if (e.key === 'Delete') {
-                                // Deleteの場合、直後のノードをチェック
                                 if (node.textContent === '\u200B' && range.startOffset === 0) {
                                     const nextNode = node.nextSibling;
                                     if (nextNode?.nodeName === 'RUBY') {
@@ -5779,7 +5511,6 @@
                             }
                         }
                     } else if (node.nodeType === 1) {
-                        // 要素ノードの場合
                         if (e.key === 'Backspace' && range.startOffset > 0) {
                             const prevNode = node.childNodes[range.startOffset - 1];
                             if (prevNode?.nodeName === 'RUBY') {
@@ -5793,11 +5524,9 @@
                         }
                     }
 
-                    // ruby要素が見つかった場合、全体を削除
                     if (rubyElement) {
                         e.preventDefault();
 
-                        // 前後のゼロ幅スペースも削除
                         const prevNode = rubyElement.previousSibling;
                         const nextNode = rubyElement.nextSibling;
                         const parentNode = rubyElement.parentNode;
@@ -5813,10 +5542,8 @@
 
                         rubyElement.remove();
 
-                        // カーソル位置を適切に設定
                         const newRange = document.createRange();
                         if (isAfterRuby && parentNode.lastChild) {
-                            // Backspaceの場合、削除位置の直前に配置
                             newRange.selectNodeContents(parentNode);
                             newRange.collapse(false);
                         } else if (parentNode.firstChild) {
@@ -5840,12 +5567,10 @@
 
             const selection = window.getSelection();
 
-            // 選択範囲が存在し、かつeditable要素内にあるかチェック
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 let node = range.commonAncestorContainer;
 
-                // editable要素内にあるかチェック
                 let isInside = false;
                 let checkNode = node;
                 while (checkNode) {
@@ -5857,7 +5582,6 @@
                 }
 
                 if (isInside) {
-                    // 要素内にある場合は現在の位置を保存
                     savedSelection = {
                         range: range.cloneRange(),
                         elementId: elementId
@@ -5866,24 +5590,19 @@
                 }
             }
 
-            // 要素内にない場合、または選択範囲がない場合は末尾に移動
             element.focus();
             const newRange = document.createRange();
 
-            // 要素の末尾にカーソルを配置
             if (element.childNodes.length > 0) {
                 const lastChild = element.lastChild;
 
-                // 最後の子要素がテキストノードの場合
                 if (lastChild.nodeType === 3) {
                     newRange.setStart(lastChild, lastChild.textContent.length);
                 } else {
-                    // それ以外の場合は要素の末尾
                     newRange.selectNodeContents(element);
                     newRange.collapse(false);
                 }
             } else {
-                // 子要素がない場合は要素自体の末尾
                 newRange.selectNodeContents(element);
                 newRange.collapse(false);
             }
@@ -5916,7 +5635,6 @@
                     const tempDiv = document.createElement('div');
                     tempDiv.appendChild(fragment);
 
-                    // すべてのタグを削除してプレーンテキストに
                     const textContent = tempDiv.textContent;
                     const textNode = document.createTextNode(textContent);
 
@@ -5968,16 +5686,13 @@
             const range = selection.getRangeAt(0);
             let node = range.startContainer;
 
-            // テキストノードの場合、親要素を取得
             if (node.nodeType === 3) {
                 node = node.parentElement;
             }
 
-            // カレント位置の色を取得
             while (node && node !== element) {
                 const color = window.getComputedStyle(node).color;
                 if (color && color !== 'rgb(0, 0, 0)' && color !== 'rgba(0, 0, 0, 0)') {
-                    // rgb(r, g, b)形式を#rrggbb形式に変換
                     const rgb = color.match(/\d+/g);
                     if (rgb && rgb.length >= 3) {
                         const hex = '#' + rgb.slice(0, 3).map(x => {

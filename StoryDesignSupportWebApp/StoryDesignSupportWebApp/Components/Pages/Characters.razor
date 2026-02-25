@@ -46,7 +46,6 @@
         transition: height 0.3s ease;
     }
 
-    /* サイドバー */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -409,7 +408,6 @@
         white-space: nowrap;
     }
 
-    /* エディタエリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -667,7 +665,6 @@
             line-height: 1.8;
         }
 
-    /* モーダル */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -800,7 +797,6 @@
             background-color: #5a6268;
         }
 
-    /* 画像トリミングモーダル */
     .crop-modal-overlay {
         position: fixed;
         top: 0;
@@ -890,7 +886,6 @@
         justify-content: flex-end;
     }
 
-    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -963,7 +958,6 @@
         padding: 20px;
     }
 
-    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -1012,7 +1006,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+            height: calc(100dvh - 3.5rem);
         }
 
         .mobile-editor-content {
@@ -1113,14 +1107,11 @@
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
-        <!-- サイドバー開くボタン -->
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
         }
 
-        <!-- 左サイドバー：カテゴリ一覧またはナビゲーション -->
         <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
             @if (_showCategoryView) {
                 <div class="sidebar-header" @onclick="BackToCategoryView">
@@ -1181,7 +1172,6 @@
             }
         </div>
 
-        <!-- 中央パネル：人物リスト -->
         @if (_showCategoryView && _selectedCategory != null) {
             <div class="character-list-panel">
                 <div class="character-list-header">
@@ -1235,12 +1225,10 @@
             </div>
         }
 
-        <!-- 右側エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _selectedCharacter != null) {
                 <div class="editor-content">
                     <div class="character-editor-layout">
-                        <!-- 画像エリア -->
                         <div class="character-image-section">
                             <div class="image-square">
                                 @if (_selectedCharacter.Image != null && _selectedCharacter.Image.Length > 0) {
@@ -1262,7 +1250,6 @@
                             }
                         </div>
 
-                        <!-- テキストフィールド -->
                         <div class="character-fields-section">
                             <div class="field-group">
                                 <label>名前</label>
@@ -1327,7 +1314,6 @@
                         </div>
                     </div>
 
-                    <!-- 概要エディタ -->
                     <div class="overview-section">
                         <div class="overview-toolbar">
                             <button class="toolbar-btn" title="大見出し"
@@ -1369,7 +1355,6 @@
         </div>
     </div>
 
-    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             <div class="mobile-editor">
@@ -1589,8 +1574,6 @@
         }
     </div>
 
-
-    <!-- カテゴリ追加/編集モーダル -->
     @if (_showCategoryModal) {
         <div class="modal-overlay" @onclick="CloseCategoryModal">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1606,7 +1589,6 @@
         </div>
     }
 
-    <!-- カテゴリ削除確認モーダル -->
     @if (_showDeleteCategoryConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteCategoryConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1623,7 +1605,6 @@
         </div>
     }
 
-    <!-- 人物削除確認モーダル -->
     @if (_showDeleteCharacterConfirm) {
         <div class="modal-overlay" @onclick="CloseDeleteCharacterConfirm">
             <div class="modal-content" @onclick:stopPropagation="true">
@@ -1639,7 +1620,6 @@
         </div>
     }
 
-    <!-- 画像トリミングモーダル -->
     @if (_showCropModal) {
         <div class="crop-modal-overlay">
             <div class="crop-modal-content" @onclick:stopPropagation="true">
@@ -1685,7 +1665,6 @@
     private System.Threading.Timer? _autoSaveTimer;
     private SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
 
-    // モーダル関連
     private bool _showCategoryModal = false;
     private string _categoryModalTitle = "";
     private bool _isEditingCategory = false;
@@ -1693,16 +1672,13 @@
     private bool _showDeleteCharacterConfirm = false;
     private CharacterCategory? _editingCategory;
     private Character? _editingCharacter;
-    // 画像トリミング
     private bool _showCropModal = false;
     private byte[]? _pendingImageBytes = null;
     private string _pendingImageMime = "image/jpeg";
     private int _cropScale = 100;
 
-    // サイドバー
     private bool _sidebarCollapsed = false;
 
-    // デスクトップ/モバイル判定
     private bool _isResizing = false;
 
     protected override async Task OnInitializedAsync() {
@@ -1723,7 +1699,6 @@
             return;
         }
 
-        // CharacterDataの初期化
         if (_project.ProjectDataObject.Character == null) {
             _project.ProjectDataObject.Character = new CharacterData();
         }
@@ -1743,7 +1718,6 @@
 
         bool needUpdate = (_selectedCharacter != _lastRenderedCharacter || _isResizing);
 
-        // デスクトップとモバイル間の同期
         if (needUpdate && _selectedCharacter != null) {
             await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor", _selectedCharacter.Overview ?? "");
             await JSRuntime.InvokeVoidAsync("setOverviewContent", "overview-editor-mobile", _selectedCharacter.Overview ?? "");
@@ -1797,18 +1771,17 @@
             if (_project != null) {
                 _project.UpdatedAt = DateTime.UtcNow;
 
-                // リトライロジック
                 int maxRetries = 3;
                 for (int i = 0; i < maxRetries; i++) {
                     try {
                         await using var db = DbFactory.CreateDbContext();
                         db.Projects.Update(_project);
                         await db.SaveChangesAsync();
-                        break; // 成功したらループを抜ける
+                        break;
                     }
                     catch (Exception ex) when (i < maxRetries - 1) {
                         Console.WriteLine($"AutoSave attempt {i + 1} failed: {ex.Message}");
-                        await Task.Delay(500 * (i + 1)); // リトライ前に待機
+                        await Task.Delay(500 * (i + 1));
                     }
                 }
             }
@@ -1828,7 +1801,6 @@
         try {
             using var context = await DbFactory.CreateDbContextAsync();
 
-            // カテゴリを検索してキャラクターを更新
             foreach (var category in _project.ProjectDataObject.Character.Category) {
                 var character = category.Characters?.FirstOrDefault(c => c == _selectedCharacter);
                 if (_mobileShowEditor) {
@@ -1917,7 +1889,6 @@
         StateHasChanged();
     }
 
-    // モバイル用
     private async Task SelectCharacterCategoryMobile(CharacterCategory category) {
         if (_selectedCharacter != null) {
             await SaveOverviewContent();
@@ -1960,7 +1931,6 @@
         StateHasChanged();
     }
 
-    // カテゴリ追加モーダル
     private void ShowAddCategoryModal() {
         var categoryCount = _project?.ProjectDataObject?.Character?.Category?.Length ?? 0;
         _categoryModalTitle = $"カテゴリ{categoryCount + 1}";
@@ -2088,12 +2058,10 @@
         _sidebarCollapsed = !_sidebarCollapsed;
     }
 
-    // ドラッグアンドドロップ用の変数を追加
     private int _dragSourceIndex = -1;
     private int _dragOverIndex = -1;
     private bool _dragOverBottom = false;
 
-    // ドラッグアンドドロップ用のメソッドを追加
     private void HandleDragStart(int index) {
         _dragSourceIndex = index;
     }
@@ -2106,7 +2074,6 @@
 
     private void HandleDragOver(DragEventArgs e, int index) {
         _dragOverIndex = index;
-        // 要素の高さの半分より下にマウスがある場合は下に挿入
         _dragOverBottom = e.OffsetY > 20;
     }
 
@@ -2141,31 +2108,23 @@
         var categories = _project.ProjectDataObject.Character.Category.ToList();
         var draggedCategory = categories[_dragSourceIndex];
 
-        // 元の位置から削除
         categories.RemoveAt(_dragSourceIndex);
 
-        // 新しい位置に挿入
         int insertIndex = targetIndex;
 
-        // ドラッグ元より前の要素にドロップした場合
         if (_dragSourceIndex > targetIndex) {
-            // 上半分なら手前に、下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
-        // ドラッグ元より後の要素にドロップした場合
         else {
-            // 削除によってインデックスが1つ減っているので調整
             insertIndex--;
 
-            // 下半分なら後ろに挿入
             if (_dragOverBottom) {
                 insertIndex++;
             }
         }
 
-        // インデックスの範囲チェック
         if (insertIndex < 0) insertIndex = 0;
         if (insertIndex > categories.Count) insertIndex = categories.Count;
 
@@ -2260,7 +2219,6 @@
         }
     }
 
-    // 画像アップロード（一時・保存なし）
     private async Task HandleImageUpload(InputFileChangeEventArgs e) {
         var file = e.File;
         if (file == null) return;
@@ -2274,7 +2232,6 @@
         _showCropModal = true;
         StateHasChanged();
 
-        // モーダルが描画された後にJS側へ画像をセット
         var base64 = Convert.ToBase64String(_pendingImageBytes);
         await JSRuntime.InvokeVoidAsync("cropEditor.init",
             "crop-viewport", "crop-image", "crop-scale-slider",
@@ -2303,7 +2260,6 @@
             "cropEditor.crop", "crop-viewport", "crop-image");
 
         if (!string.IsNullOrEmpty(resultBase64)) {
-            // "data:image/webp;base64,XXXX" または "data:image/jpeg;base64,XXXX"
             var comma = resultBase64.IndexOf(',');
             var data = comma >= 0 ? resultBase64[(comma + 1)..] : resultBase64;
             _selectedCharacter.Image = Convert.FromBase64String(data);
@@ -2351,7 +2307,7 @@
         ");
         }
         catch {
-            // 既に切断されている場合は無視
+
         }
 
         _instances.Remove(_instanceId);
@@ -2386,10 +2342,8 @@
 
 <script>
     (function() {
-        // Blazor接続状態を追跡
         let blazorConnected = true;
 
-        // Blazor切断検知
         if (window.Blazor) {
             Blazor.disconnect = new Proxy(Blazor.disconnect || (() => {}), {
                 apply: function(target, thisArg, args) {
@@ -2403,7 +2357,6 @@
 
             if (window['editorEventListenersRegistered_' + instanceId]) return;
             window['editorEventListenersRegistered_' + instanceId] = true;
-            // リサイズ検知
             let resizeTimer;
             window.addEventListener('resize', function() {
                 if (!window.blazorConnected) return;
@@ -2418,7 +2371,6 @@
                 }, 300);
             });
 
-            // Blazor接続状態の初期化
             window.blazorConnected = true;
         };
 
@@ -2499,13 +2451,11 @@
                 const iw = img.naturalWidth;
                 const ih = img.naturalHeight;
 
-                // 短辺がビューポートと一致する初期スケール（はみ出さない最小値）
                 const minScale = vpSize / Math.min(iw, ih);
                 st.minScale = minScale;
                 st.scale = minScale;
                 st.baseScale = minScale;
 
-                // 画像を中央に配置
                 st.offsetX = (vpSize - iw * st.scale) / 2;
                 st.offsetY = (vpSize - ih * st.scale) / 2;
                 window.cropEditor._clampOffset();
@@ -2520,14 +2470,12 @@
             };
             img.src = src;
 
-            // マウスドラッグ
             vp.onmousedown = function (e) {
                 st.dragging = true;
                 st.lastX = e.clientX;
                 st.lastY = e.clientY;
                 e.preventDefault();
             };
-            // グローバルに登録（モーダルを跨いでもドラッグが続く）
             window._cropMouseMove = function (e) {
                 if (!st.dragging) return;
                 st.offsetX += e.clientX - st.lastX;
@@ -2541,7 +2489,6 @@
             window.addEventListener('mousemove', window._cropMouseMove);
             window.addEventListener('mouseup', window._cropMouseUp);
 
-            // タッチ
             vp.ontouchstart = function (e) {
                 if (e.touches.length === 1) {
                     st.dragging = true;
@@ -2572,10 +2519,8 @@
             const img = document.getElementById(imgId);
             if (!img) return;
 
-            // sliderVal 100 = minScale（短辺ぴったり）、300 = 3倍
             const newScale = st.baseScale * (sliderVal / 100);
 
-            // ビューポート中心を固定点としてオフセットを再計算
             const cx = vpSize / 2;
             const cy = vpSize / 2;
             const ratio = newScale / st.scale;
@@ -2586,7 +2531,6 @@
             window.cropEditor._apply();
         },
 
-        // 画像がビューポートからはみ出さないようオフセットを制限
         _clampOffset: function () {
             const st = window.cropEditor._state;
             const vp = document.getElementById(st.viewportId);
@@ -2597,8 +2541,6 @@
             const scaledW = img.naturalWidth * st.scale;
             const scaledH = img.naturalHeight * st.scale;
 
-            // X軸：画像右端がビューポート右端より左に来てはいけない
-            //      画像左端がビューポート左端より右に来てはいけない
             const maxX = 0;
             const minX = vpSize - scaledW;
             st.offsetX = Math.min(maxX, Math.max(minX, st.offsetX));
@@ -2631,7 +2573,6 @@
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            // ビューポート座標 → canvas(512x512) の変換比率
             const drawScale = 512 / vpSize;
 
             ctx.drawImage(
@@ -2643,7 +2584,6 @@
                 img.naturalHeight * st.scale * drawScale
             );
 
-            // WebP 品質0.85で軽量化
             const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
             const mime    = supportsWebP ? 'image/webp' : 'image/jpeg';
             const quality = supportsWebP ? 0.85 : 0.88;
@@ -2651,7 +2591,6 @@
         },
 
         destroy: function () {
-            // モーダルを閉じる際にグローバルイベントを解除
             if (window._cropMouseMove) {
                 window.removeEventListener('mousemove', window._cropMouseMove);
                 window._cropMouseMove = null;

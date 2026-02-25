@@ -46,7 +46,6 @@
         transition: height 0.3s ease;
     }
 
-    /* サイドバー */
     .sidebar {
         width: 300px;
         background-color: #FAFCFF;
@@ -163,7 +162,6 @@
             font-weight: 600;
         }
 
-    /* エディタエリア */
     .editor-area {
         flex: 1;
         display: flex;
@@ -193,7 +191,6 @@
         padding: 30px 30px 20px 30px;
     }
 
-    /* プロット編集用スタイル */
     .plot-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -320,7 +317,6 @@
             background-color: #0550ae;
         }
 
-    /* 時系列編集用スタイル */
     .timeline-container {
         display: flex;
         flex-direction: column;
@@ -344,7 +340,6 @@
         margin-bottom: 16px;
     }
 
-    /* モバイルビュー */
     .mobile-view {
         display: none;
         height: calc(100dvh - 5.5rem);
@@ -507,7 +502,6 @@
             border-color: #0969da;
         }
 
-    /* レスポンシブ */
     @@media (max-width: 768px) {
         .desktop-view {
             display: none !important;
@@ -531,7 +525,7 @@
         .mobile-view,
         .mobile-list,
         .mobile-editor {
-            height: calc(100dvh - 3.5rem); /* ナビゲーションバー高さをスマホ向けに縮小 */
+            height: calc(100dvh - 3.5rem);
         }
 
         .mobile-editor-content {
@@ -632,7 +626,6 @@
 @if (_project == null) {
     <p>Loading...</p>
 } else {
-    <!-- デスクトップビュー -->
     <div class="edit-container desktop-view">
         @if (_sidebarCollapsed) {
             <button class="sidebar-open-btn" @onclick="ToggleSidebar">▶</button>
@@ -675,7 +668,6 @@
             }
         </div>
 
-        <!-- エディタエリア -->
         <div class="editor-area">
             @if (_showCategoryView && _structureMode == "plot") {
                 <div class="editor-header">
@@ -683,7 +675,6 @@
                 </div>
                 <div class="editor-content">
                     <div class="plot-container">
-                        <!-- 起 -->
                         <div class="plot-column">
                             <div class="plot-column-header">起</div>
                             <div class="plot-items">
@@ -705,7 +696,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
                         </div>
 
-                        <!-- 承 -->
                         <div class="plot-column">
                             <div class="plot-column-header">承</div>
                             <div class="plot-items">
@@ -727,7 +717,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
                         </div>
 
-                        <!-- 転 -->
                         <div class="plot-column">
                             <div class="plot-column-header">転</div>
                             <div class="plot-items">
@@ -749,7 +738,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
                         </div>
 
-                        <!-- 結 -->
                         <div class="plot-column">
                             <div class="plot-column-header">結</div>
                             <div class="plot-items">
@@ -801,7 +789,6 @@
         </div>
     </div>
 
-    <!-- モバイルビュー -->
     <div class="mobile-view">
         @if (_mobileShowEditor) {
             @if (_structureMode == "plot") {
@@ -811,7 +798,6 @@
                         <div class="mobile-editor-title">プロット編集</div>
                     </div>
                     <div class="mobile-editor-content">
-                        <!-- 起 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">起</div>
                             <div class="plot-items">
@@ -833,7 +819,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ki")'>+ 起を追加</button>
                         </div>
 
-                        <!-- 承 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">承</div>
                             <div class="plot-items">
@@ -855,7 +840,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("shou")'>+ 承を追加</button>
                         </div>
 
-                        <!-- 転 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">転</div>
                             <div class="plot-items">
@@ -877,7 +861,6 @@
                             <button class="add-plot-btn" @onclick='() => AddPlotItem("ten")'>+ 転を追加</button>
                         </div>
 
-                        <!-- 結 -->
                         <div class="mobile-plot-column">
                             <div class="mobile-plot-header">結</div>
                             <div class="plot-items">
@@ -973,7 +956,6 @@
     private bool _mobileShowEditor = false;
     private bool _sidebarCollapsed = false;
 
-    // デスクトップ/モバイル判定
     private bool _isMobile = false;
 
     protected override async Task OnInitializedAsync() {
@@ -994,12 +976,10 @@
             return;
         }
 
-        // StructureDataの初期化
         if (_project.ProjectDataObject.Structure == null) {
             _project.ProjectDataObject.Structure = new StructureData();
         }
 
-        // PlotDataの初期化
         if (_project.ProjectDataObject.Structure.Plots == null) {
             _project.ProjectDataObject.Structure.Plots = new PlotData {
                 Ki = Array.Empty<string>(),
@@ -1009,7 +989,6 @@
             };
         }
 
-        // TimeLineDataの初期化
         if (_project.ProjectDataObject.Structure.Timeline == null) {
             _project.ProjectDataObject.Structure.Timeline = new TimeLineData {
                 ChapterId = Array.Empty<int>(),
@@ -1017,7 +996,6 @@
             };
         }
 
-        // ScenarioDataの初期化（時系列用）
         if (_project.ProjectDataObject.Scenario == null) {
             _project.ProjectDataObject.Scenario = new ScenarioData {
                 Chapters = Array.Empty<Chapter>()
@@ -1098,7 +1076,6 @@
         _sidebarCollapsed = !_sidebarCollapsed;
     }
 
-    // プロット編集メソッド
     private async Task AddPlotItem(string column) {
         if (_project?.ProjectDataObject?.Structure?.Plots == null) return;
 
