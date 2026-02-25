@@ -640,9 +640,6 @@
                     <div class="category-item @(_structureMode == "plot" ? "active" : "")" @onclick='() => SelectStructureMode("plot")'>
                         プロット
                     </div>
-                    @* <div class="category-item @(_structureMode == "timeline" ? "active" : "")" @onclick='() => SelectStructureMode("timeline")'>
-                        時系列
-                    </div> *@
                 </div>
             } else {
                 <div class="sidebar-header" @onclick="BackToProjectList">
@@ -911,9 +908,6 @@
                 <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("plot")'>
                     プロット
                 </div>
-                @* <div class="mobile-category-item" @onclick='() => SelectStructureModeMobile("timeline")'>
-                    時系列
-                </div> *@
             </div>
             <div class="mobile-category-ui">
                 <div class="category-select-button" @onclick='() => SelectCategory("writing")'>
